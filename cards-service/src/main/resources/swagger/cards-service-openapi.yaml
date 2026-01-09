@@ -1,0 +1,209 @@
+openapi: 3.0.3
+info:
+  title: BootCoin BankX API
+  description: API contract-first para banca digital, Yanki y BootCoin
+  version: 1.0.0
+servers:
+  - url: https://api.bankx.com
+
+tags:
+  - name: Cards
+
+paths:
+ /cards/debit:
+  post:
+    tags: [Cards]
+    summary: Crear tarjeta débito
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CreateDebitCardRequest'
+          example:
+            customerId: "cus-1001"
+    responses:
+      '201':
+        description: Tarjeta creada
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CardResponse'
+            example:
+              id: "card-deb-001"
+              type: DEBIT
+              customerId: "cus-1001"
+              maskedNumber: "**** **** **** 1234"
+              status: ACTIVE
+              createdAt: "2025-01-01T10:00:00Z"
+
+ /cards/credit:
+  post:
+    tags: [Cards]
+    summary: Crear tarjeta crédito
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CreateCreditCardRequest'
+          example:
+            customerId: "cus-1001"
+            creditLimit: 5000.00
+    responses:
+      '201':
+        description: Tarjeta creada
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CardResponse'
+            example:
+              id: "card-cred-001"
+              type: CREDIT
+              customerId: "cus-1001"
+              maskedNumber: "**** **** **** 5678"
+              creditLimit: 5000.00
+              availableLimit: 5000.00
+              status: ACTIVE
+              createdAt: "2025-01-01T10:05:00Z"
+
+ /cards/debit/link:
+  post:
+    tags: [Cards]
+    summary: Asociar tarjeta débito a cuenta
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DebitLinkRequest'
+          example:
+            cardId: "card-deb-001"
+            accountId: "acc-2001"
+    responses:
+      '200':
+        description: Asociación exitosa
+        content:
+          application/json:
+            example:
+              cardId: "card-deb-001"
+              accountId: "acc-2001"
+              status: LINKED
+              linkedAt: "2025-01-01T10:10:00Z"
+
+ /cards/{cardId}/balance:
+  get:
+    tags: [Cards]
+    summary: Consultar saldo por tarjeta
+    parameters:
+      - in: path
+        name: cardId
+        required: true
+        schema:
+          type: string
+        example: card-deb-001
+    responses:
+      '200':
+        description: Saldo actual
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CardBalanceResponse'
+            example:
+              cardId: "card-deb-001"
+              type: DEBIT
+              currency: PEN
+              balance: 1700.00
+              availableBalance: 1700.00
+
+components:
+  schemas:
+    CreateDebitCardRequest:
+      type: object
+      required:
+        - customerId
+      properties:
+        customerId:
+          type: string
+          example: cus-1001
+
+    CreateCreditCardRequest:
+      type: object
+      required:
+        - customerId
+        - creditLimit
+      properties:
+        customerId:
+          type: string
+          example: cus-1001
+        creditLimit:
+          type: number
+          format: float
+          example: 5000.00
+
+    CardResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [DEBIT, CREDIT]
+          example: DEBIT
+        customerId:
+          type: string
+          example: cus-1001
+        maskedNumber:
+          type: string
+          example: "**** **** **** 1234"
+        creditLimit:
+          type: number
+          format: float
+          example: 5000.00
+        availableLimit:
+          type: number
+          format: float
+          example: 5000.00
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE]
+          example: ACTIVE
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-01-01T10:00:00Z"
+
+    DebitLinkRequest:
+      type: object
+      required:
+        - cardId
+        - accountId
+      properties:
+        cardId:
+          type: string
+          example: card-deb-001
+        accountId:
+          type: string
+          example: acc-2001
+
+    CardBalanceResponse:
+      type: object
+      properties:
+        cardId:
+          type: string
+          example: card-deb-001
+        type:
+          type: string
+          enum: [DEBIT, CREDIT]
+          example: DEBIT
+        currency:
+          type: string
+          example: PEN
+        balance:
+          type: number
+          format: float
+          example: 1700.00
+        availableBalance:
+          type: number
+          format: float
+          example: 1700.00

@@ -1,0 +1,158 @@
+openapi: 3.0.3
+info:
+  title: BootCoin BankX API
+  description: API contract-first para banca digital, Yanki y BootCoin
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+
+tags:
+  - name: Users
+
+paths:
+ /users:
+  post:
+    tags: [Users]
+    summary: Crear usuario
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UserCreate'
+          example:
+            email: usuario@bankx.com
+            phone: "+51987654321"
+    responses:
+      '201':
+        description: Usuario creado
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserResponse'
+            example:
+              id: "usr-001"
+              typeDocument: DNI
+              numberDocument: "12345678"
+              nroPhone: "+51987654321"
+              imeiPhone: "356938035643809"
+              email: usuario@bankx.com
+              status: ACTIVE
+      '400':
+        description: Datos inválidos
+        content:
+          application/json:
+            example:
+              code: VALIDATION_ERROR
+              message: Email o teléfono inválido
+
+ /users/{userId}:
+  get:
+    tags: [Users]
+    summary: Obtener usuario
+    parameters:
+      - in: path
+        name: userId
+        required: true
+        schema:
+          type: string
+        example: usr-001
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserResponse'
+            example:
+              id: "usr-001"
+              typeDocument: DNI
+              numberDocument: "12345678"
+              nroPhone: "+51987654321"
+              imeiPhone: "356938035643809"
+              email: usuario@bankx.com
+              status: ACTIVE
+      '404':
+        description: Usuario no encontrado
+        content:
+          application/json:
+            example:
+              code: USER_NOT_FOUND
+              message: No existe el usuario con id usr-001
+
+components:
+  schemas:
+
+    UserCreate:
+      type: object
+      required:
+        - typeDocument
+        - numberDocument
+        - nroPhone
+        - imeiPhone
+        - email
+      properties:
+        typeDocument:
+          type: string
+          description: DNI, CEX, Passport
+          enum:
+          - DNI
+          - CEX
+          - PASSPORT
+          example: DNI
+
+        numberDocument:
+          type: string
+          description: Número de documento
+          example: "12345678"
+
+        nroPhone:
+          type: string
+          description: Número de teléfono del usuario
+          example: "+51987654321"
+
+        imeiPhone:
+          type: string
+          description: IMEI del dispositivo móvil
+          example: "356938035643809"
+
+        email:
+          type: string
+          format: email
+          description: Correo electrónico del usuario
+          example: usuario@bankx.com
+
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Identificador único del usuario
+          example: "usr-001"
+
+        typeDocument:
+          type: string
+          example: DNI
+
+        numberDocument:
+          type: string
+          example: "12345678"
+
+        nroPhone:
+          type: string
+          example: "+51987654321"
+
+        imeiPhone:
+          type: string
+          example: "356938035643809"
+
+        email:
+          type: string
+          format: email
+          example: usuario@bankx.com
+
+        status:
+          type: string
+          description: Estado del usuario
+          example: ACTIVE

@@ -1,0 +1,326 @@
+version: "3.9"
+
+services:
+
+  # =================================================
+  # Base de Datos
+  # =================================================
+  mongo-bankx:
+    image: mongo:7
+    container_name: mongo-bankx
+    ports:
+      - "27017:27017"
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.runCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - mongo_bankx_data:/data/db
+    restart: unless-stopped
+    networks:
+      - bankx-net
+
+  # =================================================
+  # ELASTICSEARCH
+  # =================================================
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
+    container_name: elasticsearch
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      xpack.security.transport.ssl.enabled: "false"
+      ES_JAVA_OPTS: -Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    mem_limit: 1g
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - bankx-net
+
+  # =================================================
+  # LOGSTASH
+  # =================================================
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.13.4
+    container_name: logstash
+    volumes:
+      - ./logstash/pipeline:/usr/share/logstash/pipeline
+    environment:
+      LS_JAVA_OPTS: -Xms512m -Xmx512m
+    ports:
+      - "5044:5044"
+      - "5000:5000/tcp"
+      - "5000:5000/udp"
+      - "9600:9600"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - bankx-net
+
+  # =================================================
+  # KIBANA
+  # =================================================
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.13.4
+    container_name: kibana
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - bankx-net
+
+  # =================================================
+  # CONFIG SERVER
+  # =================================================
+  config-server:
+    image: config-server
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    depends_on:
+      mongo-bankx:
+        condition: service_started
+    networks:
+      - bankx-net
+
+  # =================================================
+  # EUREKA SERVER
+  # =================================================
+  eureka-server:
+    image: eureka-server
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
+      EUREKA_CLIENT_REGISTER_WITH_EUREKA: "false"
+      EUREKA_CLIENT_FETCH_REGISTRY: "false"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+    depends_on:
+      config-server:
+        condition: service_healthy
+    networks:
+      - bankx-net
+
+  # =================================================
+  # API GATEWAY
+  # =================================================
+  api-gateway:
+    image: api-gateway
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+      LOGSTASH_HOST: logstash
+      LOGSTASH_PORT: 5000
+    depends_on:
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - bankx-net
+
+  # =================================================
+  # MICROSERVICIOS
+  # =================================================
+  users-service:
+    image: users-service
+    container_name: users-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+      # SPRING_DATA_MONGODB_URI: mongodb://mongo-bankx:27017/bankx
+      LOGSTASH_HOST: logstash
+      LOGSTASH_PORT: 5000
+    depends_on:
+      mongo-bankx:
+        condition: service_started
+      elasticsearch:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - bankx-net
+
+  customers-service:
+    image: customers-service
+    container_name: customers-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+      # SPRING_DATA_MONGODB_URI: mongodb://mongo-bankx:27017/bankx
+      LOGSTASH_HOST: logstash
+      LOGSTASH_PORT: 5000
+    depends_on:
+      mongo-bankx:
+        condition: service_started
+      elasticsearch:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - bankx-net
+
+  wallets-service:
+    image: wallets-service
+    container_name: wallets-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+      # SPRING_DATA_MONGODB_URI: mongodb://mongo-bankx:27017/bankx
+      LOGSTASH_HOST: logstash
+      LOGSTASH_PORT: 5000
+    depends_on:
+      mongo-bankx:
+        condition: service_started
+      elasticsearch:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - bankx-net
+
+  cards-service:
+    image: cards-service
+    container_name: cards-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+      # SPRING_DATA_MONGODB_URI: mongodb://mongo-bankx:27017/bankx
+      LOGSTASH_HOST: logstash
+      LOGSTASH_PORT: 5000
+    depends_on:
+      mongo-bankx:
+        condition: service_started
+      elasticsearch:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - bankx-net
+
+  core-banking-service:
+    image: core-banking-service
+    container_name: core-banking-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+      # SPRING_DATA_MONGODB_URI: mongodb://mongo-bankx:27017/bankx
+      LOGSTASH_HOST: logstash
+      LOGSTASH_PORT: 5000
+    depends_on:
+      mongo-bankx:
+        condition: service_started
+      elasticsearch:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - bankx-net
+
+  reports-service:
+    image: reports-service
+    container_name: reports-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+      # SPRING_DATA_MONGODB_URI: mongodb://mongo-bankx:27017/bankx
+      LOGSTASH_HOST: logstash
+      LOGSTASH_PORT: 5000
+    depends_on:
+      mongo-bankx:
+        condition: service_started
+      elasticsearch:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - bankx-net
+
+  bootcoin-service:
+    image: bootcoin-service
+    container_name: bootcoin-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+      # SPRING_DATA_MONGODB_URI: mongodb://mongo-bankx:27017/bankx
+      LOGSTASH_HOST: logstash
+      LOGSTASH_PORT: 5000
+    depends_on:
+      mongo-bankx:
+        condition: service_started
+      elasticsearch:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - bankx-net
+
+# =================================================
+# Volúmenes
+# =================================================
+volumes:
+  mongo_bankx_data:
+  esdata:
+
+# =================================================
+# Red
+# =================================================
+networks:
+  bankx-net:
+    driver: bridge

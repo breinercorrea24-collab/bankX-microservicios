@@ -1,0 +1,313 @@
+openapi: 3.0.3
+info:
+  title: BootCoin BankX API
+  description: API contract-first para banca digital, Yanki y BootCoin
+  version: 1.0.0
+servers:
+  - url: https://api.bankx.com
+
+tags:
+  - name: Customers
+
+paths:
+ /customers:
+  post:
+    tags: [Customers]
+    summary: Crear cliente bancario
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CustomerCreate'
+          example:
+            name: Carlos Ramírez
+            document: "DNI-78451236"
+    responses:
+      '201':
+        description: Cliente creado
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerResponse'
+            example:
+              id: "cus-1001"
+              name: Carlos Ramírez
+              document: "DNI-78451236"
+              customerType: PERSONAL
+              status: ACTIVE
+      '400':
+        description: Datos inválidos
+        content:
+          application/json:
+            example:
+              code: VALIDATION_ERROR
+              message: El documento ya se encuentra registrado
+
+ /customers/{customerId}:
+  get:
+    tags: [Customers]
+    summary: Obtener cliente
+    parameters:
+      - in: path
+        name: customerId
+        required: true
+        schema:
+          type: string
+        example: cus-1001
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerResponse'
+            example:
+              id: "cus-1001"
+              name: Carlos Ramírez
+              document: "DNI-78451236"
+              customerType: PERSONAL
+              status: ACTIVE
+      '404':
+        description: Cliente no encontrado
+        content:
+          application/json:
+            example:
+              code: CUSTOMER_NOT_FOUND
+              message: No existe el cliente cus-1001
+
+ /customers/{customerId}/summary:
+  get:
+    tags: [Customers]
+    summary: Resumen consolidado del cliente
+    parameters:
+      - in: path
+        name: customerId
+        required: true
+        schema:
+          type: string
+        example: cus-1001
+    responses:
+      '200':
+        description: Resumen del cliente
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerSummaryResponse'
+            example:
+              customerId: "cus-1001"
+              totalAccounts: 2
+              totalBalance: 8500.50
+              accounts:
+                - accountId: "acc-001"
+                  type: SAVINGS
+                  currency: PEN
+                  balance: 5500.50
+                - accountId: "acc-002"
+                  type: CURRENT
+                  currency: USD
+                  balance: 1000.00
+              credits:
+                - creditId: "cred-01"
+                  amount: 3000.00
+                  pendingDebt: 1500.00
+
+components:
+  schemas:
+    CustomerCreate:
+      type: object
+      required:
+        - customerType
+        - document
+        - phoneNumber
+        - fullName
+      properties:
+        customerType:
+          type: string
+          enum: [YANKI, BANKX]
+          example: YANKI
+
+        fullName:
+          type: string
+          example: Carlos Ramírez
+
+        document:
+          type: object
+          required:
+            - type
+            - number
+          properties:
+            type:
+              type: string
+              enum: [DNI, CE, PASSPORT]
+              example: DNI
+            number:
+              type: string
+              example: "78451236"
+
+        phoneNumber:
+          type: string
+          example: "999888777"
+
+        email:
+          type: string
+          example: carlos.ramirez@gmail.com
+          description: Opcional para Yanki, obligatorio para BankX
+
+        birthDate:
+          type: string
+          format: date
+          example: 1995-06-10
+
+        address:
+          type: object
+          description: Obligatorio solo para cliente BankX
+          properties:
+            department:
+              type: string
+              example: Lima
+            province:
+              type: string
+              example: Lima
+            district:
+              type: string
+              example: San Miguel
+            street:
+              type: string
+              example: Av. La Marina 123
+
+        occupation:
+          type: string
+          example: Ingeniero de Sistemas
+          description: Solo BankX
+
+        monthlyIncome:
+          type: number
+          format: double
+          example: 6000
+          description: Solo BankX
+
+        pep:
+          type: boolean
+          example: false
+          description: Persona políticamente expuesta (BankX)
+
+    CustomerResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "cst-8f92a1"
+
+        fullName:
+          type: string
+          example: Carlos Ramírez
+
+        document:
+          type: string
+          example: DNI-78451236
+
+        customerType:
+          type: string
+          enum: [YANKI, BANKX]
+          example: BANKX
+
+        kycLevel:
+          type: string
+          enum: [LIGHT, FULL]
+          example: LIGHT
+
+        status:
+          type: string
+          enum: [ACTIVE, PENDING_VERIFICATION, BLOCKED]
+          example: ACTIVE
+
+        createdAt:
+          type: string
+          format: date-time
+          example: 2025-01-05T10:15:30Z
+
+    CustomerSummaryResponse:
+      type: object
+      properties:
+        customerId:
+          type: string
+          example: cst-92fa21
+
+        totalAccounts:
+          type: integer
+          example: 2
+
+        totalBalance:
+          type: number
+          format: double
+          example: 12500.75
+
+        accounts:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccountSummary'
+
+        credits:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreditSummary'
+
+    AccountSummary:
+      type: object
+      properties:
+        accountId:
+          type: string
+          example: acc-10021
+
+        accountType:
+          type: string
+          enum: [SAVINGS, CURRENT]
+          example: SAVINGS
+
+        currency:
+          type: string
+          enum: [PEN, USD]
+          example: PEN
+
+        balance:
+          type: number
+          format: double
+          example: 8500.50
+
+        availableBalance:
+          type: number
+          format: double
+          example: 8300.50
+
+        status:
+          type: string
+          enum: [ACTIVE, BLOCKED]
+          example: ACTIVE
+
+    CreditSummary:
+      type: object
+      properties:
+        creditId:
+          type: string
+          example: crd-55231
+
+        totalAmount:
+          type: number
+          format: double
+          example: 30000.00
+
+        pendingDebt:
+          type: number
+          format: double
+          example: 12500.75
+
+        currency:
+          type: string
+          enum: [PEN, USD]
+          example: PEN
+
+        status:
+          type: string
+          enum: [ACTIVE, CANCELLED]
+          example: ACTIVE

@@ -1,0 +1,261 @@
+openapi: 3.0.3
+info:
+  title: BootCoin BankX API
+  description: API contract-first para banca digital, Yanki y BootCoin
+  version: 1.0.0
+servers:
+  - url: https://api.bankx.com
+
+tags:
+  - name: Yanki Wallet
+
+paths:
+ /wallets/yanki:
+  post:
+    tags: [Yanki Wallet]
+    summary: Crear billetera Yanki
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/YankiWalletRequest'
+          example:
+            customerId: "cus-1001"
+            phone: "+51987654321"
+    responses:
+      '201':
+        description: Billetera creada
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/YankiWalletResponse'
+            example:
+              walletId: "yanki-001"
+              customerId: "cus-1001"
+              phone: "+51987654321"
+              balance: 0.00
+              currency: PEN
+              status: ACTIVE
+              createdAt: "2025-01-01T12:00:00Z"
+
+ /wallets/yanki/pay:
+  post:
+    tags: [Yanki Wallet]
+    summary: Pago Yanki P2P
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TransferRequest'
+          example:
+            fromId: "yanki-001"
+            toId: "yanki-002"
+            amount: 120.00
+    responses:
+      '200':
+        description: Pago realizado
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WalletTransactionResponse'
+            example:
+              transactionId: "yanki-tx-100"
+              fromWalletId: "yanki-001"
+              toWalletId: "yanki-002"
+              amount: 120.00
+              currency: PEN
+              balanceAfter: 380.00
+              status: SUCCESS
+              executedAt: "2025-01-01T12:05:00Z"
+      '409':
+        description: Saldo insuficiente
+        content:
+          application/json:
+            example:
+              code: INSUFFICIENT_BALANCE
+              message: Saldo insuficiente para realizar el pago
+
+ /wallets/link-debit-card:
+  post:
+    tags: [Yanki Wallet]
+    summary: Asociar monedero a tarjeta de débito
+    description: |
+      Permite asociar un monedero digital (Yanki o BootCoin) a una tarjeta
+      de débito del banco.  
+      Todos los cargos y abonos del monedero impactarán únicamente
+      en la cuenta principal asociada a la tarjeta de débito.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/WalletDebitLinkRequest'
+          example:
+            walletId: "wal-yanki-001"
+            walletType: YANKI
+            debitCardId: "card-deb-789"
+    responses:
+      '200':
+        description: Monedero asociado correctamente a la tarjeta de débito
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WalletDebitLinkResponse'
+            example:
+              walletId: "wal-yanki-001"
+              walletType: YANKI
+              debitCardId: "card-deb-789"
+              mainAccountId: "acc-001"
+              status: LINKED
+              linkedAt: "2026-01-01T15:30:00Z"
+      '400':
+        description: Solicitud inválida
+        content:
+          application/json:
+            example:
+              code: VALIDATION_ERROR
+              message: La tarjeta no es de tipo débito
+      '404':
+        description: Recurso no encontrado
+        content:
+          application/json:
+            example:
+              code: NOT_FOUND
+              message: Monedero o tarjeta no existen
+
+components:
+  schemas:
+    TransferRequest:
+      type: object
+      required:
+        - fromId
+        - toId
+        - amount
+      properties:
+        fromId:
+          type: string
+          example: yanki-001
+        toId:
+          type: string
+          example: yanki-002
+        amount:
+          type: number
+          format: float
+          example: 120.00
+    YankiWalletRequest:
+      type: object
+      required:
+        - customerId
+        - phone
+      properties:
+        customerId:
+          type: string
+          example: cus-1001 
+        phone:
+          type: string  
+          example: +51987654321
+          
+    YankiWalletResponse:
+      type: object
+      properties:
+        walletId:
+          type: string
+          example: yanki-001
+        customerId:
+          type: string
+          example: cus-1001
+        phone:
+          type: string
+          example: +51987654321
+        balance:
+          type: number
+          format: float
+          example: 0.00
+        currency:
+          type: string
+          example: PEN
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE]
+          example: ACTIVE
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-01-01T12:00:00Z"
+
+    WalletDebitLinkRequest:
+      type: object
+      required:
+        - walletId
+        - walletType
+        - debitCardId
+      properties:
+        walletId:
+          type: string
+          example: wal-yanki-001
+        walletType:
+          type: string
+          enum: [YANKI, BOOTCOIN]
+          example: YANKI
+        debitCardId:
+          type: string
+          example: card-deb-789
+
+    WalletDebitLinkResponse:
+      type: object
+      properties:
+        walletId:
+          type: string
+          example: wal-yanki-001
+        walletType:
+          type: string
+          enum: [YANKI, BOOTCOIN]
+          example: YANKI
+        debitCardId:
+          type: string
+          example: card-deb-789
+        mainAccountId:
+          type: string
+          example: acc-001
+        status:
+          type: string
+          enum: [LINKED, UNLINKED]
+          example: LINKED
+        linkedAt:
+          type: string
+          format: date-time
+          example: "2026-01-01T15:30:00Z"
+
+    WalletTransactionResponse:
+      type: object
+      properties:
+        transactionId:
+          type: string
+          example: yanki-tx-100
+        fromWalletId:
+          type: string
+          example: yanki-001
+        toWalletId:
+          type: string
+          example: yanki-002
+        amount:
+          type: number
+          format: float
+          example: 120.00
+        currency:
+          type: string
+          example: PEN
+        balanceAfter:
+          type: number
+          format: float
+          example: 380.00
+        status:
+          type: string
+          enum: [SUCCESS, FAILED]
+          example: SUCCESS
+        executedAt:
+          type: string
+          format: date-time
+          example: "2025-01-01T12:05:00Z"

@@ -1,0 +1,756 @@
+openapi: 3.0.3
+info:
+  title: BootCoin BankX API
+  description: API contract-first para banca digital, Yanki y BootCoin
+  version: 1.0.0
+servers:
+  - url: https://api.bankx.com
+
+tags:
+  - name: Products
+  - name: Cards
+  - name: Comisiones
+  - name: Customers
+
+paths:
+ /reports/commissions:
+  get:
+    summary: Reporte de comisiones por producto
+    description: |
+        Genera un reporte de todas las comisiones cobradas por producto
+        dentro de un rango de fechas.
+        API de solo consulta (READ-ONLY).
+    parameters:
+      - name: productType
+        in: query
+        required: true
+        description: Tipo de producto bancario
+        schema:
+          type: string
+          enum:
+              - BANK_ACCOUNT
+              - CREDIT
+              - CREDIT_CARD
+              - DEBIT_CARD
+              - WALLET
+      - name: productId
+        in: query
+        required: false
+        description: Identificador específico del producto (opcional)
+        schema:
+          type: string
+      - name: startDate
+        in: query
+        required: true
+        description: Fecha inicio del periodo (ISO-8601)
+        schema:
+          type: string
+          format: date
+      - name: endDate
+        in: query
+        required: true
+        description: Fecha fin del periodo (ISO-8601)
+        schema:
+          type: string
+          format: date
+    responses:
+      '200':
+        description: Reporte generado correctamente
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommissionReportResponse'
+            example:
+              customerId: "cus-1001"
+              period:
+                from: "2025-01-01"
+                to: "2025-01-31"
+              comissions:
+                - productType: BANK_ACCOUNT
+                  productId: acc-2001
+                  accountType: SAVINGS
+                  commissionType: MAINTENANCE_FEE
+                  amount: 50.00
+                  currency: PEN
+                - productType: CREDIT_CARD
+                  productId: card-cred-001
+                  commissionType: LATE_PAYMENT_FEE
+                  amount: 75.50
+                  currency: PEN
+              summary:
+                totalCommissions: 2
+                totalAmount: 125.50
+                currency: PEN
+      '400':
+        description: Parámetros inválidos
+      '401':
+        description: No autorizado
+      '500':
+        description: Error interno del servidora
+
+ /reports/customer/{customerId}:
+  get:
+    summary: Reporte del cliente consolidado
+    description: |
+      Genera un reporte consolidado del cliente incluyendo
+      información de cuentas, tarjetas, créditos y billeteras.
+      API de solo consulta (READ-ONLY).
+    parameters:
+      - in: path
+        name: customerId
+        required: true
+        schema:
+          type: string
+        example: cus-1001
+    responses:
+      '200':
+        description: Reporte generado
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerReportResponse'
+            example:
+              customerId: "cus-1001"
+              generatedAt: "2025-01-01T18:00:00Z"
+              customer:
+                name: Carlos Ramírez
+                document: "DNI-78451236"
+                type: PERSONAL
+              accounts:
+                - accountId: "acc-2001"
+                  type: SAVINGS
+                  currency: PEN
+                  balance: 1700.00
+                - accountId: "acc-2002"
+                  type: CURRENT
+                  currency: USD
+                  balance: 300.00
+              cards:
+                - cardId: "card-deb-001"
+                  type: DEBIT
+                  maskedNumber: "**** **** **** 1234"
+                  status: ACTIVE  
+                  linkedAccountId: "acc-2001"   
+                - cardId: "card-cred-001"
+                  type: CREDIT
+                  maskedNumber: "**** **** **** 5678"
+                  availableLimit: 4800.00
+                  linkedAccountId: "acc-2001"  
+              credits:
+                - creditId: "cred-9001"
+                  type: PERSONAL_LOAN
+                  currency: PEN
+                  originalAmount: 10000.00
+                  pendingDebt: 9500.00
+                  status: ACTIVE
+              wallets:
+                - walletId: "yanki-001"
+                  type : YANKI
+                  balance: 380.00
+                  currency: PEN
+                - walletId: "boot-001"
+                  type : BOOTCOIN
+                  balanceBTC: 0.015
+              lastUpdated: "2025-01-01T17:55:00Z"
+      '404':
+        description: Cliente no encontrado
+        content:
+          application/json:
+            example:
+              code: CUSTOMER_NOT_FOUND
+              message: No existe información para el cliente cus-1001
+
+ /reports/customer/{customerId}/daily-average-balance:
+  get:
+    summary: Obtener reporte de saldo promedio diario del cliente
+    description: |
+      Genera un reporte del saldo promedio diario del cliente
+      en un periodo determinado.
+    parameters:
+      - in: path
+        name: customerId
+        required: true
+        schema:
+          type: string
+        example: cus-1001
+      - name: startDate
+        in: query
+        required: true
+        description: Fecha inicio del periodo (ISO-8601)
+        schema:
+          type: string
+          format: date
+        example: "2025-01-01"
+      - name: endDate
+        in: query
+        required: true
+        description: Fecha fin del periodo (ISO-8601)
+        schema:
+          type: string
+          format: date
+        example: "2025-01-31"
+    responses:
+      '200':
+        description: Reporte generado correctamente
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerDailyAverageBalanceReport'
+            example:
+
+      '404':
+        description: Cliente no encontrado
+
+ /reports/cards/{cardId}/transactions:
+  get:
+    summary: Get last 10 card transactions
+    description: >
+      Returns the last 10 transactions of a debit or credit card,
+      ordered by transaction date descending.
+    parameters:
+      - name: cardId
+        in: path
+        required: true
+        schema:
+          type: string
+        example: 9b7a1234-8c21-4f55-bd9c-001122334455
+
+      - name: cardType
+        in: query
+        required: true
+        schema:
+          type: string
+          enum:
+            - DEBIT
+            - CREDIT
+        example: DEBIT
+
+    responses:
+      '200':
+        description: Last 10 card transactions retrieved successfully
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CardTransactionReport'
+            example:
+              card:
+              cardId: 9b7a1234-8c21-4f55-bd9c-001122334455
+              cardType: DEBIT
+              maskedNumber: "**** **** **** 1234"
+              currency: PEN
+              transactions:
+              - date: "2025-01-25T14:32:10Z"
+                movementType: WITHDRAWAL
+                amount: 50.00
+                currency: PEN
+                status: APPROVED
+                merchant: Supermarket XYZ
+              - date: "2025-01-24T10:15:45Z"
+                movementType: PAYMENT 
+                amount: 200.00
+                currency: PEN
+                status: APPROVED
+                merchant: Online Store ABC
+              metadata:
+                totalReturned: 2
+                limit: 10
+      '400':
+        description: Invalid request parameters
+      '404':
+        description: Card not found
+
+ /reports/products/general:
+  get:
+    summary: Generate general product report
+    description: >
+      Retorna un reporte consolidado de un producto financiero o digital
+      en un rango de fechas determinado.
+    parameters:
+      - name: productType
+        in: query
+        required: true
+        schema:
+          type: string
+          enum:
+            - BANK_ACCOUNT
+            - CREDIT
+            - DEBIT_CARD
+            - CREDIT_CARD
+            - WALLET
+        example: BANK_ACCOUNT
+
+      - name: productId
+        in: query
+        required: true
+        schema:
+          type: string
+        example: 4d2f2e90-9b2c-4c61-a98d-1c7d9f22a001
+
+      - name: startDate
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+        example: 2025-01-01
+
+      - name: endDate
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+        example: 2025-01-31
+
+    responses:
+      '200':
+        description: Product general report generated successfully
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductGeneralReport'
+            example:
+              productType: BANK_ACCOUNT
+              productId: acc-001
+              productSubType: SAVINGS
+              period:
+                from: "2025-01-01"
+                to: "2025-01-31"
+              summary:
+                totalMovements: 12
+                totalAmount: 1500.00
+                totalCommissions: 800.00
+              movements:
+                - date: "2025-01-05"
+                  movementType: DEPOSIT
+                  amount: 500.00
+                  currency: PEN
+                - date: "2025-01-10"
+                  movementType: WITHDRAWAL
+                  amount: 200.00
+                  currency: PEN
+
+      '400':
+        description: Invalid request parameters
+      '404':
+        description: Product not found
+
+components:
+  schemas:
+    CustomerReportResponse:
+      type: object
+      properties: 
+        customerId:
+          type: string
+          example: cus-1001
+        generatedAt:
+          type: string
+          format: date-time
+          example: "2025-01-01T18:00:00Z"
+        customer:
+          type: object
+          properties:
+            name:
+              type: string
+              example: Carlos Ramírez
+            document:
+              type: string
+              example: DNI-78451236
+            type:
+              type: string
+              example: PERSONAL
+        accounts:
+          type: array
+          items:
+            type: object
+            properties:
+              accountId:
+                type: string
+                example: acc-2001
+              type:
+                type: string
+                example: SAVINGS
+              currency:
+                type: string
+                example: PEN
+              balance:
+                type: number
+                format: float
+                example: 1700.00
+        cards:
+          type: array
+          items:
+            type: object
+            properties:
+              cardId:
+                type: string
+                example: card-deb-001
+              type:
+                type: string
+                example: DEBIT
+              maskedNumber:
+                type: string
+                example: "**** **** **** 1234"
+              status:
+                type: string
+                example: ACTIVE
+              linkedAccountId:
+                type: string
+                example: acc-2001
+        credits:
+          type: array
+          items:
+            type: object
+            properties:
+              creditId:
+                type: string
+                example: cred-9001
+              type:
+                type: string
+                example: PERSONAL_LOAN
+              currency:
+                type: string
+                example: PEN
+              originalAmount:
+                type: number
+                format: float
+                example: 10000.00
+              pendingDebt:
+                type: number
+                format: float
+                example: 9500.00
+              status:
+                type: string
+                example: ACTIVE
+        wallets:
+          type: array
+          items:
+            type: object
+            properties:
+              walletId:
+                type: string
+                example: yanki-001
+              type:
+                type: string
+                example : YANKI
+              balance:
+                type: number
+                format: float
+                example: 380.00
+              currency:
+                type: string
+                example: PEN
+        lastUpdated:
+          type: string
+          format: date-time
+          example: "2025-01-01T17:55:00Z"
+      
+
+    CardTransactionReport:
+      type: object
+      properties:
+            cardId:
+              type: string
+              example: tx-1001
+            cardType:
+              type: string
+              example: DEBIT
+            maskedNumber:
+              type: string
+              example: "**** **** **** 1234"
+            currency: 
+              type: string
+              example: PEN
+            transactions: 
+              type: array
+              items:
+                type: object
+                properties:
+                  date:
+                    type: string
+                    format: date-time
+                    example: "2025-01-25T14:32:10Z"
+                  movementType:
+                    type: string
+                    example: WITHDRAWAL
+                  amount:
+                    type: number
+                    format: float
+                    example: 50.00
+                  currency:
+                    type: string
+                    example: PEN
+                  status:
+                    type: string
+                    example: APPROVED
+                  merchant:
+                    type: string
+                    example: Supermarket XYZ
+
+    ProductGeneralReport:
+      type: object
+      properties:
+        customer:
+          type: string
+          example: "cus-1001"
+        productType:
+          type: string
+          example: BANK_ACCOUNT
+        productId:
+          type: string
+          example: acc-001
+        productSubType:
+          type: string
+          example: SAVINGS
+        period:
+          type: object
+          properties:
+            from:
+              type: string
+              format: date
+              example: "2025-01-01"
+            to:
+              type: string
+              format: date
+              example: "2025-01-31"
+        summary:
+          type: object
+          properties:
+            totalMovements:
+              type: integer
+              example: 12
+            totalAmount:
+              type: number
+              format: float
+              example: 1500.00
+            totalCommissions:
+              type: number
+              format: float
+              example: 800.00
+        movements:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date
+                example: "2025-01-05"
+              movementType:
+                type: string
+                example: DEPOSIT
+              amount:
+                type: number
+                format: float
+                example: 500.00
+              currency:
+                type: string
+                example: PEN
+    
+    CommissionReportResponse:
+      type: object
+      properties:
+        customerId:
+          type: string
+          example: "cus-1001"
+        period:
+          type: object
+          properties:
+            from:
+              type: string
+              format: date
+              example: "2025-01-01"
+            to:
+              type: string
+              format: date
+              example: "2025-01-31"
+        comissions:
+          type: array
+          items:
+            type: object
+            properties:
+              productType:
+                type: string
+                example: BANK_ACCOUNT
+              productId:
+                type: string
+                example: acc-2001
+              accountType:
+                type: string
+                example: SAVINGS
+              commissionType:
+                type: string
+                example: MAINTENANCE_FEE
+              amount:
+                type: number
+                format: float
+                example: 50.00
+              currency:
+                type: string
+                example: PEN
+        summary:
+          type: object
+          properties:
+            totalCommissions:
+              type: integer
+              example: 2
+            totalAmount:
+              type: number
+              format: float
+              example: 125.50
+            currency:
+              type: string
+              example: PEN
+
+    CustomerDailyAverageBalanceReport:
+      type: object
+      required:
+        - customerId
+        - customerName
+        - month
+        - currency
+        - products
+        - totals
+        - generatedAt
+      properties:
+        customerId:
+          type: string
+          example: cust-001
+        customerName:
+          type: string
+          example: Juan Pérez
+        month:
+          type: string
+          description: Mes del reporte en formato YYYY-MM
+          example: 2025-02
+        currency:
+          type: string
+          example: PEN
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
+        totals:
+          $ref: '#/components/schemas/Totals'
+        generatedAt:
+          type: string
+          format: date-time
+          example: 2025-02-28T23:59:59Z
+
+    Product:
+      type: object
+      required:
+        - productType
+        - subType
+        - productId
+        - alias
+        - currency
+        - status
+      properties:
+        productType:
+          type: string
+          example: BANK_ACCOUNT
+          description: Tipo de producto (BANK_ACCOUNT, CREDIT, CREDIT_CARD)
+        subType:
+          type: string
+          example: SAVINGS
+        productId:
+          type: string
+          example: acc-1001
+        alias:
+          type: string
+          example: Cuenta Sueldo
+        averageDailyBalance:
+          type: number
+          format: double
+          example: 2450.75
+        minDailyBalance:
+          type: number
+          format: double
+          example: 1200.00
+        maxDailyBalance:
+          type: number
+          format: double
+          example: 3200.50
+        openingMonthBalance:
+          type: number
+          format: double
+          example: 1800.00
+        closingMonthBalance:
+          type: number
+          format: double
+          example: 2600.00
+        totalCredits:
+          type: number
+          format: double
+          example: 5400.00
+        totalDebits:
+          type: number
+          format: double
+          example: 4600.00
+        maintenanceFeeCharged:
+          type: number
+          format: double
+          example: 30.00
+        initialAmount:
+          type: number
+          format: double
+          example: 10000.00
+        outstandingBalance:
+          type: number
+          format: double
+          example: 4500.00
+        monthlyInstallment:
+          type: number
+          format: double
+          example: 550.00
+        interestRate:
+          type: number
+          format: double
+          example: 18.5
+        creditLimit:
+          type: number
+          format: double
+          example: 8000.00
+        usedAmount:
+          type: number
+          format: double
+          example: 2300.00
+        availableAmount:
+          type: number
+          format: double
+          example: 5700.00
+        minPaymentDue:
+          type: number
+          format: double
+          example: 230.00
+        paymentDueDate:
+          type: string
+          format: date
+          example: 2025-03-10
+        currency:
+          type: string
+          example: PEN
+        status:
+          type: string
+          example: ACTIVE
+
+    Totals:
+      type: object
+      required:
+        - averageAssets
+        - averageLiabilities
+        - netAveragePosition
+      properties:
+        averageAssets:
+          type: number
+          format: double
+          example: -7000.40
+        averageLiabilities:
+          type: number
+          format: double
+          example: 11201.05
+        netAveragePosition:
+          type: number
+          format: double
+          example: 4200.65

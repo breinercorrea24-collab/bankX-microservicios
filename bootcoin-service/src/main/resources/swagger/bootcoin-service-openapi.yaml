@@ -1,0 +1,253 @@
+openapi: 3.0.3
+info:
+  title: BootCoin BankX API
+  description: API contract-first para banca digital, Yanki y BootCoin
+  version: 1.0.0
+servers:
+  - url: https://api.bankx.com
+
+tags:
+  - name: BootCoin
+
+paths:
+ /wallets/bootcoin:
+  post:
+    tags: [BootCoin]
+    summary: Crear billetera BootCoin
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+              $ref: '#/components/schemas/BootCoinWalletRequest'
+          example:
+            customerId: "cus-1001"
+            document: "DNI-78451236"
+    responses:
+      '201':
+        description: Billetera creada
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BootCoinWalletResponse'
+            example:
+              walletId: "boot-001"
+              customerId: "cus-1001"
+              document: "DNI-78451236"
+              balanceBTC: 0.015
+              status: ACTIVE
+              createdAt: "2025-01-01T12:30:00Z"
+
+ /bootcoin/trades:
+  post:
+    tags: [BootCoin]
+    summary: Crear trade BootCoin
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+              $ref: '#/components/schemas/BootCoinTradeRequest'
+          example:
+            walletId: "boot-001"
+            tradeType: SELL
+            amountBTC: 0.005
+            pricePEN: 120000.00
+    responses:
+      '201':
+        description: Trade creado
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BootCoinTradeResponse'
+            example:
+              tradeId: "trade-777"
+              walletId: "boot-001"
+              tradeType: SELL
+              amountBTC: 0.005
+              pricePEN: 120000.00
+              status: OPEN
+              createdAt: "2025-01-01T13:00:00Z"
+
+ /bootcoin/trades/{tradeId}/accept:
+  post:
+    tags: [BootCoin]
+    summary: Aceptar trade BootCoin
+    parameters:
+      - in: path
+        name: tradeId
+        required: true
+        schema:
+          type: string
+        example: trade-777
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/BootCoinTradeAcceptRequest'
+          example:
+            buyerWalletId: "wallet-buyer-002"
+            paymentSource:
+              type: YANKI
+              phoneNumber: "+51987654321"
+    responses:
+      '200':
+        description: Trade aceptado
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BootCoinTradeAcceptResponse'
+            example:
+              tradeId: "trade-777"
+              buyerWalletId: "boot-002"
+              sellerWalletId: "boot-001"
+              amountBTC: 0.005
+              pricePEN: 120000.00
+              status: COMPLETED
+              completedAt: "2025-01-01T13:10:00Z"
+
+components:
+  schemas:
+    BootCoinWalletRequest:
+      type: object
+      properties:
+        customerId:
+          type: string
+          example: cus-1001
+        document:
+          type: string
+          example: DNI-78451236
+    BootCoinWalletResponse:
+      type: object
+      properties:
+        walletId:
+          type: string
+          example: boot-001
+        customerId:
+          type: string
+          example: cus-1001
+        document:
+          type: string
+          example: DNI-78451236
+        balanceBTC:
+          type: number
+          format: float
+          example: 0.015
+        status:
+          type: string
+          example: ACTIVE
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-01-01T12:30:00Z"
+    BootCoinTradeRequest:
+      type: object
+      properties:
+        sellerWalletId:
+          type: string
+          example: boot-001
+        tradeType:
+          type: string
+          enum: [BUY, SELL]
+          example: SELL
+        amountBTC:
+          type: number
+          format: float
+          example: 0.005
+        pricePEN:
+          type: number
+          format: float
+          example: 120000.00
+        paymentMethod:
+          type: string
+          enum: [YANKI, TRANSFER]
+          example: YANKI
+    BootCoinTradeResponse:
+      type: object
+      properties:
+        tradeId:
+          type: string
+          example: trade-777
+        sellerWalletId:
+          type: string
+          example: boot-001
+        tradeType:
+          type: string
+          enum: [BUY, SELL]
+          example: SELL
+        amountBTC:
+          type: number
+          format: float
+          example: 0.005
+        pricePEN:
+          type: number
+          format: float
+          example: 120000.00
+        totalAmount:
+          type: number
+          format: float
+          example: 600.00
+        paymentMethod:
+          type: string
+          enum: [YANKI, TRANSFER]
+          example: YANKI
+        status:
+          type: string
+          enum: [OPEN, ACCEPTED, COMPLETED, FAILED]
+          example: OPEN
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-01-01T13:00:00Z"
+    BootCoinTradeAcceptRequest:
+      type: object
+      required: [buyerWalletId, paymentSource]
+      properties:
+        buyerWalletId:
+          type: string
+        paymentSource:
+          type: object
+          required: [type]
+          properties:
+            type:
+              type: string
+              enum: [YANKI, TRANSFER]
+              example: YANKI
+            phoneNumber:
+              type: string
+              example: "+51987654321"
+            accountId:
+              type: string
+              example: "acc-123456"
+    BootCoinTradeAcceptResponse:
+      type: object
+      properties:
+        tradeId:
+          type: string
+          example: trade-777
+        buyerWalletId:
+          type: string
+          example: boot-002
+        sellerWalletId:
+          type: string
+          example: boot-001
+        amountBTC:
+          type: number
+          format: float
+          example: 0.005
+        pricePEN:
+          type: number
+          format: float
+          example: 120000.00
+        totalAmount:
+          type: number
+          format: float
+          example: 600.00
+        status:
+          type: string
+          example: COMPLETED
+        completedAt:
+          type: string
+          format: date-time
+          example: "2025-01-01T13:10:00Z"

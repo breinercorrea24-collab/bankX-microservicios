@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <!-- ===================== -->
+    <!-- APPENDER CONSOLA -->
+    <!-- ===================== -->
+    <property name="CONSOLE_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - [%X{traceId:-}:%X{spanId:-}] %msg%n"/>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${CONSOLE_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- ===================== -->
+    <!-- APPENDER LOGSTASH -->
+    <!-- ===================== -->
+    <appender name="LOGSTASH"
+              class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+
+        <!-- SI USAS DOCKER -->
+        <destination>logstash:5000</destination>
+
+        <!-- SI USAS LOCAL -->
+        <!-- <destination>localhost:5000</destination> -->
+
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <customFields>
+                {
+                  "app":"wallets-service",
+                  "env":"dev"
+                }
+            </customFields>
+        </encoder>
+    </appender>
+
+    <!-- ===================== -->
+    <!-- ROOT -->
+    <!-- ===================== -->
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="LOGSTASH"/>
+    </root>
+
+</configuration>
