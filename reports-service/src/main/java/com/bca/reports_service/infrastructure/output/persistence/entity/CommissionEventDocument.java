@@ -15,9 +15,11 @@ import java.time.Instant;
 public class CommissionEventDocument {
     @Id
     private String id;           // evt-comm-001
-    private String customerId;   // cust-001
+    
     private String productType;  // BANK_ACCOUNT
+    private String customerId;   // cust-001
     private String productId;    // acc-001
+    
     private String accountType;  // CURRENT
     private String commissionType; // MAINTENANCE
     private Double amount;
