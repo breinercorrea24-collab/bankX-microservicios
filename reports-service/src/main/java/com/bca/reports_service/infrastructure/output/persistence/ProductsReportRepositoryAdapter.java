@@ -3,6 +3,7 @@ package com.bca.reports_service.infrastructure.output.persistence;
 import com.bca.reports_service.domain.model.ProductsReport;
 import com.bca.reports_service.domain.model.ProductsReportAggregationDocument;
 import com.bca.reports_service.domain.ports.output.ProductsReportRepository;
+import com.bca.reports_service.infrastructure.output.persistence.mapper.ProductsReportMapper;
 import com.mongodb.BasicDBObject;
 
 import lombok.RequiredArgsConstructor;
@@ -18,7 +19,6 @@ import org.springframework.data.domain.Sort;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
-import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -89,7 +89,7 @@ public class ProductsReportRepositoryAdapter implements ProductsReportRepository
                 "products_reports",
                 ProductsReportAggregationDocument.class)
                 .next()
-                .map(agg -> toDomain(agg, startDate, endDate))
+                .map((ProductsReportAggregationDocument agg) -> ProductsReportMapper.toDomain(agg, startDate, endDate))
                 .doOnSuccess(r -> log.info("Products report generated | productId={}", productId))
                 .doOnError(e -> log.error("Error generating products report", e));
     }

@@ -1,6 +1,125 @@
 package com.bca.reports_service.infrastructure.input.rest.mapper;
 
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import com.bca.reports_service.domain.model.CommissionReport;
+import com.bca.reports_service.domain.model.CustomerConsolidateReport;
+import com.bca.reports_service.domain.model.ProductsReport;
+import com.bca.reports_service.domain.model.TransactionReport;
+import com.bca.reports_service.dto.CardTransactionReport;
+import com.bca.reports_service.dto.CardTransactionReportTransactionsInner;
+import com.bca.reports_service.dto.CommissionReportResponse;
+import com.bca.reports_service.dto.CommissionReportResponseComissionsInner;
+import com.bca.reports_service.dto.CommissionReportResponseSummary;
+import com.bca.reports_service.dto.CustomerDailyAverageBalanceReport;
+import com.bca.reports_service.dto.CustomerReportResponse;
+import com.bca.reports_service.dto.CustomerReportResponseAccountsInner;
+import com.bca.reports_service.dto.CustomerReportResponseCardsInner;
+import com.bca.reports_service.dto.CustomerReportResponseCreditsInner;
+import com.bca.reports_service.dto.CustomerReportResponseCustomer;
+import com.bca.reports_service.dto.CustomerReportResponseWalletsInner;
+import com.bca.reports_service.dto.ProductGeneralReport;
+import com.bca.reports_service.dto.ProductGeneralReportMovementsInner;
+import com.bca.reports_service.dto.ProductGeneralReportPeriod;
+import com.bca.reports_service.dto.ProductGeneralReportSummary;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class ReportsApiMapper {
+
+    // Mapping methods to convert domain models to generated DTOs
+    public static CommissionReportResponse mapToCommissionReportResponse(CommissionReport domainReport) {
+        CommissionReportResponse dto = new CommissionReportResponse();
+        dto.setCustomerId(domainReport.getProductId()); // Using productId as customerId for now
+
+        // Map period using generated DTO
+        ProductGeneralReportPeriod period = new ProductGeneralReportPeriod();
+        period.from(domainReport.getPeriod().getStartDate());
+        period.to(domainReport.getPeriod().getEndDate());
+        dto.setPeriod(null);
+
+        if (domainReport.getDetails() != null) {
+            // Map commissions
+            List<CommissionReportResponseComissionsInner> commissions = domainReport.getDetails().stream()
+                    .map(ReportsApiMapper::mapCommissionDetail)
+                    .collect(Collectors.toList());
+            dto.setComissions(commissions);
+
+            // Map summary
+            CommissionReportResponseSummary summary = new CommissionReportResponseSummary();
+            summary.setTotalAmount(domainReport.getTotalCommissionAmount().floatValue()); // Convert Double to Float
+            summary.setCurrency(domainReport.getCurrency());
+            summary.setTotalCommissions(domainReport.getDetails() != null ? domainReport.getDetails().size() : 0);
+            dto.setSummary(summary);
+        }
+
+        return dto;
+    }
+
+    public static CommissionReportResponseComissionsInner mapCommissionDetail(CommissionReport.CommissionDetail detail) {
+        CommissionReportResponseComissionsInner dto = new CommissionReportResponseComissionsInner();
+        dto.setProductType("BANK_ACCOUNT"); // Default value
+        dto.setProductId(detail.getProductId());
+        dto.setCommissionType(detail.getCommissionType());
+        dto.setAmount(detail.getAmount().floatValue()); // Convert Double to Float
+        dto.setCurrency("PEN"); // Default currency
+        return dto;
+    }
+
+    public static CustomerReportResponse mapToCustomerReportResponse(CustomerConsolidateReport domainReport) {
+        CustomerReportResponse dto = new CustomerReportResponse();
+        dto.setCustomerId(domainReport.getCustomerId());
+        dto.setGeneratedAt(OffsetDateTime.now()); // Convert LocalDateTime to OffsetDateTime
+
+        // Map customer
+        if (domainReport.getCustomer() != null) {
+            CustomerReportResponseCustomer customer = new CustomerReportResponseCustomer();
+            customer.setName(domainReport.getCustomer().getName());
+            customer.setDocument(domainReport.getCustomer().getDocument());
+            customer.setType(domainReport.getCustomer().getType());
+            dto.setCustomer(customer);
+        }
+
+        // Map accounts
+        if (domainReport.getAccounts() != null) {
+            List<CustomerReportResponseAccountsInner> accounts = domainReport.getAccounts().stream()
+                    .map(ReportsApiMapper::mapAccount)
+                    .collect(Collectors.toList());
+            dto.setAccounts(accounts);
+        }
+
+        // Map cards
+        if (domainReport.getCards() != null) {
+            List<CustomerReportResponseCardsInner> cards = domainReport.getCards().stream()
+                    .map(ReportsApiMapper::mapCard)
+                    .collect(Collectors.toList());
+            dto.setCards(cards);
+        }
+
+        // Map credits
+        if (domainReport.getCredits() != null) {
+            List<CustomerReportResponseCreditsInner> credits = domainReport.getCredits().stream()
+                    .map(ReportsApiMapper::mapCredit)
+                    .collect(Collectors.toList());
+            dto.setCredits(credits);
+        }
+
+        // Map wallets
+        if (domainReport.getWallets() != null) {
+            List<CustomerReportResponseWalletsInner> wallets = domainReport.getWallets().values().stream()
+                    .map(ReportsApiMapper::mapWallet)
+                    .collect(Collectors.toList());
+            dto.setWallets(wallets);
+        }
+
+        return dto;
+    }
+
     public static CustomerReportResponseAccountsInner mapAccount(CustomerConsolidateReport.Account account) {
         CustomerReportResponseAccountsInner dto = new CustomerReportResponseAccountsInner();
         dto.setAccountId(account.getAccountId());
@@ -135,7 +254,7 @@ public class ReportsApiMapper {
         dto.setGeneratedAt(OffsetDateTime.now());
 
         // Map product balances to Product DTOs
-        List<Product> products = null;
+        /* List<Product> products = null;
         if (domainReport.getProductBalances() == null) {
             products = List.of();
         } else {
@@ -143,33 +262,31 @@ public class ReportsApiMapper {
                     .map(pb -> {
                         Product product = new Product();
                         product.setProductType(pb.getProductType());
-                        product.setSubType(pb.getProductType().toLowerCase());
                         product.setProductId(pb.getProductId());
-                        product.setAlias(pb.getProductType() + " - " + pb.getProductId());
-                        product.setAverageDailyBalance(pb.getAverageDailyBalance());
                         product.setCurrency(pb.getCurrency());
-                        product.setStatus(pb.getStatus());
+                      
                         return product;
                     })
                     .collect(Collectors.toList());
-        }
-        dto.setProducts(products);
+        } */
+
+        dto.setProducts(null);
         // Map totals
-        Totals totals = new Totals();
+
+        /* Totals totals = new Totals();
         if (domainReport.getTotals() != null) {
             totals.setAverageAssets(domainReport.getTotals().getAverageAssets());
             totals.setAverageLiabilities(domainReport.getTotals().getAverageLiabilities());
             totals.setNetAveragePosition(domainReport.getTotals().getNetAveragePosition());
         } else {
-            // Valores predeterminados en caso de que getTotals() sea null
             totals.setAverageAssets(0.0);
             totals.setAverageLiabilities(0.0);
             totals.setNetAveragePosition(0.0);
-        }
+        } */
 
-        dto.setTotals(totals);
+        dto.setTotals(null);
 
-        log.debug("Successfully mapped {} products to DTO", products.size());
+      /*   log.debug("Successfully mapped {} products to DTO", products.size()); */
         return dto;
     }
 

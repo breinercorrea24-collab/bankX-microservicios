@@ -1,27 +1,27 @@
-package com.bca.wallets_service.infrastructure.output.persistence;
+package com.bca.bootcoin_service.infrastructure.output.persistence.entity;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Document(collection = "wallet_debit_links")
+@Document(collection = "bootcoin_wallets")
 @Data
-@Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class WalletDebitLinkDocument {
+public class BootCoinWalletDocument {
+
     @Id
-    private String id;
     private String walletId;
-    private String walletType;
-    private String debitCardId;
-    private String mainAccountId;
+    private String customerId;
+    private String document;
+    private BigDecimal balanceBTC;
     private String status;
-    private LocalDateTime linkedAt;
+    private LocalDateTime createdAt;
+
 }

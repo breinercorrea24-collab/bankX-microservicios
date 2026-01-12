@@ -1,19 +1,15 @@
 package com.bca.bootcoin_service.infrastructure.input.rest;
 
 import com.bca.bootcoin_service.api.BootcoinApiDelegate;
-import com.bca.bootcoin_service.domain.model.BootCoinTrade;
 import com.bca.bootcoin_service.domain.ports.input.AcceptBootCoinTradeUseCase;
 import com.bca.bootcoin_service.domain.ports.input.CreateBootCoinTradeUseCase;
 import com.bca.bootcoin_service.dto.BootCoinTradeAcceptRequest;
 import com.bca.bootcoin_service.dto.BootCoinTradeAcceptResponse;
 import com.bca.bootcoin_service.dto.BootCoinTradeRequest;
 import com.bca.bootcoin_service.dto.BootCoinTradeResponse;
+import com.bca.bootcoin_service.infrastructure.input.rest.mapper.BootCoinTradeApiMapper;
 
 import lombok.extern.slf4j.Slf4j;
-
-import java.math.BigDecimal;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -26,11 +22,13 @@ public class BootCoinTradeApiDelegateImpl implements BootcoinApiDelegate {
 
     private final CreateBootCoinTradeUseCase createBootCoinTradeUseCase;
     private final AcceptBootCoinTradeUseCase acceptBootCoinTradeUseCase;
+    private final BootCoinTradeApiMapper mapper;
 
     public BootCoinTradeApiDelegateImpl(CreateBootCoinTradeUseCase createBootCoinTradeUseCase,
-            AcceptBootCoinTradeUseCase acceptBootCoinTradeUseCase) {
+            AcceptBootCoinTradeUseCase acceptBootCoinTradeUseCase, BootCoinTradeApiMapper mapper) {
         this.createBootCoinTradeUseCase = createBootCoinTradeUseCase;
         this.acceptBootCoinTradeUseCase = acceptBootCoinTradeUseCase;
+        this.mapper = mapper;
     }
 
     @Override
@@ -43,8 +41,7 @@ public class BootCoinTradeApiDelegateImpl implements BootcoinApiDelegate {
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Request body is required")))
 
                 // flatMap SIEMPRE debe devolver Mono
-                .flatMap((BootCoinTradeRequest request) -> {
-
+                .flatMap(request -> {
                     if (request.getSellerWalletId() == null || request.getSellerWalletId().isBlank()) {
                         return Mono.error(new IllegalArgumentException("sellerWalletId is required"));
                     }
@@ -53,41 +50,15 @@ public class BootCoinTradeApiDelegateImpl implements BootcoinApiDelegate {
                         return Mono.error(new IllegalArgumentException("tradeType is required"));
                     }
 
-                    BootCoinTrade.TradeType tradeType = BootCoinTrade.TradeType.valueOf(request.getTradeType().name());
-
-                    BigDecimal amount = request.getAmountBTC() != null
-                            ? BigDecimal.valueOf(request.getAmountBTC())
-                            : null;
-
-                    BigDecimal price = request.getPricePEN() != null
-                            ? BigDecimal.valueOf(request.getPricePEN())
-                            : null;
-
                     return createBootCoinTradeUseCase.createTrade(
                             request.getSellerWalletId(),
-                            tradeType,
-                            amount,
-                            price);
+                            mapper.toDomainTradeType(request.getTradeType()),
+                            mapper.toBigDecimal(request.getAmountBTC()),
+                            mapper.toBigDecimal(request.getPricePEN()));
                 })
 
                 // Mapear dominio → response
-                .map(trade -> {
-                    BootCoinTradeResponse response = new BootCoinTradeResponse();
-                    response.setTradeId(trade.getTradeId());
-                    response.setSellerWalletId(trade.getSellerWalletId());
-                    response.setTradeType(
-                            BootCoinTradeResponse.TradeTypeEnum.valueOf(trade.getTradeType().name()));
-                    response.setAmountBTC(
-                            trade.getAmountBTC() != null ? trade.getAmountBTC().floatValue() : null);
-                    response.setPricePEN(
-                            trade.getPricePEN() != null ? trade.getPricePEN().floatValue() : null);
-                    response.setTotalAmount(response.getAmountBTC() * response.getPricePEN() );
-                    response.setStatus(BootCoinTradeResponse.StatusEnum.valueOf(trade.getStatus().name()));
-                    response.setCreatedAt(
-                            OffsetDateTime.of(trade.getCreatedAt(), ZoneOffset.UTC));
-
-                    return ResponseEntity.status(201).body(response);
-                })
+                .map(trade -> ResponseEntity.status(201).body(mapper.toResponse(trade)))
 
                 // Errores de validación → 400
                 .onErrorResume(IllegalArgumentException.class,
@@ -111,24 +82,8 @@ public class BootCoinTradeApiDelegateImpl implements BootcoinApiDelegate {
 
                     return acceptBootCoinTradeUseCase.acceptTrade(tradeId, buyerWalletId);
                 })
-                .map(trade -> {
-                    BootCoinTradeAcceptResponse response = new BootCoinTradeAcceptResponse();
-                    response.setTradeId(trade.getTradeId());
-                    response.setBuyerWalletId(trade.getBuyerWalletId());
-                    response.setSellerWalletId(trade.getSellerWalletId());
-                    response.setAmountBTC(
-                            trade.getAmountBTC() != null ? trade.getAmountBTC().floatValue() : null);
-                    response.setPricePEN(
-                            trade.getPricePEN() != null ? trade.getPricePEN().floatValue() : null);
-                    response.setStatus(trade.getStatus().name());
-                    response.setCompletedAt(
-                            trade.getCompletedAt() != null
-                                    ? OffsetDateTime.of(trade.getCompletedAt(), ZoneOffset.UTC)
-                                    : null);
-                    return ResponseEntity.ok(response);
-                })
+                .map(trade -> ResponseEntity.ok(mapper.toAcceptResponse(trade)))
                 .onErrorResume(IllegalArgumentException.class,
                         ex -> Mono.just(ResponseEntity.badRequest().build()));
     }
-
 }

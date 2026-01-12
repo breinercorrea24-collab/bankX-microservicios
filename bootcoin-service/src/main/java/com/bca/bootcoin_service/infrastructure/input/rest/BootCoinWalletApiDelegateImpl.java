@@ -4,6 +4,7 @@ import com.bca.bootcoin_service.api.WalletsApiDelegate;
 import com.bca.bootcoin_service.domain.ports.input.CreateBootCoinWalletUseCase;
 import com.bca.bootcoin_service.dto.BootCoinWalletRequest;
 import com.bca.bootcoin_service.dto.BootCoinWalletResponse;
+import com.bca.bootcoin_service.infrastructure.input.rest.mapper.BootCoinWalletApiMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -15,10 +16,12 @@ import reactor.core.publisher.Mono;
 public class BootCoinWalletApiDelegateImpl implements WalletsApiDelegate {
 
     private final CreateBootCoinWalletUseCase createBootCoinWalletUseCase;
+    private final BootCoinWalletApiMapper mapper;
     private static final Logger logger = LoggerFactory.getLogger(BootCoinWalletApiDelegateImpl.class);
 
-    public BootCoinWalletApiDelegateImpl(CreateBootCoinWalletUseCase createBootCoinWalletUseCase) {
+    public BootCoinWalletApiDelegateImpl(CreateBootCoinWalletUseCase createBootCoinWalletUseCase, BootCoinWalletApiMapper mapper) {
         this.createBootCoinWalletUseCase = createBootCoinWalletUseCase;
+        this.mapper = mapper;
     }
 
     @Override
@@ -31,14 +34,7 @@ public class BootCoinWalletApiDelegateImpl implements WalletsApiDelegate {
             })
             .map(wallet -> {
                 logger.info("Wallet created id={} customerId={}", wallet.getWalletId(), wallet.getCustomerId());
-                BootCoinWalletResponse response = new BootCoinWalletResponse();
-                response.setWalletId(wallet.getWalletId());
-                response.setCustomerId(wallet.getCustomerId());
-                response.setDocument(wallet.getDocument());
-                response.setBalanceBTC( wallet.getBalanceBTC() != null ? Float.valueOf(wallet.getBalanceBTC().floatValue()) : null);
-                response.setStatus(wallet.getStatus() != null ? wallet.getStatus().name() : null);
-                response.setCreatedAt(wallet.getCreatedAt() != null ? java.time.OffsetDateTime.of(wallet.getCreatedAt(), java.time.ZoneOffset.UTC) : null);
-                return ResponseEntity.status(201).body(response);
+                return ResponseEntity.status(201).body(mapper.toResponse(wallet));
             })
             .onErrorResume(IllegalArgumentException.class, ex ->
                 Mono.just(ResponseEntity.badRequest().build())

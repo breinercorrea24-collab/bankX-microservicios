@@ -2,6 +2,8 @@ package com.bca.reports_service.infrastructure.output.persistence;
 
 import com.bca.reports_service.domain.model.DailyAverageBalanceReport;
 import com.bca.reports_service.domain.ports.output.DailyAverageBalanceReportRepository;
+import com.bca.reports_service.infrastructure.output.persistence.entity.DailyAverageBalanceReportDocument;
+
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 

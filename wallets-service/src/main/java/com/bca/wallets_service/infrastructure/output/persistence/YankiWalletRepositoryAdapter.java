@@ -4,6 +4,9 @@ import org.springframework.stereotype.Component;
 
 import com.bca.wallets_service.domain.model.YankiWallet;
 import com.bca.wallets_service.domain.ports.output.YankiWalletRepository;
+import com.bca.wallets_service.infrastructure.output.persistence.entity.YankiWalletEntity;
+import com.bca.wallets_service.infrastructure.output.persistence.repository.YankiWalletMongoRepository;
+
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
@@ -19,7 +22,7 @@ public class YankiWalletRepositoryAdapter implements YankiWalletRepository {
 
     @Override
     public Mono<YankiWallet> save(YankiWallet wallet) {
-        YankiWalletDocument document = new YankiWalletDocument();
+        YankiWalletEntity document = new YankiWalletEntity();
         document.setId(null); // id will be generated
         document.setWalletId(wallet.getWalletId());
         document.setCustomerId(wallet.getCustomerId());

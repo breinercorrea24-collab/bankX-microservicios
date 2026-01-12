@@ -1,4 +1,4 @@
-package com.bca.reports_service.infrastructure.output.persistence;
+package com.bca.reports_service.infrastructure.output.persistence.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -1,8 +1,13 @@
 package com.bca.reports_service.infrastructure.output.persistence.mapper;
 
+import java.util.stream.Collectors;
+
 import com.bca.reports_service.domain.model.CustomerConsolidateReport;
 import com.bca.reports_service.infrastructure.output.persistence.entity.CustomerConsolidateReportDocument;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class CustomerConsolidateReportMapper {
     
     public static CustomerConsolidateReport toDomain(CustomerConsolidateReportDocument document) {

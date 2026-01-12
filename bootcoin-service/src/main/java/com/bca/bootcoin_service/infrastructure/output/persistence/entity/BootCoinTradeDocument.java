@@ -1,4 +1,4 @@
-package com.bca.bootcoin_service.infrastructure.output.persistence;
+package com.bca.bootcoin_service.infrastructure.output.persistence.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

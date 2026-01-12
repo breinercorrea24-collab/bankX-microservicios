@@ -1,5 +1,9 @@
 package com.bca.reports_service.infrastructure.output.persistence.mapper;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.stream.Collectors;
+
 import com.bca.reports_service.domain.model.ProductsReport;
 import com.bca.reports_service.domain.model.ProductsReportAggregationDocument;
 
