@@ -1,6 +1,8 @@
 package com.bca.core_banking_service.infrastructure.output.messaging.kafka;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
@@ -8,6 +10,7 @@ import com.bca.core_banking_service.domain.ports.output.event.AccountEventPublis
 import com.bca.core_banking_service.infrastructure.output.messaging.kafka.dto.AccountDepositEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class KafkaProducerAdapter implements AccountEventPublisher {
@@ -19,12 +22,13 @@ public class KafkaProducerAdapter implements AccountEventPublisher {
 
     @Override
     public void publishDeposit(AccountDepositEvent event) {
+        log.info("Publishing deposit event to Kafka: {}", event);
         try {
-            kafkaTemplate.send(
-                TOPIC,
-                objectMapper.writeValueAsString(event)
-            );
+            String message = objectMapper.writeValueAsString(event);
+            kafkaTemplate.send(TOPIC, message);
+            log.info("Successfully published event to topic {}: {}", TOPIC, message);
         } catch (Exception e) {
+            log.error("Error publishing event to Kafka: {}", event, e);
             throw new RuntimeException("Error publicando evento Kafka", e);
         }
     }

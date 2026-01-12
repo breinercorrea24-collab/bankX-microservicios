@@ -1,4 +1,6 @@
+# ==========================
 # Lista de servicios
+# ==========================
 $services = @(
     "api-gateway",
     "config-server",
@@ -13,7 +15,7 @@ $services = @(
 )
 
 $basePath = Get-Location
-$errors = @()   # <-- aquí acumulamos errores
+$errors = @()   # aquí acumulamos errores
 
 foreach ($service in $services) {
 
@@ -28,7 +30,7 @@ foreach ($service in $services) {
     # ==========================
     Push-Location $servicePath
 
-    Write-Host "☕ Compilando Spring Boot..."
+    Write-Host "☕ Compilando Spring Boot... $service"
     mvn clean package -DskipTests
 
     if ($LASTEXITCODE -ne 0) {
@@ -39,7 +41,7 @@ foreach ($service in $services) {
             message = "Falló mvn clean package"
         }
         Pop-Location
-        continue   # sigue con el siguiente servicio
+        continue
     }
 
     Pop-Location
@@ -47,7 +49,7 @@ foreach ($service in $services) {
     # ==========================
     # 2️⃣ Build Docker
     # ==========================
-    Write-Host "🐳 Construyendo imagen Docker..."
+    Write-Host "🐳 Construyendo imagen Docker... $service"
     docker build -t $service $servicePath
 
     if ($LASTEXITCODE -ne 0) {
@@ -61,25 +63,4 @@ foreach ($service in $services) {
     }
 
     Write-Host "✅ $service construido correctamente`n"
-}
-
-# ==========================
-# 📋 RESUMEN FINAL
-# ==========================
-Write-Host "`n================================"
-Write-Host "📊 RESUMEN FINAL"
-Write-Host "================================"
-
-if ($errors.Count -eq 0) {
-    Write-Host "🎉 Todo se construyó correctamente"
-} else {
-    Write-Host "❌ Se encontraron errores:`n"
-
-    foreach ($err in $errors) {
-        Write-Host "🔴 Servicio: $($err.service)"
-        Write-Host "   Paso:     $($err.step)"
-        Write-Host "   Detalle:  $($err.message)`n"
-    }
-
-    Write-Host "⚠ Total de errores: $($errors.Count)"
 }

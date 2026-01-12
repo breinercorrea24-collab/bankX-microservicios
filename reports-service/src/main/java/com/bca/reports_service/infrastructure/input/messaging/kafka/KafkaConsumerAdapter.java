@@ -9,7 +9,9 @@ import com.bca.reports_service.infrastructure.input.messaging.dto.AccountDeposit
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RequiredArgsConstructor
 @Component
 public class KafkaConsumerAdapter {
@@ -23,10 +25,14 @@ public class KafkaConsumerAdapter {
     )
     public void consume(String message) {
 
+        log.info("Received message from Kafka: {}", message);
+
         try {
             // 1️⃣ Kafka Message → DTO
             AccountDepositMessage event =
                     objectMapper.readValue(message, AccountDepositMessage.class);
+
+            log.debug("Parsed AccountDepositMessage: {}", event);
 
             // 2️⃣ DTO → Command
             AccountDepositCommand command = new AccountDepositCommand(
@@ -35,10 +41,15 @@ public class KafkaConsumerAdapter {
                     event.getBalance()
             );
 
+            log.debug("Created AccountDepositCommand: {}", command);
+
             // 3️⃣ Llamar al Use Case
             useCase.process(command);
 
+            log.info("Successfully processed AccountDepositCommand for accountId: {}", event.getAccountId());
+
         } catch (Exception e) {
+            log.error("Error processing Kafka message: {}", message, e);
             throw new RuntimeException("Error procesando evento Kafka", e);
         }
     }
