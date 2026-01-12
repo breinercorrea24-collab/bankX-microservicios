@@ -2,14 +2,15 @@ package com.bca.core_banking_service.infrastructure.output.messaging.kafka;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
-import com.bca.core_banking_service.domain.ports.output.EventPublisher;
+import com.bca.core_banking_service.domain.ports.output.event.AccountEventPublisher;
+import com.bca.core_banking_service.infrastructure.output.messaging.kafka.dto.AccountDepositEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+@Component
 @RequiredArgsConstructor
-@Repository
-public class KafkaProducerAdapter implements EventPublisher {
+public class KafkaProducerAdapter implements AccountEventPublisher {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
@@ -17,15 +18,15 @@ public class KafkaProducerAdapter implements EventPublisher {
     private static final String TOPIC = "account-events";
 
     @Override
-    public void publish(Object event) {
-
+    public void publishDeposit(AccountDepositEvent event) {
         try {
-            String payload = objectMapper.writeValueAsString(event);
-
-            kafkaTemplate.send(TOPIC, payload);
-
+            kafkaTemplate.send(
+                TOPIC,
+                objectMapper.writeValueAsString(event)
+            );
         } catch (Exception e) {
             throw new RuntimeException("Error publicando evento Kafka", e);
         }
     }
+
 }

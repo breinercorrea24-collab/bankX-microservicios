@@ -2,9 +2,9 @@ package com.bca.core_banking_service.application.usecases;
 
 import com.bca.core_banking_service.application.ports.input.usecases.AccountUseCase;
 import com.bca.core_banking_service.domain.exceptions.BusinessException;
-import com.bca.core_banking_service.domain.ports.output.AccountRepository;
-import com.bca.core_banking_service.domain.ports.output.EventPublisher;
-import com.bca.core_banking_service.domain.ports.output.TransactionRepository;
+import com.bca.core_banking_service.domain.ports.output.event.EventPublisher;
+import com.bca.core_banking_service.domain.ports.output.persistence.AccountRepository;
+import com.bca.core_banking_service.domain.ports.output.persistence.TransactionRepository;
 import com.bca.core_banking_service.infrastructure.input.dto.Account;
 import com.bca.core_banking_service.infrastructure.input.dto.Transaction;
 import com.bca.core_banking_service.infrastructure.output.messaging.kafka.dto.AccountDepositEvent;

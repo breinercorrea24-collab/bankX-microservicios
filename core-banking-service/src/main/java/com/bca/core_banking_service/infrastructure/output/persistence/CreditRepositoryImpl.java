@@ -1,7 +1,7 @@
 package com.bca.core_banking_service.infrastructure.output.persistence;
 
 
-import com.bca.core_banking_service.domain.ports.output.CreditRepository;
+import com.bca.core_banking_service.domain.ports.output.persistence.CreditRepository;
 import com.bca.core_banking_service.infrastructure.input.dto.Credit;
 import com.bca.core_banking_service.infrastructure.output.persistence.mapper.CreditMapper;
 import com.bca.core_banking_service.infrastructure.output.persistence.repository.CreditMongoRepository;

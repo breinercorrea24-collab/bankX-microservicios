@@ -1,10 +1,11 @@
 package com.bca.core_banking_service.infrastructure.input.mapper;
 
 import com.bca.core_banking_service.dto.AccountResponse;
+import com.bca.core_banking_service.infrastructure.input.dto.Account;
 
 public class CustomerApiMapper {
     public static AccountResponse mapToAccountResponse(
-            com.bca.core_banking_service.infrastructure.input.dto.Account account) {
+            Account account) {
         AccountResponse response = new AccountResponse();
         response.setId(account.getId());
         response.setCustomerId(account.getCustomerId());

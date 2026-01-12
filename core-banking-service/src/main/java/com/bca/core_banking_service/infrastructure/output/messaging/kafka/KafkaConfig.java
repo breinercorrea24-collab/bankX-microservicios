@@ -7,6 +7,8 @@ import org.springframework.kafka.core.ProducerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+/* PARA AVRO SE VA NECESITAR */
+
 @Configuration
 public class KafkaConfig {
 

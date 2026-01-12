@@ -1,4 +1,4 @@
-package com.bca.core_banking_service.domain.ports.output;
+package com.bca.core_banking_service.domain.ports.output.persistence;
 
 import com.bca.core_banking_service.infrastructure.input.dto.Account;
 
