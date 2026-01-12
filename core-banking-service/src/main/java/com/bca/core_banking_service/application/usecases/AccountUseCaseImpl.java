@@ -1,7 +1,7 @@
 package com.bca.core_banking_service.application.usecases;
 
+import com.bca.core_banking_service.application.ports.input.usecases.AccountUseCase;
 import com.bca.core_banking_service.domain.exceptions.BusinessException;
-import com.bca.core_banking_service.domain.ports.input.AccountUseCase;
 import com.bca.core_banking_service.domain.ports.output.AccountRepository;
 import com.bca.core_banking_service.domain.ports.output.EventPublisher;
 import com.bca.core_banking_service.domain.ports.output.TransactionRepository;

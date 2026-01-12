@@ -1,8 +1,10 @@
 package com.bca.core_banking_service.infrastructure.input.rest;
 
 import com.bca.core_banking_service.api.CustomersApiDelegate;
-import com.bca.core_banking_service.domain.ports.input.AccountUseCase;
+import com.bca.core_banking_service.application.ports.input.usecases.AccountUseCase;
 import com.bca.core_banking_service.dto.AccountResponse;
+import com.bca.core_banking_service.infrastructure.input.mapper.CustomerApiMapper;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -21,17 +23,6 @@ public class CustomerApiDelegateImpl implements CustomersApiDelegate {
             ServerWebExchange exchange) {
         return Mono.just(ResponseEntity.ok(
                 accountUseCase.getAccountsByCustomer(customerId)
-                        .map(this::mapToAccountResponse)));
-    }
-
-    private AccountResponse mapToAccountResponse(com.bca.core_banking_service.infrastructure.input.dto.Account account) {
-        AccountResponse response = new AccountResponse();
-        response.setId(account.getId());
-        response.setCustomerId(account.getCustomerId());
-        response.setType(AccountResponse.TypeEnum.valueOf(account.getType().name()));
-        response.setCurrency(account.getCurrency());
-        response.setBalance(account.getBalance().floatValue());
-        response.setStatus(AccountResponse.StatusEnum.valueOf(account.getStatus().name()));
-        return response;
+                        .map(CustomerApiMapper::mapToAccountResponse)));
     }
 }

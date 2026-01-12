@@ -1,4 +1,4 @@
-package com.bca.core_banking_service.domain.ports.input;
+package com.bca.core_banking_service.application.ports.input.usecases;
 
 import com.bca.core_banking_service.infrastructure.input.dto.Account;
 

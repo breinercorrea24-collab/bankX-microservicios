@@ -1,6 +1,6 @@
 package com.bca.core_banking_service.application.usecases;
 
-import com.bca.core_banking_service.domain.ports.input.CreditUseCase;
+import com.bca.core_banking_service.application.ports.input.usecases.CreditUseCase;
 import com.bca.core_banking_service.domain.ports.output.CreditRepository;
 import com.bca.core_banking_service.infrastructure.input.dto.Credit;
 

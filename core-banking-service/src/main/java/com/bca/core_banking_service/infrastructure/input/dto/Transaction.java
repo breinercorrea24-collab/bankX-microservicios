@@ -3,8 +3,6 @@ package com.bca.core_banking_service.infrastructure.input.dto;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import com.bca.core_banking_service.domain.model.enums.transaction.TransactionType;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

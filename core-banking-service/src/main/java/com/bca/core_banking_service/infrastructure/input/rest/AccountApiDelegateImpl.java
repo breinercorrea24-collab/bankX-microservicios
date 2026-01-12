@@ -1,9 +1,10 @@
 package com.bca.core_banking_service.infrastructure.input.rest;
 
 import com.bca.core_banking_service.api.AccountsApiDelegate;
-import com.bca.core_banking_service.domain.ports.input.AccountUseCase;
+import com.bca.core_banking_service.application.ports.input.usecases.AccountUseCase;
 import com.bca.core_banking_service.dto.*;
 import com.bca.core_banking_service.infrastructure.input.dto.Account;
+import com.bca.core_banking_service.infrastructure.input.mapper.AccountApiMapper;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -28,7 +29,7 @@ public class AccountApiDelegateImpl implements AccountsApiDelegate {
                         request.getCustomerId(),
                         Account.AccountType.valueOf(request.getType().getValue()),
                         request.getCurrency()))
-                .map(this::mapToAccountResponse)
+                .map(AccountApiMapper::mapToAccountResponse)
                 .map(accountResponse -> ResponseEntity.status(HttpStatus.CREATED).body(accountResponse))
                 .onErrorResume(RuntimeException.class,
                         ex -> Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).build()));
@@ -40,7 +41,7 @@ public class AccountApiDelegateImpl implements AccountsApiDelegate {
             ServerWebExchange exchange) {
         return amountRequest
                 .flatMap(request -> accountUseCase.deposit(accountId, BigDecimal.valueOf(request.getAmount()))
-                        .map(account -> mapToTransactionResponse(account, "DEPOSIT",
+                        .map(account -> AccountApiMapper.mapToTransactionResponse(account, "DEPOSIT",
                                 BigDecimal.valueOf(request.getAmount()))))
                 .map(ResponseEntity::ok)
                 .onErrorResume(RuntimeException.class,
@@ -53,7 +54,7 @@ public class AccountApiDelegateImpl implements AccountsApiDelegate {
             ServerWebExchange exchange) {
         return amountRequest
                 .flatMap(request -> accountUseCase.withdraw(accountId, BigDecimal.valueOf(request.getAmount()))
-                        .map(account -> mapToTransactionResponse(account, "WITHDRAW",
+                        .map(account -> AccountApiMapper.mapToTransactionResponse(account, "WITHDRAW",
                                 BigDecimal.valueOf(request.getAmount()))))
                 .map(ResponseEntity::ok)
                 .onErrorResume(RuntimeException.class, ex -> {
@@ -70,7 +71,7 @@ public class AccountApiDelegateImpl implements AccountsApiDelegate {
         return transferRequest
                 .flatMap(request -> accountUseCase
                         .transfer(request.getFromId(), request.getToId(), BigDecimal.valueOf(request.getAmount()))
-                        .map(account -> mapToTransactionResponse(account, "TRANSFER",
+                        .map(account -> AccountApiMapper.mapToTransactionResponse(account, "TRANSFER",
                                 BigDecimal.valueOf(request.getAmount()))))
                 .map(ResponseEntity::ok)
                 .onErrorResume(RuntimeException.class, ex -> {
@@ -81,25 +82,4 @@ public class AccountApiDelegateImpl implements AccountsApiDelegate {
                 });
     }
 
-    private AccountResponse mapToAccountResponse(Account account) {
-        AccountResponse response = new AccountResponse();
-        response.setId(account.getId());
-        response.setCustomerId(account.getCustomerId());
-        response.setType(AccountResponse.TypeEnum.valueOf(account.getType().name()));
-        response.setCurrency(account.getCurrency());
-        response.setBalance(account.getBalance().floatValue());
-        response.setStatus(AccountResponse.StatusEnum.valueOf(account.getStatus().name()));
-        return response;
-    }
-
-    private TransactionResponse mapToTransactionResponse(Account account, String type, BigDecimal amount) {
-        TransactionResponse response = new TransactionResponse();
-        response.setTransactionId("tx-" + System.currentTimeMillis());
-        response.setAccountId(account.getId());
-        response.setType(TransactionResponse.TypeEnum.valueOf(type));
-        response.setAmount(amount.floatValue());
-        response.setBalance(account.getBalance().floatValue());
-        response.setTimestamp(java.time.OffsetDateTime.now());
-        return response;
-    }
 }
