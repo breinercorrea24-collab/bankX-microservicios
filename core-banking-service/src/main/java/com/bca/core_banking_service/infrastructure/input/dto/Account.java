@@ -1,4 +1,4 @@
-package com.bca.core_banking_service.domain.model;
+package com.bca.core_banking_service.infrastructure.input.dto;
 
 import java.math.BigDecimal;
 
@@ -17,6 +17,7 @@ public class Account {
     private String currency;
     private BigDecimal balance;
     private AccountStatus status;
+    private boolean isActive;
 
     public enum AccountType {
         SAVINGS, CURRENT

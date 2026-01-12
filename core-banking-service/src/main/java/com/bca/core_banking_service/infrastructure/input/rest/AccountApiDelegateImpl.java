@@ -1,9 +1,10 @@
 package com.bca.core_banking_service.infrastructure.input.rest;
 
 import com.bca.core_banking_service.api.AccountsApiDelegate;
-import com.bca.core_banking_service.domain.model.Account;
 import com.bca.core_banking_service.domain.ports.input.AccountUseCase;
 import com.bca.core_banking_service.dto.*;
+import com.bca.core_banking_service.infrastructure.input.dto.Account;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

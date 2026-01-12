@@ -1,6 +1,7 @@
 package com.bca.core_banking_service.domain.ports.output;
 
-import com.bca.core_banking_service.domain.model.Account;
+import com.bca.core_banking_service.infrastructure.input.dto.Account;
+
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 

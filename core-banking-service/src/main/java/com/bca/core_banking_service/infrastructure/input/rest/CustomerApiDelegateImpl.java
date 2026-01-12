@@ -24,7 +24,7 @@ public class CustomerApiDelegateImpl implements CustomersApiDelegate {
                         .map(this::mapToAccountResponse)));
     }
 
-    private AccountResponse mapToAccountResponse(com.bca.core_banking_service.domain.model.Account account) {
+    private AccountResponse mapToAccountResponse(com.bca.core_banking_service.infrastructure.input.dto.Account account) {
         AccountResponse response = new AccountResponse();
         response.setId(account.getId());
         response.setCustomerId(account.getCustomerId());

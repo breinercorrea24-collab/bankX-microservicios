@@ -1,8 +1,8 @@
 package com.bca.core_banking_service.infrastructure.output.persistence.mapper;
 
-import com.bca.core_banking_service.domain.model.Credit;
-import com.bca.core_banking_service.domain.model.Credit.CreditStatus;
-import com.bca.core_banking_service.domain.model.Credit.CreditType;
+import com.bca.core_banking_service.infrastructure.input.dto.Credit;
+import com.bca.core_banking_service.infrastructure.input.dto.Credit.CreditStatus;
+import com.bca.core_banking_service.infrastructure.input.dto.Credit.CreditType;
 import com.bca.core_banking_service.infrastructure.output.persistence.entity.CreditEntity;
 
 public class CreditMapper {

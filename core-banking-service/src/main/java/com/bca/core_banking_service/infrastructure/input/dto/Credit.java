@@ -1,4 +1,4 @@
-package com.bca.core_banking_service.domain.model;
+package com.bca.core_banking_service.infrastructure.input.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

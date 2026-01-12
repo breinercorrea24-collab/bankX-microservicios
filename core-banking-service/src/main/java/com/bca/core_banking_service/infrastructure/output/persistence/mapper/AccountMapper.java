@@ -1,8 +1,8 @@
 package com.bca.core_banking_service.infrastructure.output.persistence.mapper;
 
-import com.bca.core_banking_service.domain.model.Account;
-import com.bca.core_banking_service.domain.model.Account.AccountStatus;
-import com.bca.core_banking_service.domain.model.Account.AccountType;
+import com.bca.core_banking_service.infrastructure.input.dto.Account;
+import com.bca.core_banking_service.infrastructure.input.dto.Account.AccountStatus;
+import com.bca.core_banking_service.infrastructure.input.dto.Account.AccountType;
 import com.bca.core_banking_service.infrastructure.output.persistence.entity.AccountEntity;
 
 public class AccountMapper {
@@ -14,7 +14,8 @@ public class AccountMapper {
             AccountType.valueOf(e.getType().name()), // Convert AccountEntity.AccountType to String
             e.getCurrency(),
             e.getBalance(),
-            AccountStatus.valueOf(e.getStatus().name()) // Convert AccountEntity.AccountStatus to String
+            AccountStatus.valueOf(e.getStatus().name()), // Convert AccountEntity.AccountStatus to String
+            e.isActive()
         );
     }
 

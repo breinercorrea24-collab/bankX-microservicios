@@ -1,8 +1,8 @@
 package com.bca.core_banking_service.infrastructure.output.persistence;
 
 
-import com.bca.core_banking_service.domain.model.Account;
 import com.bca.core_banking_service.domain.ports.output.AccountRepository;
+import com.bca.core_banking_service.infrastructure.input.dto.Account;
 import com.bca.core_banking_service.infrastructure.output.persistence.entity.AccountEntity;
 import com.bca.core_banking_service.infrastructure.output.persistence.mapper.AccountMapper;
 import com.bca.core_banking_service.infrastructure.output.persistence.repository.AccountMongoRepository;

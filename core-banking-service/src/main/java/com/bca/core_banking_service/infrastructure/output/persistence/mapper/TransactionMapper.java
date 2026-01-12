@@ -1,7 +1,8 @@
 package com.bca.core_banking_service.infrastructure.output.persistence.mapper;
 
-import com.bca.core_banking_service.domain.model.Transaction;
-import com.bca.core_banking_service.domain.model.Transaction.TransactionType;
+
+import com.bca.core_banking_service.infrastructure.input.dto.Transaction;
+import com.bca.core_banking_service.infrastructure.input.dto.Transaction.TransactionType;
 import com.bca.core_banking_service.infrastructure.output.persistence.entity.TransactionEntity;
 
 public class TransactionMapper {

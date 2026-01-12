@@ -20,6 +20,7 @@ public class AccountEntity {
     private String currency;
     private BigDecimal balance;
     private AccountStatus status;
+    private boolean active;
 
     public enum AccountType {
         SAVINGS, CURRENT

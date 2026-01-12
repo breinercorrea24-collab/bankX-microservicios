@@ -1,9 +1,10 @@
 package com.bca.core_banking_service.infrastructure.input.rest;
 
 import com.bca.core_banking_service.api.CreditsApiDelegate;
-import com.bca.core_banking_service.domain.model.Credit;
 import com.bca.core_banking_service.domain.ports.input.CreditUseCase;
 import com.bca.core_banking_service.dto.*;
+import com.bca.core_banking_service.infrastructure.input.dto.Credit;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -1,8 +1,9 @@
 package com.bca.core_banking_service.application.usecases;
 
-import com.bca.core_banking_service.domain.model.Credit;
 import com.bca.core_banking_service.domain.ports.input.CreditUseCase;
 import com.bca.core_banking_service.domain.ports.output.CreditRepository;
+import com.bca.core_banking_service.infrastructure.input.dto.Credit;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
