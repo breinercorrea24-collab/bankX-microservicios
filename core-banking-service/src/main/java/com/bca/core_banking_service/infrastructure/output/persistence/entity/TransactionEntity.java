@@ -1,17 +1,20 @@
-package com.bca.core_banking_service.domain.model;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
+package com.bca.core_banking_service.infrastructure.output.persistence.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Transaction {
-
+@Document(collection = "transactions")
+public class TransactionEntity {
+    @Id
     private String id;
     private String accountId;
     private String fromAccountId;

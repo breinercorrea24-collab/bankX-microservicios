@@ -21,7 +21,7 @@ public class AccountApiDelegateImpl implements AccountsApiDelegate {
 
     @Override
     public Mono<ResponseEntity<AccountResponse>> accountsPost(Mono<AccountCreate> accountCreate,
-                                                            ServerWebExchange exchange) {
+            ServerWebExchange exchange) {
         return accountCreate
                 .flatMap(request -> accountUseCase.createAccount(
                         request.getCustomerId(),
@@ -29,29 +29,31 @@ public class AccountApiDelegateImpl implements AccountsApiDelegate {
                         request.getCurrency()))
                 .map(this::mapToAccountResponse)
                 .map(accountResponse -> ResponseEntity.status(HttpStatus.CREATED).body(accountResponse))
-                .onErrorResume(RuntimeException.class, ex ->
-                        Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).build()));
+                .onErrorResume(RuntimeException.class,
+                        ex -> Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).build()));
     }
 
     @Override
     public Mono<ResponseEntity<TransactionResponse>> accountsAccountIdDepositPost(String accountId,
-                                                                                Mono<AmountRequest> amountRequest,
-                                                                                ServerWebExchange exchange) {
+            Mono<AmountRequest> amountRequest,
+            ServerWebExchange exchange) {
         return amountRequest
                 .flatMap(request -> accountUseCase.deposit(accountId, BigDecimal.valueOf(request.getAmount()))
-                        .map(account -> mapToTransactionResponse(account, "DEPOSIT", BigDecimal.valueOf(request.getAmount()))))
+                        .map(account -> mapToTransactionResponse(account, "DEPOSIT",
+                                BigDecimal.valueOf(request.getAmount()))))
                 .map(ResponseEntity::ok)
-                .onErrorResume(RuntimeException.class, ex ->
-                        Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).build()));
+                .onErrorResume(RuntimeException.class,
+                        ex -> Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).build()));
     }
 
     @Override
     public Mono<ResponseEntity<TransactionResponse>> accountsAccountIdWithdrawPost(String accountId,
-                                                                                 Mono<AmountRequest> amountRequest,
-                                                                                 ServerWebExchange exchange) {
+            Mono<AmountRequest> amountRequest,
+            ServerWebExchange exchange) {
         return amountRequest
                 .flatMap(request -> accountUseCase.withdraw(accountId, BigDecimal.valueOf(request.getAmount()))
-                        .map(account -> mapToTransactionResponse(account, "WITHDRAW", BigDecimal.valueOf(request.getAmount()))))
+                        .map(account -> mapToTransactionResponse(account, "WITHDRAW",
+                                BigDecimal.valueOf(request.getAmount()))))
                 .map(ResponseEntity::ok)
                 .onErrorResume(RuntimeException.class, ex -> {
                     if (ex.getMessage().contains("Insufficient funds")) {
@@ -63,10 +65,12 @@ public class AccountApiDelegateImpl implements AccountsApiDelegate {
 
     @Override
     public Mono<ResponseEntity<TransactionResponse>> accountsTransferPost(Mono<TransferRequest> transferRequest,
-                                                                        ServerWebExchange exchange) {
+            ServerWebExchange exchange) {
         return transferRequest
-                .flatMap(request -> accountUseCase.transfer(request.getFromId(), request.getToId(), BigDecimal.valueOf(request.getAmount()))
-                        .map(account -> mapToTransactionResponse(account, "TRANSFER", BigDecimal.valueOf(request.getAmount()))))
+                .flatMap(request -> accountUseCase
+                        .transfer(request.getFromId(), request.getToId(), BigDecimal.valueOf(request.getAmount()))
+                        .map(account -> mapToTransactionResponse(account, "TRANSFER",
+                                BigDecimal.valueOf(request.getAmount()))))
                 .map(ResponseEntity::ok)
                 .onErrorResume(RuntimeException.class, ex -> {
                     if (ex.getMessage().contains("Insufficient funds")) {

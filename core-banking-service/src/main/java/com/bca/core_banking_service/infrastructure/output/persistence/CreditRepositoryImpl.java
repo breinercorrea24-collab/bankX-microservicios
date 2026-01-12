@@ -1,14 +1,15 @@
 package com.bca.core_banking_service.infrastructure.output.persistence;
 
+
 import com.bca.core_banking_service.domain.model.Credit;
 import com.bca.core_banking_service.domain.ports.output.CreditRepository;
+import com.bca.core_banking_service.infrastructure.output.persistence.mapper.CreditMapper;
+import com.bca.core_banking_service.infrastructure.output.persistence.repository.CreditMongoRepository;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
 
-interface CreditMongoRepository extends ReactiveMongoRepository<Credit, String> {
-}
 
 @Repository
 @RequiredArgsConstructor
@@ -18,11 +19,13 @@ public class CreditRepositoryImpl implements CreditRepository {
 
     @Override
     public Mono<Credit> save(Credit credit) {
-        return mongoRepository.save(credit);
+        return mongoRepository.save(CreditMapper.toEntity(credit))
+                .map(CreditMapper::toDomain);
     }
 
     @Override
     public Mono<Credit> findById(String id) {
-        return mongoRepository.findById(id);
+        return mongoRepository.findById(id)
+                .map(CreditMapper::toDomain);
     }
 }

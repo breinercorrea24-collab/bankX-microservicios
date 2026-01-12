@@ -22,7 +22,7 @@ public class CreditApiDelegateImpl implements CreditsApiDelegate {
 
     @Override
     public Mono<ResponseEntity<CreditResponse>> creditsPost(Mono<CreditCreate> creditCreate,
-                                                          ServerWebExchange exchange) {
+            ServerWebExchange exchange) {
         return creditCreate
                 .flatMap(request -> creditUseCase.createCredit(
                         request.getCustomerId(),
@@ -32,14 +32,14 @@ public class CreditApiDelegateImpl implements CreditsApiDelegate {
                         BigDecimal.valueOf(request.getInterestRate())))
                 .map(this::mapToCreditResponse)
                 .map(creditResponse -> ResponseEntity.status(HttpStatus.CREATED).body(creditResponse))
-                .onErrorResume(RuntimeException.class, ex ->
-                        Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).build()));
+                .onErrorResume(RuntimeException.class,
+                        ex -> Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).build()));
     }
 
     @Override
     public Mono<ResponseEntity<CreditPaymentResponse>> creditsCreditIdPaymentPost(String creditId,
-                                                                                Mono<AmountRequest> amountRequest,
-                                                                                ServerWebExchange exchange) {
+            Mono<AmountRequest> amountRequest,
+            ServerWebExchange exchange) {
         return amountRequest
                 .flatMap(request -> {
                     BigDecimal amount = BigDecimal.valueOf(request.getAmount());
@@ -76,9 +76,9 @@ public class CreditApiDelegateImpl implements CreditsApiDelegate {
         response.setPaymentId("pay-" + System.currentTimeMillis());
         response.setPaidAmount(paidAmount.doubleValue());
         response.setRemainingDebt(credit.getPendingDebt().doubleValue());
-        response.setStatus(credit.getPendingDebt().compareTo(BigDecimal.ZERO) == 0 ?
-                CreditPaymentResponse.StatusEnum.FULL_PAYMENT :
-                CreditPaymentResponse.StatusEnum.PARTIAL_PAYMENT);
+        response.setStatus(
+                credit.getPendingDebt().compareTo(BigDecimal.ZERO) == 0 ? CreditPaymentResponse.StatusEnum.FULL_PAYMENT
+                        : CreditPaymentResponse.StatusEnum.PARTIAL_PAYMENT);
         response.setPaidAt(OffsetDateTime.now());
         return response;
     }

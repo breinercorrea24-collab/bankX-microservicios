@@ -18,7 +18,7 @@ public class CustomerApiDelegateImpl implements CustomersApiDelegate {
 
     @Override
     public Mono<ResponseEntity<Flux<AccountResponse>>> customersCustomerIdAccountsGet(String customerId,
-                                                                                     ServerWebExchange exchange) {
+            ServerWebExchange exchange) {
         return Mono.just(ResponseEntity.ok(
                 accountUseCase.getAccountsByCustomer(customerId)
                         .map(this::mapToAccountResponse)));
