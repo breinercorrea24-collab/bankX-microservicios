@@ -7,6 +7,7 @@ import com.bca.core_banking_service.domain.ports.output.EventPublisher;
 import com.bca.core_banking_service.domain.ports.output.TransactionRepository;
 import com.bca.core_banking_service.infrastructure.input.dto.Account;
 import com.bca.core_banking_service.infrastructure.input.dto.Transaction;
+import com.bca.core_banking_service.infrastructure.output.messaging.kafka.dto.AccountDepositEvent;
 
 import lombok.RequiredArgsConstructor;
 
@@ -50,72 +51,51 @@ public class AccountUseCaseImpl implements AccountUseCase {
         return accountRepository.findByCustomerId(customerId);
     }
 
-    /* @Override
-    public Mono<Account> deposit(String accountId, BigDecimal amount) {
-        return accountRepository.findById(accountId)
-                .flatMap(account -> {
-                    account.setBalance(account.getBalance().add(amount));
-                    return accountRepository.save(account)
-                            .flatMap(savedAccount -> {
-                                Transaction transaction = new Transaction();
-                                transaction.setId("tx-dep-" + UUID.randomUUID().toString().substring(0, 8));
-                                transaction.setAccountId(accountId);
-                                transaction.setType(Transaction.TransactionType.DEPOSIT);
-                                transaction.setAmount(amount);
-                                transaction.setBalance(savedAccount.getBalance());
-                                transaction.setTimestamp(LocalDateTime.now());
-                                return transactionRepository.save(transaction)
-                                        .thenReturn(savedAccount);
-                            });
-                });
-    } */
-
     @Override
     public Mono<Account> deposit(String accountId, BigDecimal amount) {
 
-        // 1. Buscar cuenta
-        /* Account account = accountRepository.findById(accountId)
-                .orElseThrow(() -> new BusinessException("Cuenta no existe")); */
-        // 1. Buscar cuenta
-        Mono<Account> accountMono = accountRepository.findById(accountId)
-            .switchIfEmpty(Mono.error(new AccountNotFoundException("Account not found")));
-        
-        // 2. Validar estado
-        if (!accountMono.block().isActive()) {
-            throw new BusinessException("Account not active");
-        }
+        return accountRepository.findById(accountId)
 
-        // 3. Ejecutar lógica de dominio
-        accountMono = accountMono.map(acc -> {
-            acc.setBalance(acc.getBalance().add(amount));
-            acc.deposit(amount);
-            return acc;
-        });
+                .switchIfEmpty(Mono.error(new AccountNotFoundException("Account not found")))
 
-        // 4. Persistir cuenta
-        accountRepository.save(accountMono.block());
+                // 1. Validar estado
+                .doOnNext(acc -> {
+                    if (!acc.isActive()) {
+                        throw new BusinessException("Account not active");
+                    }
+                })
 
-        // 5. Registrar transacción
-        Transaction transaction = new Transaction();
-                                transaction.setId("tx-dep-" + UUID.randomUUID().toString().substring(0, 8));
-                                transaction.setAccountId(accountId);
-                                transaction.setType(Transaction.TransactionType.DEPOSIT);
-                                transaction.setAmount(amount);
-                                transaction.setBalance(accountMono.block().getBalance());
-                                transaction.setTimestamp(LocalDateTime.now());
+                // 2. Lógica de dominio (polimorfismo)
+                .map(acc -> {
+                    acc.deposit(amount); // aquí ejecuta subclase real
+                    return acc;
+                })
 
-        transactionRepository.save(transaction);
+                // 3. Persistir
+                .flatMap(accountRepository::save)
 
-        // 6. Publicar evento
-        kafkaProducer.publish(transaction);
+                // 4. Registrar transacción
+                .flatMap(acc -> {
 
-        // 7. Response
-        /* DepositResponse response = new DepositResponse();
-        response.accountId = accountId;
-        response.newBalance = account.getBalance();
-        response.message = "Depósito exitoso"; */
+                    Transaction tx = Transaction.builder()
+                            .id(UUID.randomUUID().toString())
+                            .accountId(acc.getId())
+                            .type(Transaction.TransactionType.DEPOSIT)
+                            .amount(amount)
+                            .balance(acc.getBalance())
+                            .timestamp(LocalDateTime.now())
+                            .build();
 
-        return accountMono;
+                    return transactionRepository.save(tx)
+                            .thenReturn(acc);
+                })
+
+                // 5. Publicar evento
+                .doOnNext(acc -> kafkaProducer.publish(
+                        new AccountDepositEvent(
+                                acc.getId(),
+                                amount,
+                                acc.getBalance())));
     }
 
     @Override
