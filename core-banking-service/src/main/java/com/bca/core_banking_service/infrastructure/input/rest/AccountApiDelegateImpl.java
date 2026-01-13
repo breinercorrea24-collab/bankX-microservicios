@@ -38,11 +38,7 @@ public class AccountApiDelegateImpl implements AccountsApiDelegate {
                     log.info("Account created successfully: {}", account);
                     return AccountApiMapper.mapToAccountResponse(account);
                 })
-                .map(accountResponse -> ResponseEntity.status(HttpStatus.CREATED).body(accountResponse))
-                .onErrorResume(RuntimeException.class, ex -> {
-                    log.error("Error creating account: {}", ex.getMessage(), ex);
-                    return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
-                });
+                .map(accountResponse -> ResponseEntity.status(HttpStatus.CREATED).body(accountResponse));
     }
 
     @Override
@@ -54,15 +50,12 @@ public class AccountApiDelegateImpl implements AccountsApiDelegate {
                 .doOnNext(request -> log.debug("Deposit request: {}", request))
                 .flatMap(request -> accountUseCase.deposit(accountId, BigDecimal.valueOf(request.getAmount()))
                         .map(account -> {
-                            log.info("Deposit successful for accountId: {}, amount: {}", accountId, request.getAmount());
+                            log.info("Deposit successful for accountId: {}, amount: {}", accountId,
+                                    request.getAmount());
                             return AccountApiMapper.mapToTransactionResponse(account, "DEPOSIT",
                                     BigDecimal.valueOf(request.getAmount()));
                         }))
-                .map(ResponseEntity::ok)
-                .onErrorResume(RuntimeException.class, ex -> {
-                    log.error("Error processing deposit for accountId: {}: {}", accountId, ex.getMessage(), ex);
-                    return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
-                });
+                .map(ResponseEntity::ok);
     }
 
     @Override
@@ -74,19 +67,12 @@ public class AccountApiDelegateImpl implements AccountsApiDelegate {
                 .doOnNext(request -> log.debug("Withdrawal request: {}", request))
                 .flatMap(request -> accountUseCase.withdraw(accountId, BigDecimal.valueOf(request.getAmount()))
                         .map(account -> {
-                            log.info("Withdrawal successful for accountId: {}, amount: {}", accountId, request.getAmount());
+                            log.info("Withdrawal successful for accountId: {}, amount: {}", accountId,
+                                    request.getAmount());
                             return AccountApiMapper.mapToTransactionResponse(account, "WITHDRAW",
                                     BigDecimal.valueOf(request.getAmount()));
                         }))
-                .map(ResponseEntity::ok)
-                .onErrorResume(RuntimeException.class, ex -> {
-                    if (ex.getMessage().contains("Insufficient funds")) {
-                        log.warn("Insufficient funds for withdrawal on accountId: {}", accountId);
-                        return Mono.just(ResponseEntity.status(HttpStatus.CONFLICT).build());
-                    }
-                    log.error("Error processing withdrawal for accountId: {}: {}", accountId, ex.getMessage(), ex);
-                    return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
-                });
+                .map(ResponseEntity::ok);
     }
 
     @Override
@@ -103,16 +89,6 @@ public class AccountApiDelegateImpl implements AccountsApiDelegate {
                             return AccountApiMapper.mapToTransactionResponse(account, "TRANSFER",
                                     BigDecimal.valueOf(request.getAmount()));
                         }))
-                .map(ResponseEntity::ok)
-                .onErrorResume(RuntimeException.class, ex -> {
-                    if (ex.getMessage().contains("Insufficient funds")) {
-                        log.warn("Insufficient funds for transfer from accountId: {} to accountId: {}",
-                                transferRequest.map(TransferRequest::getFromId),
-                                transferRequest.map(TransferRequest::getToId));
-                        return Mono.just(ResponseEntity.status(HttpStatus.CONFLICT).build());
-                    }
-                    log.error("Error processing transfer: {}", ex.getMessage(), ex);
-                    return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
-                });
+                .map(ResponseEntity::ok);
     }
 }

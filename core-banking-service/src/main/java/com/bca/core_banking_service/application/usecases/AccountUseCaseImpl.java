@@ -91,7 +91,8 @@ public class AccountUseCaseImpl implements AccountUseCase {
     @Override
     public Flux<Account> getAccountsByCustomer(String customerId) {
         log.info("Fetching accounts for customerId: {}", customerId);
-        return accountRepository.findByCustomerId(customerId);
+        return accountRepository.findByCustomerId(customerId)
+                .switchIfEmpty(Flux.error(new BusinessException("No accounts found for customerId: " + customerId)));
     }
 
     @Override

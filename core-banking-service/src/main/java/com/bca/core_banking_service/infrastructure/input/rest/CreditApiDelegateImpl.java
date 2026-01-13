@@ -32,9 +32,7 @@ public class CreditApiDelegateImpl implements CreditsApiDelegate {
                         request.getTermMonths(),
                         BigDecimal.valueOf(request.getInterestRate())))
                 .map(CreditApiMapper::mapToCreditResponse)
-                .map(creditResponse -> ResponseEntity.status(HttpStatus.CREATED).body(creditResponse))
-                .onErrorResume(RuntimeException.class,
-                        ex -> Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).build()));
+                .map(creditResponse -> ResponseEntity.status(HttpStatus.CREATED).body(creditResponse));
     }
 
     @Override
@@ -47,12 +45,6 @@ public class CreditApiDelegateImpl implements CreditsApiDelegate {
                     return creditUseCase.payCredit(creditId, amount)
                             .map(credit -> CreditApiMapper.mapToCreditPaymentResponse(credit, amount))
                             .map(creditPaymentResponse -> ResponseEntity.ok(creditPaymentResponse));
-                })
-                .onErrorResume(RuntimeException.class, ex -> {
-                    if (ex.getMessage().contains("Payment amount exceeds pending debt")) {
-                        return Mono.just(ResponseEntity.status(HttpStatus.CONFLICT).build());
-                    }
-                    return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
                 });
     }
 

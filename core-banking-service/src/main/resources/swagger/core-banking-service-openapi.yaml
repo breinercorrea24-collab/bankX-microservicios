@@ -44,9 +44,11 @@ paths:
         description: Solicitud inválida
         content:
           application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
             example:
-              code: ACCOUNT_CREATION_ERROR
-              message: El cliente ya posee una cuenta de este tipo
+              code: INVALID_REQUEST
+              message: La solicitud contiene errores de validación
 
  /customers/{customerId}/accounts:
   get:
@@ -68,6 +70,32 @@ paths:
               type: array
               items:
                 $ref: '#/components/schemas/AccountPolymorphicResponse'
+      '400':
+        description: Solicitud inválida
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: INVALID_REQUEST
+              message: La solicitud contiene errores de validación
+
+      '404':
+        description: Cliente no encontrado
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+
+      '500':
+        description: Error interno del servidor
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: INTERNAL_SERVER_ERROR
+              message: Ocurrió un error inesperado
 
  /accounts/{accountId}/deposit:
   post:
@@ -136,6 +164,15 @@ paths:
               amount: 300.00
               balance: 1700.00
               timestamp: "2025-01-01T15:00:00Z"
+      '400':
+        description: Solicitud inválida
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: INVALID_REQUEST
+              message: La solicitud contiene errores de validación
       '409':
         description: Saldo insuficiente
         content:
@@ -506,3 +543,23 @@ components:
           type: string
           format: date-time
           example: "2025-01-15T10:30:00Z"
+
+    ErrorResponse:
+      type: object
+      required: [timestamp, status, error, message, path]
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+          example: 404
+        error:
+          type: string
+          example: Not Found
+        message:
+          type: string
+          example: Cliente no encontrado
+        path:
+          type: string
+          example: /customers/cus-1001/accounts
