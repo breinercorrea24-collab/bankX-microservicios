@@ -14,13 +14,14 @@ public class Account {
     private String id;
     private String customerId;
     private AccountType type;
+    protected String accountNumber;
     private String currency;
     private BigDecimal balance;
     private AccountStatus status;
     private boolean isActive;
 
     public enum AccountType {
-        SAVINGS, CURRENT
+        SAVINGS, CURRENT, CHECKING, FIXED_TERM
     }
 
     public enum AccountStatus {

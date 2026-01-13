@@ -2,12 +2,17 @@ package com.bca.core_banking_service.application.usecases;
 
 import com.bca.core_banking_service.application.ports.input.usecases.AccountUseCase;
 import com.bca.core_banking_service.domain.exceptions.BusinessException;
+import com.bca.core_banking_service.domain.model.product.account.CheckingAccount;
+import com.bca.core_banking_service.domain.model.product.account.FixedTermAccount;
+import com.bca.core_banking_service.domain.model.product.account.SavingsAccount;
 import com.bca.core_banking_service.domain.ports.output.event.AccountEventPublisher;
 import com.bca.core_banking_service.domain.ports.output.persistence.AccountRepository;
 import com.bca.core_banking_service.domain.ports.output.persistence.TransactionRepository;
 import com.bca.core_banking_service.infrastructure.input.dto.Account;
 import com.bca.core_banking_service.infrastructure.input.dto.Transaction;
+import com.bca.core_banking_service.infrastructure.input.dto.Account.AccountStatus;
 import com.bca.core_banking_service.infrastructure.output.messaging.kafka.dto.AccountDepositEvent;
+import com.bca.core_banking_service.infrastructure.output.messaging.kafka.dto.AccountWithdrawalEvent;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,23 +38,55 @@ public class AccountUseCaseImpl implements AccountUseCase {
 
     @Override
     public Mono<Account> createAccount(String customerId, Account.AccountType type, String currency) {
-        log.info("Creating account for customerId: {}, type: {}, currency: {}", customerId, type, currency);
-        return accountRepository.findByCustomerIdAndType(customerId, type)
-                .flatMap(existing -> {
-                    log.warn("Customer already has this account type: {}", type);
-                    return Mono.error(new RuntimeException("Customer already has this account type"));
-                })
-                .cast(Account.class)
+        return accountRepository
+                .findByCustomerIdAndType(customerId, type)
+                .flatMap(acc -> Mono.error(new BusinessException(
+                        "Customer already has account type " + type)).cast(Account.class)) // Ensure the Mono is cast to
+                                                                                           // Mono<Account>
                 .switchIfEmpty(Mono.defer(() -> {
-                    Account account = new Account();
-                    account.setId("acc-" + UUID.randomUUID().toString().substring(0, 8));
-                    account.setCustomerId(customerId);
-                    account.setType(type);
-                    account.setCurrency(currency);
-                    account.setBalance(BigDecimal.ZERO);
-                    account.setStatus(Account.AccountStatus.ACTIVE);
-                    log.info("Saving new account: {}", account);
-                    return accountRepository.save(account);
+                    com.bca.core_banking_service.domain.model.product.account.Account account;
+
+                    switch (type) {
+                        case SAVINGS:
+                            account = new SavingsAccount(
+                                    customerId,
+                                    currency,
+                                    5,
+                                    BigDecimal.ZERO,
+                                    BigDecimal.ZERO);
+                            break;
+                        case CHECKING:
+                            account = new CheckingAccount(
+                                    customerId,
+                                    currency,
+                                     5,
+                                    BigDecimal.ZERO,
+                                    BigDecimal.ZERO);
+                            break;
+                        case FIXED_TERM:
+                            account = new FixedTermAccount(
+                                    customerId,
+                                    currency,
+                                    BigDecimal.valueOf(4.5),
+                                    true,
+                                    14,
+                                    1,
+                                    BigDecimal.ZERO
+                            );
+                            break;
+                        default:
+                            return Mono.error(new BusinessException("Invalid account type"));
+                    }
+
+                    Account accountSave = new Account();
+                    accountSave.setCustomerId(account.getCustomerId());
+                    accountSave.setType(type);
+                    accountSave.setCurrency(account.getCurrency());
+                    accountSave.setAccountNumber(account.getAccountNumber());
+                    accountSave.setStatus(AccountStatus.ACTIVE);
+                    accountSave.setActive(true);
+
+                    return accountRepository.save(accountSave);
                 }));
     }
 
@@ -104,26 +141,40 @@ public class AccountUseCaseImpl implements AccountUseCase {
     public Mono<Account> withdraw(String accountId, BigDecimal amount) {
         log.info("Withdrawing amount: {} from accountId: {}", amount, accountId);
         return accountRepository.findById(accountId)
-                .flatMap(account -> {
-                    if (account.getBalance().compareTo(amount) < 0) {
-                        log.warn("Insufficient funds for accountId: {}", accountId);
-                        return Mono.error(new RuntimeException("Insufficient funds"));
+                .switchIfEmpty(Mono.error(new AccountNotFoundException("Account not found")))
+                .doOnNext(acc -> {
+                    log.info("Account retrieved: {}", acc);
+                    if (!acc.isActive()) {
+                        log.info("Account {} is not active", accountId);
+                        throw new BusinessException("Account not active");
                     }
-                    account.setBalance(account.getBalance().subtract(amount));
-                    log.info("Account {} new balance after withdrawal: {}", accountId, account.getBalance());
-                    return accountRepository.save(account)
-                            .flatMap(savedAccount -> {
-                                Transaction transaction = new Transaction();
-                                transaction.setId("tx-wd-" + UUID.randomUUID().toString().substring(0, 8));
-                                transaction.setAccountId(accountId);
-                                transaction.setType(Transaction.TransactionType.WITHDRAW);
-                                transaction.setAmount(amount);
-                                transaction.setBalance(savedAccount.getBalance());
-                                transaction.setTimestamp(LocalDateTime.now());
-                                log.info("Recording withdrawal transaction: {}", transaction);
-                                return transactionRepository.save(transaction)
-                                        .thenReturn(savedAccount);
-                            });
+                })
+                .map(acc -> {
+                    acc.withdraw(amount);
+                    log.info("Account {} new balance after withdraw: {}", accountId, acc.getBalance());
+                    return acc;
+                })
+                .flatMap(accountRepository::save)
+                .flatMap(acc -> {
+                    Transaction tx = Transaction.builder()
+                            .id(UUID.randomUUID().toString())
+                            .accountId(acc.getId())
+                            .type(Transaction.TransactionType.WITHDRAW)
+                            .amount(amount)
+                            .balance(acc.getBalance())
+                            .timestamp(LocalDateTime.now())
+                            .build();
+                    log.info("Recording transaction: {}", tx);
+                    return transactionRepository.save(tx)
+                            .thenReturn(acc);
+                })
+                .doOnNext(acc -> {
+                    log.info("Publishing withdrawal event for accountId: {}", accountId);
+                    kafkaProducer.publishWithdraw(
+                            new AccountWithdrawalEvent(
+                                    acc.getId(),
+                                    amount,
+                                    acc.getBalance()));
                 });
     }
 
