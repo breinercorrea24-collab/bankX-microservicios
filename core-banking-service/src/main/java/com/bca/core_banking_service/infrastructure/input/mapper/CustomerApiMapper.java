@@ -5,12 +5,16 @@ import java.math.BigDecimal;
 import com.bca.core_banking_service.domain.model.product.account.Account;
 import com.bca.core_banking_service.domain.model.product.account.CheckingAccount;
 import com.bca.core_banking_service.domain.model.product.account.FixedTermAccount;
+import com.bca.core_banking_service.domain.model.product.account.PymeCheckingAccount;
 import com.bca.core_banking_service.domain.model.product.account.SavingsAccount;
+import com.bca.core_banking_service.domain.model.product.account.VipSavingsAccount;
 import com.bca.core_banking_service.dto.AccountPolymorphicResponse;
 import com.bca.core_banking_service.dto.AccountType;
 import com.bca.core_banking_service.dto.CheckingAccountResponse;
 import com.bca.core_banking_service.dto.FixedTermAccountResponse;
+import com.bca.core_banking_service.dto.PymeCheckingAccountResponse;
 import com.bca.core_banking_service.dto.SavingsAccountResponse;
+import com.bca.core_banking_service.dto.VipSavingsAccountResponse;
 
 
 public class CustomerApiMapper {
@@ -24,8 +28,41 @@ public class CustomerApiMapper {
 
             case FIXED_TERM -> toFixedTermResponse((FixedTermAccount) account);
 
+            case VIP_SAVINGS -> toVipSavingsResponse((VipSavingsAccount) account);
+
+            case PYME_CHECKING -> toPymeCheckingAccountResponse((PymeCheckingAccount) account);
+
             default -> throw new IllegalArgumentException("Unsupported account type: " + account.getType());
         };
+    }
+
+    private static VipSavingsAccountResponse toVipSavingsResponse(VipSavingsAccount acc) {
+        if (acc == null) {
+            throw new IllegalArgumentException("VipSavingsAccount cannot be null");
+        }
+        return new VipSavingsAccountResponse()
+                .id(acc.getId())
+                .customerId(acc.getCustomerId())
+                .type(AccountType.SAVINGS)
+                .currency(acc.getCurrency())
+                .balance(acc.getBalance() != null ? acc.getBalance().floatValue() : 0.0f)
+                .status(acc.getStatus() != null ? VipSavingsAccountResponse.StatusEnum.valueOf(acc.getStatus().name()) : VipSavingsAccountResponse.StatusEnum.INACTIVE)
+                .maxMonthlyTransactions(acc.getMaxMonthlyTransactions())
+                .currentTransactions(acc.getCurrentTransactions())
+                .maintenanceCommission(acc.getMaintenanceCommission() != null ? acc.getMaintenanceCommission() : BigDecimal.ZERO)
+                .minimumDailyAverage(acc.getMinimumDailyAverage() != null ? acc.getMinimumDailyAverage() : BigDecimal.ZERO);
+    }
+
+    private static PymeCheckingAccountResponse toPymeCheckingAccountResponse(PymeCheckingAccount acc) {
+        return new PymeCheckingAccountResponse()
+                .id(acc.getId())
+                .customerId(acc.getCustomerId())
+                .type(AccountType.CHECKING)
+                .currency(acc.getCurrency())
+                .balance(acc.getBalance() != null ? acc.getBalance().floatValue() : 0.0f)
+                .status(PymeCheckingAccountResponse.StatusEnum.ACTIVE)
+                .maxMonthlyTransactions(acc.getMaxMonthlyTransactions())
+                .maintenanceCommission(acc.getMaintenanceCommission());
     }
 
     private static SavingsAccountResponse toSavingsResponse(SavingsAccount acc) {

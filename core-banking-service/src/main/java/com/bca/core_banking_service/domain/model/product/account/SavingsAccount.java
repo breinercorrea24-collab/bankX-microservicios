@@ -5,6 +5,14 @@ import java.math.BigDecimal;
 import com.bca.core_banking_service.domain.model.enums.account.AccountType;
 import com.bca.core_banking_service.domain.model.enums.product.ProductStatus;
 
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+@Data
+@EqualsAndHashCode(callSuper = false)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class SavingsAccount extends Account {
 
     private int maxMonthlyTransactions;
@@ -30,26 +38,6 @@ public class SavingsAccount extends Account {
         if (currentTransactions >= maxMonthlyTransactions) {
             throw new RuntimeException("Límite mensual alcanzado");
         }
-    }
-
-    public int getMaxMonthlyTransactions() {
-        return maxMonthlyTransactions;
-    }
-
-    public void setMaxMonthlyTransactions(int maxMonthlyTransactions) {
-        this.maxMonthlyTransactions = maxMonthlyTransactions;
-    }
-
-    public BigDecimal getMaintenanceCommission() {
-        return maintenanceCommission;
-    }
-
-    public void setMaintenanceCommission(BigDecimal maintenanceCommission) {
-        this.maintenanceCommission = maintenanceCommission;
-    }
-
-    public int getCurrentTransactions() {
-        return currentTransactions;
     }
 
     @Override

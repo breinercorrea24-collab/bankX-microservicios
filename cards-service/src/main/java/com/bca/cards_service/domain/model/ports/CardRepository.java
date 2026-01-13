@@ -7,4 +7,5 @@ import reactor.core.publisher.Mono;
 public interface CardRepository {
     Mono<Card> save(Card card);
     Mono<Card> findById(CardId cardId);
+    Mono<Boolean> findByCustomerId(String customerId);
 }

@@ -2,10 +2,13 @@ package com.bca.cards_service.application.usecases;
 
 import com.bca.cards_service.domain.model.Card;
 import com.bca.cards_service.domain.model.CardId;
+import com.bca.cards_service.domain.model.CustomerId;
 import com.bca.cards_service.domain.model.ports.AccountService;
 import com.bca.cards_service.domain.model.ports.CardRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -54,4 +57,13 @@ public class GetCardBalanceUseCase {
         BigDecimal balance,
         BigDecimal availableBalance
     ) {}
+
+    public Mono<ResponseEntity<Boolean>> execute(String customerId) {
+        log.info("Checking if customer {} has any cards", customerId);
+        return cardRepository.findByCustomerId(customerId)
+                .flatMap(card -> {
+                    log.debug("Customer {} has card: {}", customerId, card);
+                    return Mono.just(ResponseEntity.ok(true));
+                });
+    }
 }

@@ -42,4 +42,16 @@ public class CardRepositoryAdapter implements CardRepository {
                     return Mono.empty();
                 }));
     }
+
+    @Override
+    public Mono<Boolean> findByCustomerId(String customerId) {
+        log.debug("Finding card by Customer ID: {}", customerId);
+        return cardMongoRepository.findByCustomerId(customerId)
+                .map(cardDocument -> {
+                    log.debug("Card found for Customer ID: {}", customerId);
+                    return true;
+                })
+                .defaultIfEmpty(false)
+                .doOnError(error -> log.error("Failed to find card for Customer ID: {}", customerId, error));
+    }
 }

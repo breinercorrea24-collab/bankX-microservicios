@@ -4,9 +4,12 @@ import java.time.LocalDateTime;
 
 import com.bca.core_banking_service.domain.model.enums.product.ProductStatus;
 
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class Product {
 
     protected String id;

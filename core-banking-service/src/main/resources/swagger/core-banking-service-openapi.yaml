@@ -308,7 +308,7 @@ components:
           example: cus-1001
         type:
           type: string
-          enum: [SAVINGS, CHECKING, FIXED_TERM]
+          enum: [SAVINGS, CHECKING, FIXED_TERM, VIP_SAVINGS, PYME_CHECKING]
           example: SAVINGS
         currency:
           type: string
@@ -339,6 +339,8 @@ components:
         - SAVINGS
         - CHECKING
         - FIXED_TERM
+        - VIP_SAVINGS
+        - PYME_CHECKING
 
     SavingsAccountResponse:
       allOf:
@@ -351,6 +353,17 @@ components:
               type: integer
             maintenanceCommission:
               type: number
+      
+    VipSavingsAccountResponse:
+      allOf:
+        - $ref: '#/components/schemas/SavingsAccountResponse'
+        - type: object
+          required:
+            - minimumDailyAverage
+          properties:
+            minimumDailyAverage:
+              type: number
+              format: decimal
 
     CheckingAccountResponse:
       allOf:
@@ -361,6 +374,10 @@ components:
               type: integer
             maintenanceCommission:
               type: number
+
+    PymeCheckingAccountResponse:
+      allOf:
+        - $ref: '#/components/schemas/CheckingAccountResponse'
 
     FixedTermAccountResponse:
       allOf:
@@ -388,12 +405,16 @@ components:
         - $ref: '#/components/schemas/SavingsAccountResponse'
         - $ref: '#/components/schemas/CheckingAccountResponse'
         - $ref: '#/components/schemas/FixedTermAccountResponse'
+        - $ref: '#/components/schemas/VipSavingsAccountResponse'
+        - $ref: '#/components/schemas/PymeCheckingAccountResponse'
       discriminator:
         propertyName: type
         mapping:
           SAVINGS: '#/components/schemas/SavingsAccountResponse'
           CHECKING: '#/components/schemas/CheckingAccountResponse'
           FIXED_TERM: '#/components/schemas/FixedTermAccountResponse'
+          VIP_SAVINGS: '#/components/schemas/VipSavingsAccountResponse'
+          PYME_CHECKING: '#/components/schemas/PymeCheckingAccountResponse'
 
     AmountRequest:
       type: object

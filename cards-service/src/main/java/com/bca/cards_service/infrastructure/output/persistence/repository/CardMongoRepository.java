@@ -10,4 +10,6 @@ import reactor.core.publisher.Mono;
 @Repository
 public interface CardMongoRepository extends ReactiveMongoRepository<CardDocument, String> {
     Mono<CardDocument> findByCardId(String cardId);
+
+    Mono<CardDocument> findByCustomerId(String customerId);
 }

@@ -116,6 +116,34 @@ paths:
               balance: 1700.00
               availableBalance: 1700.00
 
+
+ /cards/customer/{customerId}/exists:
+  get:
+    tags:
+      - Cards
+    summary: Check if customer has a card
+    description: Returns true if the customer has at least one active card
+    parameters:
+      - name: customerId
+        in: path
+        required: true
+        description: Customer ID
+        schema:
+          type: string
+          example: cust-12345
+    responses:
+      '200':
+        description: Validation successful
+        content:
+          application/json:
+            schema:
+              type: boolean
+              example: true
+      '404':
+        description: Customer not found
+      '500':
+        description: Internal server error
+
 components:
   schemas:
     CreateDebitCardRequest:

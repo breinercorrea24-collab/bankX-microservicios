@@ -33,6 +33,15 @@ public class CardsApiDelegateImpl implements CardsApiDelegate {
     private final GetCardBalanceUseCase getCardBalanceUseCase;
 
     @Override
+    public Mono<ResponseEntity<Boolean>> cardsCustomerCustomerIdExistsGet(String customerId,
+        ServerWebExchange exchange){
+        log.info("Received request to check if customer has a card");
+        return getCardBalanceUseCase.execute(customerId)
+                .map(balance -> ResponseEntity.ok(true))
+                .onErrorReturn(ResponseEntity.notFound().build());
+    }   
+
+    @Override
     public Mono<ResponseEntity<CardResponse>> cardsDebitPost(Mono<CreateDebitCardRequest> createDebitCardRequest, ServerWebExchange exchange) {
         log.info("Received request to create debit card");
         return createDebitCardRequest.flatMap(request -> {
