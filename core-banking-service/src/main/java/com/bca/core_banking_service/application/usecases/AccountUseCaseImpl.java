@@ -83,7 +83,7 @@ public class AccountUseCaseImpl implements AccountUseCase {
                         default:
                             return Mono.error(new BusinessException("Invalid account type"));
                     }
-                     log.info("Creating account for account: {}", account);
+                    log.info("Creating account for account: {}", account);
                     return accountRepository.save(account);
                 }));
     }
@@ -181,14 +181,16 @@ public class AccountUseCaseImpl implements AccountUseCase {
     public Mono<Account> transfer(String fromAccountId, String toAccountId, BigDecimal amount) {
         log.info("Transferring amount: {} from accountId: {} to accountId: {}", amount, fromAccountId, toAccountId);
         return accountRepository.findById(fromAccountId)
-                .zipWith(accountRepository.findById(toAccountId))
+                .switchIfEmpty(Mono.error(new AccountNotFoundException("From account not found: " + fromAccountId)))
+                .zipWith(accountRepository.findById(toAccountId)
+                        .switchIfEmpty(Mono.error(new AccountNotFoundException("To account not found: " + toAccountId))))
                 .flatMap(tuple -> {
                     Account fromAccount = tuple.getT1();
                     Account toAccount = tuple.getT2();
 
                     if (fromAccount.getBalance().compareTo(amount) < 0) {
                         log.warn("Insufficient funds for transfer from accountId: {}", fromAccountId);
-                        return Mono.error(new RuntimeException("Insufficient funds"));
+                        return Mono.error(new BusinessException("Insufficient funds for transfer"));
                     }
 
                     fromAccount.setBalance(fromAccount.getBalance().subtract(amount));

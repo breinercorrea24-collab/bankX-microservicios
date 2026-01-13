@@ -2,6 +2,8 @@ package com.bca.core_banking_service.infrastructure.input.rest.exception;
 
 import java.time.OffsetDateTime;
 
+import javax.security.auth.login.AccountNotFoundException;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -59,5 +61,20 @@ public class GlobalExceptionHandler {
         error.setPath(exchange.getRequest().getPath().value());
 
         return ResponseEntity.badRequest().body(error);
+    }
+
+    @ExceptionHandler(AccountNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleAccountNotFound(
+            AccountNotFoundException ex,
+            ServerWebExchange exchange) {
+
+        ErrorResponse error = new ErrorResponse();
+        error.setTimestamp(OffsetDateTime.now());
+        error.setStatus(HttpStatus.NOT_FOUND.value());
+        error.setError("Not Found");
+        error.setMessage(ex.getMessage());
+        error.setPath(exchange.getRequest().getPath().value());
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 }
