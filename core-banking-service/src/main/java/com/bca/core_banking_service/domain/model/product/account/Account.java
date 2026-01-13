@@ -2,12 +2,15 @@ package com.bca.core_banking_service.domain.model.product.account;
 
 import java.math.BigDecimal;
 
+import com.bca.core_banking_service.domain.model.enums.account.AccountType;
+import com.bca.core_banking_service.domain.model.enums.product.ProductStatus;
 import com.bca.core_banking_service.domain.model.product.Product;
-import com.bca.core_banking_service.infrastructure.input.dto.Account.AccountType;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper=false)
 public abstract class Account extends Product {
 
     protected String accountNumber;
@@ -15,11 +18,13 @@ public abstract class Account extends Product {
     protected String currency;
     protected AccountType type;
 
-    protected String id;
-    protected String customerId;
-
     protected int freeTransactionLimit;
     protected BigDecimal commissionPerExtra;
+    protected BigDecimal initialDeposit;
+
+    public enum AccountStatus {
+        ACTIVE, INACTIVE
+    }
 
     public void deposit(BigDecimal amount) {
         validateAmount(amount);
@@ -41,4 +46,10 @@ public abstract class Account extends Product {
     }
 
     public abstract boolean hasMaintenanceFee();
+
+    public Account(String customerId, String currency, ProductStatus status, BigDecimal balance) {
+        super(null, customerId, status);
+        this.currency = currency;
+        this.balance = balance;
+    }
 }

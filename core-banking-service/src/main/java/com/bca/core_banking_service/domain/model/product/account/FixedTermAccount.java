@@ -3,6 +3,10 @@ package com.bca.core_banking_service.domain.model.product.account;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import com.bca.core_banking_service.domain.model.enums.account.AccountType;
+import com.bca.core_banking_service.domain.model.enums.product.ProductStatus;
+
+
 public class FixedTermAccount extends Account {
 
     private int allowedDay;
@@ -13,14 +17,14 @@ public class FixedTermAccount extends Account {
     private Integer movementsThisMonth;     // Control de 1 movimiento mensual
 
 
-    public FixedTermAccount(String customerId, String currency, BigDecimal interestRate, boolean maintenanceFeeFree, 
-        Integer allowedMovementDay, Integer movementsThisMonth,BigDecimal initialDeposit) {
-        // super(customerId, currency, 0);
+    public FixedTermAccount(String customerId, String currency, ProductStatus status, AccountType type, BigDecimal interestRate, boolean maintenanceFeeFree, 
+        Integer allowedMovementDay, Integer movementsThisMonth,BigDecimal balance) {
+        super(customerId, currency, status, balance); // Llamada al constructor de Account
+        this.type = type;
         this.interestRate = interestRate;
         this.maintenanceFeeFree = maintenanceFeeFree;
         this.allowedMovementDay = allowedMovementDay;
         this.movementsThisMonth = movementsThisMonth;
-        this.balance = initialDeposit;
     }
 
     @Override

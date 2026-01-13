@@ -2,6 +2,8 @@ package com.bca.core_banking_service.domain.model.product.account;
 
 import java.math.BigDecimal;
 
+import com.bca.core_banking_service.domain.model.enums.account.AccountType;
+import com.bca.core_banking_service.domain.model.enums.product.ProductStatus;
 
 public class SavingsAccount extends Account {
 
@@ -9,9 +11,12 @@ public class SavingsAccount extends Account {
     private int currentTransactions;
     private BigDecimal maintenanceCommission;
 
-    public SavingsAccount(String customerId, String currency, int maxMonthlyTransactions, BigDecimal maintenanceCommission,
-            BigDecimal initialDeposit) {
-        // super(customerId, currency, 0.0);
+    public SavingsAccount(String customerId, String currency, ProductStatus status, AccountType type,
+            int maxMonthlyTransactions, BigDecimal maintenanceCommission,
+            BigDecimal balance) {
+
+        super(customerId, currency, status, balance); // Llamada al constructor de Account
+        this.type = type;
         this.maxMonthlyTransactions = maxMonthlyTransactions;
         this.maintenanceCommission = maintenanceCommission;
     }
@@ -21,8 +26,8 @@ public class SavingsAccount extends Account {
         return false;
     }
 
-    public void validateMonthlyLimit(){
-        if(currentTransactions >= maxMonthlyTransactions){
+    public void validateMonthlyLimit() {
+        if (currentTransactions >= maxMonthlyTransactions) {
             throw new RuntimeException("Límite mensual alcanzado");
         }
     }

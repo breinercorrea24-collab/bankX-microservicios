@@ -1,14 +1,15 @@
 package com.bca.core_banking_service.infrastructure.output.persistence;
 
 
-import com.bca.core_banking_service.domain.ports.output.persistence.AccountRepository;
-import com.bca.core_banking_service.infrastructure.input.dto.Account;
-import com.bca.core_banking_service.infrastructure.output.persistence.entity.AccountEntity;
-import com.bca.core_banking_service.infrastructure.output.persistence.mapper.AccountMapper;
-import com.bca.core_banking_service.infrastructure.output.persistence.repository.AccountMongoRepository;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+
+import com.bca.core_banking_service.domain.model.enums.account.AccountType;
+import com.bca.core_banking_service.domain.model.product.account.Account;
+import com.bca.core_banking_service.domain.ports.output.persistence.AccountRepository;
+import com.bca.core_banking_service.infrastructure.output.persistence.repository.AccountMongoRepository;
+
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -20,25 +21,21 @@ public class AccountRepositoryImpl implements AccountRepository {
 
     @Override
     public Mono<Account> save(Account account) {
-        return mongoRepository.save(AccountMapper.toEntity(account))
-                .map(AccountMapper::toDomain);
+        return mongoRepository.save(account);
     }
 
     @Override
     public Mono<Account> findById(String id) {
-        return mongoRepository.findById(id)
-                .map(AccountMapper::toDomain);
+        return mongoRepository.findById(id);
     }
 
     @Override
     public Flux<Account> findByCustomerId(String customerId) {
-        return mongoRepository.findByCustomerId(customerId)
-                .map(AccountMapper::toDomain);
+        return mongoRepository.findByCustomerId(customerId);
     }
 
     @Override
-    public Mono<Account> findByCustomerIdAndType(String customerId, Account.AccountType type) {
-        return mongoRepository.findByCustomerIdAndType(customerId, AccountEntity.AccountType.valueOf(type.name()))
-                .map(AccountMapper::toDomain);
+    public Mono<Account> findByCustomerIdAndType(String customerId, AccountType type) {
+        return mongoRepository.findByCustomerIdAndType(customerId, type);
     }
 }

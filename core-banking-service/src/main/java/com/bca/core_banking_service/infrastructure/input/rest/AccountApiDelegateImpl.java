@@ -2,8 +2,8 @@ package com.bca.core_banking_service.infrastructure.input.rest;
 
 import com.bca.core_banking_service.api.AccountsApiDelegate;
 import com.bca.core_banking_service.application.ports.input.usecases.AccountUseCase;
+import com.bca.core_banking_service.domain.model.enums.account.AccountType;
 import com.bca.core_banking_service.dto.*;
-import com.bca.core_banking_service.infrastructure.input.dto.Account;
 import com.bca.core_banking_service.infrastructure.input.mapper.AccountApiMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,7 @@ public class AccountApiDelegateImpl implements AccountsApiDelegate {
                 .doOnNext(request -> log.debug("Account creation request: {}", request))
                 .flatMap(request -> accountUseCase.createAccount(
                         request.getCustomerId(),
-                        Account.AccountType.valueOf(request.getType().getValue()),
+                        AccountType.valueOf(request.getType().getValue()),
                         request.getCurrency()))
                 .map(account -> {
                     log.info("Account created successfully: {}", account);

@@ -2,6 +2,8 @@ package com.bca.core_banking_service.infrastructure.input.dto;
 
 import java.math.BigDecimal;
 
+import com.bca.core_banking_service.infrastructure.output.persistence.entity.AccountEntity.AccountStatus;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,10 +24,6 @@ public class Account {
 
     public enum AccountType {
         SAVINGS, CURRENT, CHECKING, FIXED_TERM
-    }
-
-    public enum AccountStatus {
-        ACTIVE, INACTIVE
     }
 
     public void deposit(BigDecimal amount){

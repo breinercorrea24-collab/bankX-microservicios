@@ -1,7 +1,8 @@
 package com.bca.core_banking_service.infrastructure.input.mapper;
 
+import com.bca.core_banking_service.domain.model.product.account.Account;
 import com.bca.core_banking_service.dto.AccountResponse;
-import com.bca.core_banking_service.infrastructure.input.dto.Account;
+
 
 public class CustomerApiMapper {
     public static AccountResponse mapToAccountResponse(

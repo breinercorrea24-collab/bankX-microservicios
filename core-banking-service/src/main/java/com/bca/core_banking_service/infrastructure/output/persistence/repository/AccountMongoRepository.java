@@ -4,13 +4,14 @@ package com.bca.core_banking_service.infrastructure.output.persistence.repositor
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 import org.springframework.stereotype.Repository;
 
-import com.bca.core_banking_service.infrastructure.output.persistence.entity.AccountEntity;
+import com.bca.core_banking_service.domain.model.enums.account.AccountType;
+import com.bca.core_banking_service.domain.model.product.account.Account;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Repository
-public interface AccountMongoRepository extends ReactiveMongoRepository<AccountEntity, String> {
-    Flux<AccountEntity> findByCustomerId(String customerId);
-    Mono<AccountEntity> findByCustomerIdAndType(String customerId, AccountEntity.AccountType type);
+public interface AccountMongoRepository extends ReactiveMongoRepository<Account, String> {
+    Flux<Account> findByCustomerId(String customerId);
+    Mono<Account> findByCustomerIdAndType(String customerId, AccountType type);
 }

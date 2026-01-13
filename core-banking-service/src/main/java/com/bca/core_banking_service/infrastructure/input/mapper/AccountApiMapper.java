@@ -2,9 +2,9 @@ package com.bca.core_banking_service.infrastructure.input.mapper;
 
 import java.math.BigDecimal;
 
+import com.bca.core_banking_service.domain.model.product.account.Account;
 import com.bca.core_banking_service.dto.AccountResponse;
 import com.bca.core_banking_service.dto.TransactionResponse;
-import com.bca.core_banking_service.infrastructure.input.dto.Account;
 
 public class AccountApiMapper {
     public static AccountResponse mapToAccountResponse(Account account) {

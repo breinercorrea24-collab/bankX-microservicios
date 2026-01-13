@@ -2,20 +2,25 @@ package com.bca.core_banking_service.domain.model.product.account;
 
 import java.math.BigDecimal;
 
+import com.bca.core_banking_service.domain.model.enums.account.AccountType;
+import com.bca.core_banking_service.domain.model.enums.product.ProductStatus;
+
 public class CheckingAccount extends Account {
 
     private BigDecimal maintenanceCommission;
     private int maxMonthlyTransactions;
 
-    public CheckingAccount(String customerId, String currency, int maxMonthlyTransactions, BigDecimal maintenanceCommission,
-            BigDecimal initialDeposit) {
-        /* super(customerId, currency, maxMonthlyTransactions); */
+    public CheckingAccount(String customerId, String currency, ProductStatus status, AccountType type,
+            int maxMonthlyTransactions, BigDecimal maintenanceCommission,
+            BigDecimal balance) {
+        super(customerId, currency, status, balance); // Llamada al constructor de Account
+        this.type = type;
         this.maxMonthlyTransactions = maxMonthlyTransactions;
         this.maintenanceCommission = maintenanceCommission;
-        this.balance = initialDeposit;
     }
 
-    public void chargeMaintenanceFee(){
+
+    public void chargeMaintenanceFee() {
         this.balance = this.balance.subtract(maintenanceCommission);
     }
 

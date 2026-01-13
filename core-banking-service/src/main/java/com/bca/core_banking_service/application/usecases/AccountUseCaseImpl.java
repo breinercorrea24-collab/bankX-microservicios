@@ -2,15 +2,16 @@ package com.bca.core_banking_service.application.usecases;
 
 import com.bca.core_banking_service.application.ports.input.usecases.AccountUseCase;
 import com.bca.core_banking_service.domain.exceptions.BusinessException;
+import com.bca.core_banking_service.domain.model.enums.account.AccountType;
+import com.bca.core_banking_service.domain.model.enums.product.ProductStatus;
+import com.bca.core_banking_service.domain.model.product.account.Account;
 import com.bca.core_banking_service.domain.model.product.account.CheckingAccount;
 import com.bca.core_banking_service.domain.model.product.account.FixedTermAccount;
 import com.bca.core_banking_service.domain.model.product.account.SavingsAccount;
 import com.bca.core_banking_service.domain.ports.output.event.AccountEventPublisher;
 import com.bca.core_banking_service.domain.ports.output.persistence.AccountRepository;
 import com.bca.core_banking_service.domain.ports.output.persistence.TransactionRepository;
-import com.bca.core_banking_service.infrastructure.input.dto.Account;
 import com.bca.core_banking_service.infrastructure.input.dto.Transaction;
-import com.bca.core_banking_service.infrastructure.input.dto.Account.AccountStatus;
 import com.bca.core_banking_service.infrastructure.output.messaging.kafka.dto.AccountDepositEvent;
 import com.bca.core_banking_service.infrastructure.output.messaging.kafka.dto.AccountWithdrawalEvent;
 
@@ -37,20 +38,22 @@ public class AccountUseCaseImpl implements AccountUseCase {
     private final AccountEventPublisher kafkaProducer;
 
     @Override
-    public Mono<Account> createAccount(String customerId, Account.AccountType type, String currency) {
+    public Mono<Account> createAccount(String customerId, AccountType type, String currency) {
         return accountRepository
                 .findByCustomerIdAndType(customerId, type)
                 .flatMap(acc -> Mono.error(new BusinessException(
                         "Customer already has account type " + type)).cast(Account.class)) // Ensure the Mono is cast to
                                                                                            // Mono<Account>
                 .switchIfEmpty(Mono.defer(() -> {
-                    com.bca.core_banking_service.domain.model.product.account.Account account;
+                    Account account;
 
                     switch (type) {
                         case SAVINGS:
                             account = new SavingsAccount(
                                     customerId,
                                     currency,
+                                    ProductStatus.ACTIVE,
+                                    AccountType.SAVINGS,
                                     5,
                                     BigDecimal.ZERO,
                                     BigDecimal.ZERO);
@@ -59,7 +62,9 @@ public class AccountUseCaseImpl implements AccountUseCase {
                             account = new CheckingAccount(
                                     customerId,
                                     currency,
-                                     5,
+                                    ProductStatus.ACTIVE,
+                                    AccountType.CHECKING,
+                                    5,
                                     BigDecimal.ZERO,
                                     BigDecimal.ZERO);
                             break;
@@ -67,26 +72,19 @@ public class AccountUseCaseImpl implements AccountUseCase {
                             account = new FixedTermAccount(
                                     customerId,
                                     currency,
+                                    ProductStatus.ACTIVE,
+                                    AccountType.FIXED_TERM,
                                     BigDecimal.valueOf(4.5),
                                     true,
                                     14,
                                     1,
-                                    BigDecimal.ZERO
-                            );
+                                    BigDecimal.ZERO);
                             break;
                         default:
                             return Mono.error(new BusinessException("Invalid account type"));
                     }
-
-                    Account accountSave = new Account();
-                    accountSave.setCustomerId(account.getCustomerId());
-                    accountSave.setType(type);
-                    accountSave.setCurrency(account.getCurrency());
-                    accountSave.setAccountNumber(account.getAccountNumber());
-                    accountSave.setStatus(AccountStatus.ACTIVE);
-                    accountSave.setActive(true);
-
-                    return accountRepository.save(accountSave);
+                     log.info("Creating account for account: {}", account);
+                    return accountRepository.save(account);
                 }));
     }
 
