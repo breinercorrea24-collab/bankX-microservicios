@@ -67,20 +67,7 @@ paths:
             schema:
               type: array
               items:
-                $ref: '#/components/schemas/AccountResponse'
-            example:
-              - id: "acc-2001"
-                customerId: "cus-1001"
-                type: SAVINGS
-                currency: PEN
-                balance: 1500.00
-                status: ACTIVE
-              - id: "acc-2002"
-                customerId: "cus-1001"
-                type: CURRENT
-                currency: USD
-                balance: 300.00
-                status: ACTIVE
+                $ref: '#/components/schemas/AccountPolymorphicResponse'
 
  /accounts/{accountId}/deposit:
   post:
@@ -292,28 +279,84 @@ components:
 
     AccountResponse:
       type: object
+      required: [id, customerId, type, currency, balance, status]
       properties:
         id:
           type: string
-          example: acc-2001
         customerId:
           type: string
-          example: cus-1001
         type:
-          type: string
-          enum: [SAVINGS, CHECKING, FIXED_TERM]
-          example: SAVINGS
+          $ref: '#/components/schemas/AccountType'
         currency:
           type: string
-          example: PEN
         balance:
           type: number
           format: float
-          example: 0.00
         status:
           type: string
           enum: [ACTIVE, INACTIVE]
-          example: ACTIVE
+    
+    AccountType:
+      type: string
+      enum:
+        - SAVINGS
+        - CHECKING
+        - FIXED_TERM
+
+    SavingsAccountResponse:
+      allOf:
+        - $ref: '#/components/schemas/AccountResponse'
+        - type: object
+          properties:
+            maxMonthlyTransactions:
+              type: integer
+            currentTransactions:
+              type: integer
+            maintenanceCommission:
+              type: number
+
+    CheckingAccountResponse:
+      allOf:
+        - $ref: '#/components/schemas/AccountResponse'
+        - type: object
+          properties:
+            maxMonthlyTransactions:
+              type: integer
+            maintenanceCommission:
+              type: number
+
+    FixedTermAccountResponse:
+      allOf:
+        - $ref: '#/components/schemas/AccountResponse'
+        - type: object
+          properties:
+            allowedDay:
+              type: integer
+            interestRate:
+              type: number
+            maintenanceFeeFree:
+              type: boolean
+            allowedMovementDay:
+              type: integer
+            movementsThisMonth:
+              type: integer
+
+    AccountPolymorphicResponse:
+      type: object
+      required: [type]
+      properties:
+        type:
+          $ref: '#/components/schemas/AccountType'
+      oneOf:
+        - $ref: '#/components/schemas/SavingsAccountResponse'
+        - $ref: '#/components/schemas/CheckingAccountResponse'
+        - $ref: '#/components/schemas/FixedTermAccountResponse'
+      discriminator:
+        propertyName: type
+        mapping:
+          SAVINGS: '#/components/schemas/SavingsAccountResponse'
+          CHECKING: '#/components/schemas/CheckingAccountResponse'
+          FIXED_TERM: '#/components/schemas/FixedTermAccountResponse'
 
     AmountRequest:
       type: object

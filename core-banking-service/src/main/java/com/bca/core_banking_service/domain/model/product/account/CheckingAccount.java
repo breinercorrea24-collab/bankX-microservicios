@@ -5,6 +5,11 @@ import java.math.BigDecimal;
 import com.bca.core_banking_service.domain.model.enums.account.AccountType;
 import com.bca.core_banking_service.domain.model.enums.product.ProductStatus;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+@Data
+@EqualsAndHashCode(callSuper=false)
 public class CheckingAccount extends Account {
 
     private BigDecimal maintenanceCommission;

@@ -4,14 +4,16 @@ import java.math.BigDecimal;
 
 import com.bca.core_banking_service.domain.model.product.account.Account;
 import com.bca.core_banking_service.dto.AccountResponse;
+import com.bca.core_banking_service.dto.AccountType;
 import com.bca.core_banking_service.dto.TransactionResponse;
 
 public class AccountApiMapper {
+
     public static AccountResponse mapToAccountResponse(Account account) {
         AccountResponse response = new AccountResponse();
         response.setId(account.getId());
         response.setCustomerId(account.getCustomerId());
-        response.setType(AccountResponse.TypeEnum.valueOf(account.getType().name()));
+        response.setType(AccountType.valueOf(account.getType().name()));
         response.setCurrency(account.getCurrency());
         response.setBalance(account.getBalance().floatValue());
         response.setStatus(AccountResponse.StatusEnum.valueOf(account.getStatus().name()));

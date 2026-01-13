@@ -2,7 +2,7 @@ package com.bca.core_banking_service.infrastructure.input.rest;
 
 import com.bca.core_banking_service.api.CustomersApiDelegate;
 import com.bca.core_banking_service.application.ports.input.usecases.AccountUseCase;
-import com.bca.core_banking_service.dto.AccountResponse;
+import com.bca.core_banking_service.dto.AccountPolymorphicResponse;
 import com.bca.core_banking_service.infrastructure.input.mapper.CustomerApiMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -19,10 +19,13 @@ public class CustomerApiDelegateImpl implements CustomersApiDelegate {
     private final AccountUseCase accountUseCase;
 
     @Override
-    public Mono<ResponseEntity<Flux<AccountResponse>>> customersCustomerIdAccountsGet(String customerId,
+    public Mono<ResponseEntity<Flux<AccountPolymorphicResponse>>> customersCustomerIdAccountsGet(
+            String customerId,
             ServerWebExchange exchange) {
-        return Mono.just(ResponseEntity.ok(
-                accountUseCase.getAccountsByCustomer(customerId)
-                        .map(CustomerApiMapper::mapToAccountResponse)));
+
+        Flux<AccountPolymorphicResponse> response = accountUseCase.getAccountsByCustomer(customerId)
+                .map(CustomerApiMapper::toPolymorphicResponse);
+
+        return Mono.just(ResponseEntity.ok(response));
     }
 }

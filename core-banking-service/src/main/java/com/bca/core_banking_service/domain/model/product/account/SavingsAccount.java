@@ -48,6 +48,10 @@ public class SavingsAccount extends Account {
         this.maintenanceCommission = maintenanceCommission;
     }
 
+    public int getCurrentTransactions() {
+        return currentTransactions;
+    }
+
     @Override
     public void validateCreation() {
         // TODO Auto-generated method stub
