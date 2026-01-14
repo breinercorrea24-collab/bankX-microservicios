@@ -1,27 +1,21 @@
 package com.bca.core_banking_service.application.usecases;
 
 import com.bca.core_banking_service.application.ports.input.usecases.AccountUseCase;
+import com.bca.core_banking_service.application.usecases.factory.AccountFactory;
+import com.bca.core_banking_service.application.usecases.factory.CreateAccountCommand;
 import com.bca.core_banking_service.domain.exceptions.BusinessException;
 import com.bca.core_banking_service.domain.model.enums.account.AccountType;
-import com.bca.core_banking_service.domain.model.enums.product.ProductStatus;
 import com.bca.core_banking_service.domain.model.product.account.Account;
-import com.bca.core_banking_service.domain.model.product.account.CheckingAccount;
-import com.bca.core_banking_service.domain.model.product.account.FixedTermAccount;
-import com.bca.core_banking_service.domain.model.product.account.PymeCheckingAccount;
-import com.bca.core_banking_service.domain.model.product.account.SavingsAccount;
-import com.bca.core_banking_service.domain.model.product.account.VipSavingsAccount;
 import com.bca.core_banking_service.domain.ports.output.event.AccountEventPublisher;
 import com.bca.core_banking_service.domain.ports.output.persistence.AccountRepository;
 import com.bca.core_banking_service.domain.ports.output.persistence.TransactionRepository;
 import com.bca.core_banking_service.infrastructure.input.dto.Transaction;
 import com.bca.core_banking_service.infrastructure.output.messaging.kafka.dto.AccountDepositEvent;
 import com.bca.core_banking_service.infrastructure.output.messaging.kafka.dto.AccountWithdrawalEvent;
-import com.bca.core_banking_service.infrastructure.output.rest.ExternalCardsWebClientAdapter;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -40,7 +34,6 @@ public class AccountUseCaseImpl implements AccountUseCase {
     private final AccountRepository accountRepository;
     private final TransactionRepository transactionRepository;
     private final AccountEventPublisher kafkaProducer;
-    private final ExternalCardsWebClientAdapter externalCardsClient;
 
     @Override
     public Mono<Account> createAccount(String customerId, AccountType type, String currency) {
@@ -53,96 +46,14 @@ public class AccountUseCaseImpl implements AccountUseCase {
                             "Customer already has account type " + type)).cast(Account.class);
                 })
                 .switchIfEmpty(Mono.defer(() -> {
-                    log.info("No existing account found for customerId: {}, type: {}. Proceeding with creation.", customerId, type);
-                    Account account;
+                    log.info("No existing account found for customerId: {}, type: {}. Proceeding with creation.",
+                            customerId, type);
 
-                    switch (type) {
-                        case SAVINGS:
-                            log.info("Creating Savings account for customerId: {}", customerId);
-                            account = new SavingsAccount(
-                                    customerId,
-                                    currency,
-                                    ProductStatus.ACTIVE,
-                                    AccountType.SAVINGS,
-                                    5,
-                                    BigDecimal.ZERO,
-                                    BigDecimal.ZERO);
-                            break;
-                        case CHECKING:
-                            log.info("Creating Checking account for customerId: {}", customerId);
-                            account = new CheckingAccount(
-                                    customerId,
-                                    currency,
-                                    ProductStatus.ACTIVE,
-                                    AccountType.CHECKING,
-                                    5,
-                                    BigDecimal.ZERO,
-                                    BigDecimal.ZERO);
-                            break;
-                        case FIXED_TERM:
-                            log.info("Creating Fixed Term account for customerId: {}", customerId);
-                            account = new FixedTermAccount(
-                                    customerId,
-                                    currency,
-                                    ProductStatus.ACTIVE,
-                                    AccountType.FIXED_TERM,
-                                    BigDecimal.valueOf(4.5),
-                                    true,
-                                    14,
-                                    1,
-                                    BigDecimal.ZERO);
-                            break;
-                        case VIP_SAVINGS:
-                            log.info("Checking credit card requirement for VIP Savings account for customerId: {}", customerId);
-                            return externalCardsClient.hasCreditCard(customerId)
-                                    .map(ResponseEntity::getBody)
-                                    .flatMap(hasCard -> {
-                                        if (!hasCard) {
-                                            log.info("Customer does not have an active credit card. Cannot create VIP Savings account.");
-                                            return Mono.<Account>error(new BusinessException(
-                                                    "VIP Savings requires an active credit card"));
-                                        }
+                    Account account = AccountFactory.create(new CreateAccountCommand(
+                            customerId,
+                            type,
+                            currency));
 
-                                        log.info("Creating VIP Savings account for customerId: {}", customerId);
-                                        Account account1 = new VipSavingsAccount(
-                                                customerId,
-                                                currency,
-                                                ProductStatus.ACTIVE,
-                                                AccountType.VIP_SAVINGS,
-                                                5,
-                                                BigDecimal.ZERO,
-                                                BigDecimal.ZERO,
-                                                new BigDecimal("5000"));
-
-                                        return accountRepository.save(account1);
-                                    });
-                        case PYME_CHECKING:
-                            log.info("Checking credit card requirement for PYME Checking account for customerId: {}", customerId);
-                            return externalCardsClient.hasCreditCard(customerId)
-                                    .map(ResponseEntity::getBody)
-                                    .flatMap(hasCard -> {
-                                        if (!hasCard) {
-                                            log.info("Customer does not have an active credit card. Cannot create PYME Checking account.");
-                                            return Mono.<Account>error(new BusinessException(
-                                                    "PYME Checking requires an active credit card"));
-                                        }
-
-                                        log.info("Creating PYME Checking account for customerId: {}", customerId);
-                                        Account account1 = new PymeCheckingAccount(
-                                                customerId,
-                                                currency,
-                                                ProductStatus.ACTIVE,
-                                                AccountType.PYME_CHECKING,
-                                                Integer.MAX_VALUE,
-                                                BigDecimal.ZERO,
-                                                BigDecimal.ZERO);
-
-                                        return accountRepository.save(account1);
-                                    });
-                        default:
-                            log.info("Invalid account type: {} for customerId: {}", type, customerId);
-                            return Mono.error(new BusinessException("Invalid account type"));
-                    }
                     log.info("Saving account for customerId: {}, type: {}", customerId, type);
                     return accountRepository.save(account);
                 }));
