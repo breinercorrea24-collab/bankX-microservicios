@@ -3,6 +3,7 @@ package com.bca.core_banking_service.application.usecases;
 import com.bca.core_banking_service.application.ports.input.usecases.AccountUseCase;
 import com.bca.core_banking_service.application.usecases.factory.AccountFactory;
 import com.bca.core_banking_service.application.usecases.factory.CreateAccountCommand;
+import com.bca.core_banking_service.application.usecases.validation.ValidationProduct;
 import com.bca.core_banking_service.domain.exceptions.BusinessException;
 import com.bca.core_banking_service.domain.model.enums.account.AccountType;
 import com.bca.core_banking_service.domain.model.product.account.Account;
@@ -12,6 +13,7 @@ import com.bca.core_banking_service.domain.ports.output.persistence.TransactionR
 import com.bca.core_banking_service.infrastructure.input.dto.Transaction;
 import com.bca.core_banking_service.infrastructure.output.messaging.kafka.dto.AccountDepositEvent;
 import com.bca.core_banking_service.infrastructure.output.messaging.kafka.dto.AccountWithdrawalEvent;
+import com.bca.core_banking_service.infrastructure.output.rest.ExternalCardsWebClientAdapter;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,9 +33,11 @@ import javax.security.auth.login.AccountNotFoundException;
 @RequiredArgsConstructor
 public class AccountUseCaseImpl implements AccountUseCase {
 
-    private final AccountRepository accountRepository;
     private final TransactionRepository transactionRepository;
     private final AccountEventPublisher kafkaProducer;
+
+    private final ExternalCardsWebClientAdapter externalCardsClient;
+    private final AccountRepository accountRepository;
 
     @Override
     public Mono<Account> createAccount(String customerId, AccountType type, String currency) {
@@ -48,6 +52,9 @@ public class AccountUseCaseImpl implements AccountUseCase {
                 .switchIfEmpty(Mono.defer(() -> {
                     log.info("No existing account found for customerId: {}, type: {}. Proceeding with creation.",
                             customerId, type);
+
+                    ValidationProduct   validationProduct = new ValidationProduct(externalCardsClient, accountRepository);
+                    validationProduct.validateAccountCreation(customerId, type, null);     
 
                     Account account = AccountFactory.create(new CreateAccountCommand(
                             customerId,
