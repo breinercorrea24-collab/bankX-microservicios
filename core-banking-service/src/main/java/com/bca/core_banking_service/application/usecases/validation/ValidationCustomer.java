@@ -27,7 +27,7 @@ public class ValidationCustomer {
                     .flatMap(exists -> exists
                             ? Mono.<Void>error(new BusinessException(
                                     "Only one account of this type is allowed for personal customers"))
-                            : Mono.empty()); // TODO: El flujo puede seguir y se puede crear la cuenta
+                            : Mono.empty());
         }
         return Mono.empty();
     }

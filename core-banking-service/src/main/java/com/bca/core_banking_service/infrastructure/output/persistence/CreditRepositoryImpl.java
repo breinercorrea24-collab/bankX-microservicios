@@ -28,4 +28,16 @@ public class CreditRepositoryImpl implements CreditRepository {
         return mongoRepository.findById(id)
                 .map(CreditMapper::toDomain);
     }
+
+    
+    @Override
+    public Mono<Credit> findByCustomerId(String customerId) {
+        return mongoRepository.findByCustomerId(customerId)
+                .map(CreditMapper::toDomain);
+    }
+
+    @Override
+    public Mono<Long> countByCustomerId(String customerId) {
+        return mongoRepository.countByCustomerId(customerId);   
+    }
 }
