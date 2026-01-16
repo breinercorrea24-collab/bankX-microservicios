@@ -153,6 +153,22 @@ class AccountUseCaseImplTest {
     }
 
     @Test
+    void deposit_whenAccountInactive_emitsBusinessException() {
+        String accountId = "acc-inactive";
+        SavingsAccount account = buildSavingsAccount(accountId, "customer-1", BigDecimal.valueOf(50), ProductStatus.BLOCKED);
+
+        when(accountRepository.findById(accountId)).thenReturn(Mono.just(account));
+
+        StepVerifier.create(accountUseCase.deposit(accountId, BigDecimal.TEN))
+                .expectError(BusinessException.class)
+                .verify();
+
+        verify(accountRepository, never()).save(any(Account.class));
+        verify(transactionRepository, never()).save(any(Transaction.class));
+        verify(accountEventPublisher, never()).publishDeposit(any(AccountDepositEvent.class));
+    }
+
+    @Test
     void deposit_whenAccountNotFound_emitsAccountNotFoundException() {
         when(accountRepository.findById("missing")).thenReturn(Mono.empty());
 
@@ -201,6 +217,22 @@ class AccountUseCaseImplTest {
                     assertTrue(error instanceof RuntimeException);
                     assertTrue(error.getMessage().contains("Saldo insuficiente"));
                 })
+                .verify();
+
+        verify(accountRepository, never()).save(any(Account.class));
+        verify(transactionRepository, never()).save(any(Transaction.class));
+        verify(accountEventPublisher, never()).publishWithdraw(any(AccountWithdrawalEvent.class));
+    }
+
+    @Test
+    void withdraw_whenAccountInactive_emitsBusinessException() {
+        String accountId = "acc-inactive";
+        SavingsAccount account = buildSavingsAccount(accountId, "customer-1", BigDecimal.valueOf(100), ProductStatus.BLOCKED);
+
+        when(accountRepository.findById(accountId)).thenReturn(Mono.just(account));
+
+        StepVerifier.create(accountUseCase.withdraw(accountId, BigDecimal.TEN))
+                .expectError(BusinessException.class)
                 .verify();
 
         verify(accountRepository, never()).save(any(Account.class));
