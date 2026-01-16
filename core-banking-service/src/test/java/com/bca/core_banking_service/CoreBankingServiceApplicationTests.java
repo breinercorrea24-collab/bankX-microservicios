@@ -1,13 +1,36 @@
 package com.bca.core_banking_service;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-// @SpringBootTest
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationContext;
+
+@SpringBootTest(classes = CoreBankingServiceApplication.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
 class CoreBankingServiceApplicationTests {
 
-	/*@Test
-	void contextLoads() {
-	}*/
+	@Autowired
+	private ApplicationContext applicationContext;
 
+	@Test
+	void contextLoads() {
+		assertNotNull(applicationContext, "Spring context should be created for the application");
+	}
+
+	@Test
+	void mainInvokesSpringApplicationRun() {
+		try (MockedStatic<SpringApplication> springApplication = Mockito.mockStatic(SpringApplication.class)) {
+			springApplication.when(() -> SpringApplication.run(CoreBankingServiceApplication.class, new String[]{}))
+					.thenReturn(applicationContext);
+
+			CoreBankingServiceApplication.main(new String[]{});
+
+			springApplication.verify(() ->
+					SpringApplication.run(CoreBankingServiceApplication.class, new String[]{}));
+		}
+	}
 }
