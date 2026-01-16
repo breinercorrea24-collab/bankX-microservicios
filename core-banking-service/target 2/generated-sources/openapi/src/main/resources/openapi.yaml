@@ -1,0 +1,688 @@
+openapi: 3.0.3
+info:
+  description: "API contract-first para banca digital, Yanki y BootCoin"
+  title: BootCoin BankX API
+  version: 1.0.0
+servers:
+- url: https://api.bankx.com
+tags:
+- name: Accounts
+- name: Credits
+paths:
+  /accounts:
+    post:
+      requestBody:
+        content:
+          application/json:
+            example:
+              customerId: cus-1001
+              type: SAVINGS
+              currency: PEN
+            schema:
+              $ref: '#/components/schemas/AccountCreate'
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              example:
+                id: acc-2001
+                customerId: cus-1001
+                type: SAVINGS
+                currency: PEN
+                balance: 0.0
+                status: ACTIVE
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+          description: Cuenta creada
+        "400":
+          content:
+            application/json:
+              example:
+                code: INVALID_REQUEST
+                message: La solicitud contiene errores de validación
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Solicitud inválida
+      summary: Crear cuenta bancaria
+      tags:
+      - Accounts
+      x-content-type: application/json
+      x-accepts: application/json
+      x-tags:
+      - tag: Accounts
+  /customers/{customerId}/accounts:
+    get:
+      parameters:
+      - example: cus-1001
+        explode: false
+        in: path
+        name: customerId
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/AccountPolymorphicResponse'
+                type: array
+          description: OK
+        "400":
+          content:
+            application/json:
+              example:
+                code: INVALID_REQUEST
+                message: La solicitud contiene errores de validación
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Solicitud inválida
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Cliente no encontrado
+        "500":
+          content:
+            application/json:
+              example:
+                code: INTERNAL_SERVER_ERROR
+                message: Ocurrió un error inesperado
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Error interno del servidor
+      summary: Listar cuentas por cliente
+      tags:
+      - Accounts
+      x-accepts: application/json
+      x-tags:
+      - tag: Accounts
+  /accounts/{accountId}/deposit:
+    post:
+      parameters:
+      - example: acc-2001
+        explode: false
+        in: path
+        name: accountId
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            example:
+              amount: 500.0
+            schema:
+              $ref: '#/components/schemas/AmountRequest'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+                transactionId: tx-dep-01
+                accountId: acc-2001
+                type: DEPOSIT
+                amount: 500.0
+                balance: 2000.0
+                timestamp: 2025-01-01T14:30:00Z
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+          description: Depósito exitoso
+      summary: Depósito en cuenta
+      tags:
+      - Accounts
+      x-content-type: application/json
+      x-accepts: application/json
+      x-tags:
+      - tag: Accounts
+  /accounts/{accountId}/withdraw:
+    post:
+      parameters:
+      - example: acc-2001
+        explode: false
+        in: path
+        name: accountId
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            example:
+              amount: 300.0
+            schema:
+              $ref: '#/components/schemas/AmountRequest'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+                transactionId: tx-wd-01
+                accountId: acc-2001
+                type: WITHDRAW
+                amount: 300.0
+                balance: 1700.0
+                timestamp: 2025-01-01T15:00:00Z
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+          description: Retiro exitoso
+        "400":
+          content:
+            application/json:
+              example:
+                code: INVALID_REQUEST
+                message: La solicitud contiene errores de validación
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Solicitud inválida
+        "409":
+          content:
+            application/json:
+              example:
+                code: INSUFFICIENT_FUNDS
+                message: El saldo disponible es insuficiente
+          description: Saldo insuficiente
+      summary: Retiro de cuenta
+      tags:
+      - Accounts
+      x-content-type: application/json
+      x-accepts: application/json
+      x-tags:
+      - tag: Accounts
+  /accounts/transfer:
+    post:
+      requestBody:
+        content:
+          application/json:
+            example:
+              fromId: acc-2001
+              toId: acc-2002
+              amount: 250.0
+            schema:
+              $ref: '#/components/schemas/TransferRequest'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+                transactionId: tx-tr-01
+                type: TRANSFER
+                fromAccountId: acc-2001
+                toAccountId: acc-2002
+                amount: 250.0
+                balance: 1450.0
+                timestamp: 2025-01-01T16:00:00Z
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+          description: Transferencia exitosa
+      summary: Transferencia entre cuentas
+      tags:
+      - Accounts
+      x-content-type: application/json
+      x-accepts: application/json
+      x-tags:
+      - tag: Accounts
+  /credits:
+    post:
+      requestBody:
+        content:
+          application/json:
+            example:
+              customerId: cus-1001
+              creditType: PERSONAL_LOAN
+              amount: 10000.0
+              termMonths: 24
+              interestRate: 18.5
+            schema:
+              $ref: '#/components/schemas/CreditCreate'
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              example:
+                id: cred-9001
+                customerId: cus-1001
+                creditType: PERSONAL_LOAN
+                originalAmount: 10000.0
+                pendingDebt: 10000.0
+                interestRate: 18.5
+                termMonths: 24
+                status: ACTIVE
+                createdAt: 2025-01-01T11:00:00Z
+              schema:
+                $ref: '#/components/schemas/CreditResponse'
+          description: Crédito creado
+        "400":
+          content:
+            application/json:
+              example:
+                code: CREDIT_NOT_APPROVED
+                message: El cliente no cumple con el score crediticio
+          description: Crédito no aprobado
+      summary: Crear crédito
+      tags:
+      - Credits
+      x-content-type: application/json
+      x-accepts: application/json
+      x-tags:
+      - tag: Credits
+  /credits/{creditId}/payment:
+    post:
+      parameters:
+      - example: cred-9001
+        explode: false
+        in: path
+        name: creditId
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            example:
+              amount: 500.0
+            schema:
+              $ref: '#/components/schemas/AmountRequest'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+                creditId: cred-9001
+                paymentId: pay-001
+                paidAmount: 500.0
+                remainingDebt: 9500.0
+                status: PARTIAL_PAYMENT
+                paidAt: 2025-01-15T10:30:00Z
+              schema:
+                $ref: '#/components/schemas/CreditPaymentResponse'
+          description: Pago exitoso
+        "409":
+          content:
+            application/json:
+              example:
+                code: INVALID_PAYMENT
+                message: El monto excede la deuda pendiente
+          description: Monto inválido
+      summary: Pago de crédito
+      tags:
+      - Credits
+      x-content-type: application/json
+      x-accepts: application/json
+      x-tags:
+      - tag: Credits
+components:
+  schemas:
+    AccountCreate:
+      example:
+        customerId: cus-1001
+        currency: PEN
+        type: SAVINGS
+      properties:
+        customerId:
+          example: cus-1001
+          type: string
+        type:
+          enum:
+          - SAVINGS
+          - CHECKING
+          - FIXED_TERM
+          - VIP_SAVINGS
+          - PYME_CHECKING
+          example: SAVINGS
+          type: string
+        currency:
+          example: PEN
+          type: string
+      required:
+      - currency
+      - customerId
+      - type
+      type: object
+    AccountResponse:
+      example:
+        balance: 0.8008282
+        customerId: customerId
+        currency: currency
+        id: id
+        type: null
+        status: ACTIVE
+      properties:
+        id:
+          type: string
+        customerId:
+          type: string
+        type:
+          $ref: '#/components/schemas/AccountType'
+        currency:
+          type: string
+        balance:
+          format: float
+          type: number
+        status:
+          enum:
+          - ACTIVE
+          - INACTIVE
+          type: string
+      required:
+      - balance
+      - currency
+      - customerId
+      - id
+      - status
+      - type
+      type: object
+    AccountType:
+      enum:
+      - SAVINGS
+      - CHECKING
+      - FIXED_TERM
+      - VIP_SAVINGS
+      - PYME_CHECKING
+      type: string
+    SavingsAccountResponse:
+      allOf:
+      - $ref: '#/components/schemas/AccountResponse'
+      - properties:
+          maxMonthlyTransactions:
+            type: integer
+          currentTransactions:
+            type: integer
+          maintenanceCommission:
+            type: number
+        type: object
+    VipSavingsAccountResponse:
+      allOf:
+      - $ref: '#/components/schemas/SavingsAccountResponse'
+      - properties:
+          minimumDailyAverage:
+            format: decimal
+            type: number
+        required:
+        - minimumDailyAverage
+        type: object
+    CheckingAccountResponse:
+      allOf:
+      - $ref: '#/components/schemas/AccountResponse'
+      - properties:
+          maxMonthlyTransactions:
+            type: integer
+          maintenanceCommission:
+            type: number
+        type: object
+    PymeCheckingAccountResponse:
+      allOf:
+      - $ref: '#/components/schemas/CheckingAccountResponse'
+    FixedTermAccountResponse:
+      allOf:
+      - $ref: '#/components/schemas/AccountResponse'
+      - properties:
+          allowedDay:
+            type: integer
+          interestRate:
+            type: number
+          maintenanceFeeFree:
+            type: boolean
+          allowedMovementDay:
+            type: integer
+          movementsThisMonth:
+            type: integer
+        type: object
+    AccountPolymorphicResponse:
+      discriminator:
+        mapping:
+          SAVINGS: '#/components/schemas/SavingsAccountResponse'
+          CHECKING: '#/components/schemas/CheckingAccountResponse'
+          FIXED_TERM: '#/components/schemas/FixedTermAccountResponse'
+          VIP_SAVINGS: '#/components/schemas/VipSavingsAccountResponse'
+          PYME_CHECKING: '#/components/schemas/PymeCheckingAccountResponse'
+        propertyName: type
+      example:
+        type: null
+      oneOf:
+      - $ref: '#/components/schemas/SavingsAccountResponse'
+      - $ref: '#/components/schemas/CheckingAccountResponse'
+      - $ref: '#/components/schemas/FixedTermAccountResponse'
+      - $ref: '#/components/schemas/VipSavingsAccountResponse'
+      - $ref: '#/components/schemas/PymeCheckingAccountResponse'
+      properties:
+        type:
+          $ref: '#/components/schemas/AccountType'
+      required:
+      - type
+      type: object
+      x-one-of-name: AccountPolymorphicResponse
+    AmountRequest:
+      example:
+        amount: 500.0
+      properties:
+        amount:
+          example: 500.0
+          format: float
+          type: number
+      required:
+      - amount
+      type: object
+    TransferRequest:
+      example:
+        toId: acc-2002
+        amount: 250.0
+        fromId: acc-2001
+      properties:
+        fromId:
+          example: acc-2001
+          type: string
+        toId:
+          example: acc-2002
+          type: string
+        amount:
+          example: 250.0
+          format: float
+          type: number
+      required:
+      - amount
+      - fromId
+      - toId
+      type: object
+    CreditCreate:
+      example:
+        interestRate: 18.5
+        amount: 10000.0
+        termMonths: 24
+        customerId: cus-1001
+        creditType: PERSONAL_LOAN
+      properties:
+        customerId:
+          example: cus-1001
+          type: string
+        creditType:
+          enum:
+          - PERSONAL_LOAN
+          - MORTGAGE
+          - AUTO_LOAN
+          example: PERSONAL_LOAN
+          type: string
+        amount:
+          example: 10000.0
+          format: float
+          type: number
+        termMonths:
+          example: 24
+          type: integer
+        interestRate:
+          example: 18.5
+          format: float
+          type: number
+      required:
+      - amount
+      - creditType
+      - customerId
+      - interestRate
+      - termMonths
+      type: object
+    TransactionResponse:
+      example:
+        accountId: acc-2001
+        amount: 500.0
+        fromAccountId: acc-2001
+        balance: 2000.0
+        toAccountId: acc-2002
+        type: DEPOSIT
+        transactionId: tx-dep-01
+        timestamp: 2025-01-01T14:30:00Z
+      properties:
+        transactionId:
+          example: tx-dep-01
+          type: string
+        accountId:
+          example: acc-2001
+          type: string
+        fromAccountId:
+          example: acc-2001
+          type: string
+        toAccountId:
+          example: acc-2002
+          type: string
+        type:
+          enum:
+          - DEPOSIT
+          - WITHDRAW
+          - TRANSFER
+          example: DEPOSIT
+          type: string
+        amount:
+          example: 500.0
+          format: float
+          type: number
+        balance:
+          example: 2000.0
+          format: float
+          type: number
+        timestamp:
+          example: 2025-01-01T14:30:00Z
+          format: date-time
+          type: string
+      type: object
+    CreditResponse:
+      example:
+        interestRate: 18.5
+        createdAt: 2025-01-01T11:00:00Z
+        originalAmount: 10000.0
+        termMonths: 24
+        customerId: cus-1001
+        id: cred-9001
+        creditType: PERSONAL_LOAN
+        pendingDebt: 10000.0
+        status: ACTIVE
+      properties:
+        id:
+          example: cred-9001
+          type: string
+        customerId:
+          example: cus-1001
+          type: string
+        creditType:
+          enum:
+          - PERSONAL_LOAN
+          - MORTGAGE
+          - AUTO_LOAN
+          type: string
+        originalAmount:
+          example: 10000.0
+          format: double
+          type: number
+        pendingDebt:
+          example: 10000.0
+          format: double
+          type: number
+        interestRate:
+          example: 18.5
+          format: double
+          type: number
+        termMonths:
+          example: 24
+          type: integer
+        status:
+          example: ACTIVE
+          type: string
+        createdAt:
+          example: 2025-01-01T11:00:00Z
+          format: date-time
+          type: string
+      type: object
+    CreditPaymentResponse:
+      example:
+        creditId: cred-9001
+        paymentId: pay-001
+        paidAt: 2025-01-15T10:30:00Z
+        remainingDebt: 9500.0
+        paidAmount: 500.0
+        status: PARTIAL_PAYMENT
+      properties:
+        creditId:
+          example: cred-9001
+          type: string
+        paymentId:
+          example: pay-001
+          type: string
+        paidAmount:
+          example: 500.0
+          format: double
+          type: number
+        remainingDebt:
+          example: 9500.0
+          format: double
+          type: number
+        status:
+          enum:
+          - FULL_PAYMENT
+          - PARTIAL_PAYMENT
+          example: PARTIAL_PAYMENT
+          type: string
+        paidAt:
+          example: 2025-01-15T10:30:00Z
+          format: date-time
+          type: string
+      type: object
+    ErrorResponse:
+      example:
+        path: /customers/cus-1001/accounts
+        error: Not Found
+        message: Cliente no encontrado
+        timestamp: 2000-01-23T04:56:07.000+00:00
+        status: 404
+      properties:
+        timestamp:
+          format: date-time
+          type: string
+        status:
+          example: 404
+          type: integer
+        error:
+          example: Not Found
+          type: string
+        message:
+          example: Cliente no encontrado
+          type: string
+        path:
+          example: /customers/cus-1001/accounts
+          type: string
+      required:
+      - error
+      - message
+      - path
+      - status
+      - timestamp
+      type: object
