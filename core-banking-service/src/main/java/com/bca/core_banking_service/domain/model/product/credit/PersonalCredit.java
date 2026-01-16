@@ -7,9 +7,4 @@ public class PersonalCredit extends Credit {
     public PersonalCredit(String id, String customerId, ProductStatus status) {
         super(id, customerId, status);
     }
-
-    @Override
-    public void validateCreation() {
-        // validar que no tenga otro crédito
-    }
 }
