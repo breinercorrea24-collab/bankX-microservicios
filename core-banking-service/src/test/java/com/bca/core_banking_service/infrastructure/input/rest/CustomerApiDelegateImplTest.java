@@ -1,7 +1,9 @@
 package com.bca.core_banking_service.infrastructure.input.rest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
@@ -49,10 +51,27 @@ class CustomerApiDelegateImplTest {
 
         StepVerifier.create(responseMono.flatMapMany(resp -> resp.getBody()))
                 .assertNext(response -> {
-                    assertNotNull(response.getSavingsAccountResponse());
-                    assertEquals("customer-1", response.getSavingsAccountResponse().getCustomerId());
+                    assertEquals(AccountType.SAVINGS, response.getType());
                 })
                 .verifyComplete();
+    }
+
+    @Test
+    void customersCustomerIdAccountsGet_wrapsBodyInOkResponseEntity() {
+        when(accountUseCase.getAccountsByCustomer("customer-1"))
+                .thenReturn(Flux.empty());
+
+        Mono<org.springframework.http.ResponseEntity<Flux<AccountPolymorphicResponse>>> responseMono =
+                delegate.customersCustomerIdAccountsGet("customer-1", mockExchange("/customers/customer-1/accounts"));
+
+        StepVerifier.create(responseMono)
+                .assertNext(response -> {
+                    assertEquals(200, response.getStatusCode().value());
+                    assertNotNull(response.getBody());
+                })
+                .verifyComplete();
+
+        verify(accountUseCase).getAccountsByCustomer("customer-1");
     }
 
     private SavingsAccount sampleSavingsAccount() {
