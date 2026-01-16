@@ -1,7 +1,6 @@
 package com.bca.core_banking_service.infrastructure.input.rest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -51,7 +50,7 @@ class CustomerApiDelegateImplTest {
 
         StepVerifier.create(responseMono.flatMapMany(resp -> resp.getBody()))
                 .assertNext(response -> {
-                    assertEquals(AccountType.SAVINGS, response.getType());
+                    assertEquals(com.bca.core_banking_service.dto.AccountType.SAVINGS, response.getType());
                 })
                 .verifyComplete();
     }
@@ -70,6 +69,22 @@ class CustomerApiDelegateImplTest {
                     assertNotNull(response.getBody());
                 })
                 .verifyComplete();
+
+        verify(accountUseCase).getAccountsByCustomer("customer-1");
+    }
+
+    @Test
+    void customersCustomerIdAccountsGet_propagatesUpstreamError() {
+        RuntimeException failure = new RuntimeException("boom");
+        when(accountUseCase.getAccountsByCustomer("customer-1"))
+                .thenReturn(Flux.error(failure));
+
+        Mono<org.springframework.http.ResponseEntity<Flux<AccountPolymorphicResponse>>> responseMono =
+                delegate.customersCustomerIdAccountsGet("customer-1", mockExchange("/customers/customer-1/accounts"));
+
+        StepVerifier.create(responseMono.flatMapMany(resp -> resp.getBody()))
+                .expectErrorMatches(error -> error == failure)
+                .verify();
 
         verify(accountUseCase).getAccountsByCustomer("customer-1");
     }
