@@ -188,6 +188,15 @@
 						<goals>
 							<goal>report</goal>
 						</goals>
+						<configuration>
+							<excludes>
+								<exclude>com/bca/core_banking_service/domain/model/**</exclude>
+								<exclude>com/bca/core_banking_service/dto/**</exclude>
+								<exclude>com/bca/core_banking_service/infrastructure/output/persistence/entity/**</exclude>
+								<exclude>com/bca/core_banking_service/infrastructure/input/dto/**</exclude>
+								<exclude>com/bca/core_banking_service/api/**</exclude>
+							</excludes>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
