@@ -8,9 +8,4 @@ public class BusinessCredit extends Credit {
         super(id, customerId, status);
         //TODO Auto-generated constructor stub
     }
-
-    @Override
-    public void validateCreation() {
-        // puede tener múltiples
-    }
 }
