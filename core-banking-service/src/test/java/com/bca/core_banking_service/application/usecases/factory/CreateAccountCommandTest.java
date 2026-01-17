@@ -43,6 +43,27 @@ class CreateAccountCommandTest {
     }
 
     @Test
+    void equalsHandlesNullValues() {
+        CreateAccountCommand first = CreateAccountCommand.builder()
+                .customerId(null)
+                .type(null)
+                .currency(null)
+                .build();
+        CreateAccountCommand second = CreateAccountCommand.builder()
+                .customerId(null)
+                .type(null)
+                .currency(null)
+                .build();
+
+        assertEquals(first, second);
+        assertEquals(first.hashCode(), second.hashCode());
+
+        second.setCustomerId("other");
+        assertNotEquals(first, second);
+        assertNotEquals(first, new Object());
+    }
+
+    @Test
     void toStringContainsDetails() {
         CreateAccountCommand command = CreateAccountCommand.builder()
                 .customerId("cust")
@@ -51,5 +72,18 @@ class CreateAccountCommandTest {
                 .build();
         assertTrue(command.toString().contains("cust"));
         assertTrue(command.toString().contains("PYME_CHECKING"));
+    }
+
+    @Test
+    void builderToStringReflectsAssignedFields() {
+        CreateAccountCommand.CreateAccountCommandBuilder builder = CreateAccountCommand.builder()
+                .customerId("builder-cust")
+                .type(AccountType.VIP_SAVINGS)
+                .currency("GBP");
+
+        String description = builder.toString();
+        assertTrue(description.contains("builder-cust"));
+        assertTrue(description.contains("VIP_SAVINGS"));
+        assertTrue(description.contains("GBP"));
     }
 }

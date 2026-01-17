@@ -79,6 +79,24 @@ class AccountFactoryTest {
         assertThrows(BusinessException.class, () -> AccountFactory.create(command));
     }
 
+    @Test
+    void create_withUnsupportedTypeThrowsBusinessException() {
+        CreateAccountCommand command = CreateAccountCommand.builder()
+                .customerId("customer")
+                .type(AccountType.SAVINGS)
+                .currency("USD")
+                .build();
+
+        CreateAccountCommand spyCommand = new CreateAccountCommand(command.getCustomerId(), null, command.getCurrency()) {
+            @Override
+            public AccountType getType() {
+                return null;
+            }
+        };
+
+        assertThrows(BusinessException.class, () -> AccountFactory.create(spyCommand));
+    }
+
     private CreateAccountCommand command(AccountType type) {
         return CreateAccountCommand.builder()
                 .customerId("customer-1")
