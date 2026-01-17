@@ -13,7 +13,30 @@ class PymeCheckingAccountTest {
 
     @Test
     void inheritsCheckingAccountFields() {
-        PymeCheckingAccount account = new PymeCheckingAccount(
+        PymeCheckingAccount account = createAccount();
+
+        assertEquals(AccountType.PYME_CHECKING, account.getType());
+        assertEquals(100, account.getMaxMonthlyTransactions());
+        assertEquals(BigDecimal.TEN, account.getMaintenanceCommission());
+        assertEquals(BigDecimal.valueOf(500), account.getBalance());
+    }
+
+    @Test
+    void equalsAndHashCodeIncludeFields() {
+        PymeCheckingAccount first = createAccount();
+        PymeCheckingAccount second = createAccount();
+        second.setCreatedAt(first.getCreatedAt());
+        second.setId(first.getId());
+        second.setBalance(first.getBalance());
+        second.setMaintenanceCommission(first.getMaintenanceCommission());
+        second.setMaxMonthlyTransactions(first.getMaxMonthlyTransactions());
+
+        assertEquals(first, second);
+        assertEquals(first.hashCode(), second.hashCode());
+    }
+
+    private PymeCheckingAccount createAccount() {
+        return new PymeCheckingAccount(
                 "customer-1",
                 "USD",
                 ProductStatus.ACTIVE,
@@ -21,10 +44,5 @@ class PymeCheckingAccountTest {
                 100,
                 BigDecimal.TEN,
                 BigDecimal.valueOf(500));
-
-        assertEquals(AccountType.PYME_CHECKING, account.getType());
-        assertEquals(100, account.getMaxMonthlyTransactions());
-        assertEquals(BigDecimal.TEN, account.getMaintenanceCommission());
-        assertEquals(BigDecimal.valueOf(500), account.getBalance());
     }
 }

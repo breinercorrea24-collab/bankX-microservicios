@@ -1,6 +1,7 @@
 package com.bca.core_banking_service.domain.model.product.account;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import java.math.BigDecimal;
 
@@ -24,5 +25,31 @@ class VipSavingsAccountTest {
                 BigDecimal.valueOf(5000));
 
         assertEquals(BigDecimal.valueOf(5000), account.getMinimumDailyAverage());
+    }
+
+    @Test
+    void equalsAndHashCodeIncludeFields() {
+        VipSavingsAccount first = createAccount();
+        VipSavingsAccount second = createAccount();
+        second.setCreatedAt(first.getCreatedAt());
+
+        assertEquals(first, second);
+        assertEquals(first.hashCode(), second.hashCode());
+
+        VipSavingsAccount different = createAccount();
+        different.setMinimumDailyAverage(BigDecimal.ZERO);
+        assertNotEquals(first, different);
+    }
+
+    private VipSavingsAccount createAccount() {
+        return new VipSavingsAccount(
+                "customer-1",
+                "USD",
+                ProductStatus.ACTIVE,
+                AccountType.VIP_SAVINGS,
+                5,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.valueOf(5000));
     }
 }

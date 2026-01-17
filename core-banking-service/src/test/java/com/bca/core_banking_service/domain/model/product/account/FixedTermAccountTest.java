@@ -1,6 +1,8 @@
 package com.bca.core_banking_service.domain.model.product.account;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.math.BigDecimal;
@@ -34,6 +36,20 @@ class FixedTermAccountTest {
         FixedTermAccount account = createAccount();
 
         assertThrows(UnsupportedOperationException.class, account::validateCreation);
+    }
+
+    @Test
+    void equalsAndHashCodeIncludeFields() {
+        FixedTermAccount first = createAccount();
+        FixedTermAccount second = createAccount();
+        second.setCreatedAt(first.getCreatedAt());
+
+        assertEquals(first, second);
+        assertEquals(first.hashCode(), second.hashCode());
+
+        FixedTermAccount different = createAccount();
+        different.setAllowedDay(1);
+        assertNotEquals(first, different);
     }
 
     private FixedTermAccount createAccount() {
