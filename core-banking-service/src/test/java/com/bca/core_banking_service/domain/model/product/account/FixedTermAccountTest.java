@@ -74,9 +74,10 @@ class FixedTermAccountTest {
     @Test
     void toStringContainsKeyFields() {
         FixedTermAccount account = createAccount();
+        account.setAllowedDay(10);
         String description = account.toString();
-        assertTrue(description.contains("customer-1"));
-        assertTrue(description.contains("FIXED_TERM"));
+        assertTrue(description.contains("allowedDay=10"));
+        assertTrue(description.contains("interestRate=4.5"));
     }
 
     @Test
