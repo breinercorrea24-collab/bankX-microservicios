@@ -1,6 +1,7 @@
 package com.bca.core_banking_service.domain.model.product.account;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.math.BigDecimal;
 
@@ -25,5 +26,19 @@ class CheckingAccountTest {
         account.chargeMaintenanceFee();
 
         assertEquals(BigDecimal.valueOf(95), account.getBalance());
+    }
+
+    @Test
+    void validateCreation_isNotImplemented() {
+        CheckingAccount account = new CheckingAccount(
+                "customer-1",
+                "USD",
+                ProductStatus.ACTIVE,
+                AccountType.CHECKING,
+                5,
+                BigDecimal.ONE,
+                BigDecimal.TEN);
+
+        assertThrows(UnsupportedOperationException.class, account::validateCreation);
     }
 }

@@ -28,6 +28,13 @@ class SavingsAccountTest {
         assertThrows(RuntimeException.class, account::validateMonthlyLimit);
     }
 
+    @Test
+    void validateCreation_isNotYetImplemented() {
+        SavingsAccount account = createAccount();
+
+        assertThrows(UnsupportedOperationException.class, account::validateCreation);
+    }
+
     private SavingsAccount createAccount() {
         SavingsAccount account = new SavingsAccount(
                 "customer-1",

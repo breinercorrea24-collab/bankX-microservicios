@@ -29,6 +29,13 @@ class FixedTermAccountTest {
         assertThrows(RuntimeException.class, () -> account.validateOperationDate(LocalDate.of(2024, 4, 9)));
     }
 
+    @Test
+    void validateCreation_isNotImplemented() {
+        FixedTermAccount account = createAccount();
+
+        assertThrows(UnsupportedOperationException.class, account::validateCreation);
+    }
+
     private FixedTermAccount createAccount() {
         return new FixedTermAccount(
                 "customer-1",
