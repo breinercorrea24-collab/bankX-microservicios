@@ -2,6 +2,7 @@ package com.bca.core_banking_service.application.usecases.validation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -113,5 +114,16 @@ class ValidationProductTest {
                 CustomerType.PERSONAL))
                 .expectErrorSatisfies(error -> assertEquals("Customer has overdue credit debt", error.getMessage()))
                 .verify();
+    }
+
+    @Test
+    void validateAccountCreation_withUnknownCustomerTypeReturnsEmpty() {
+        StepVerifier.create(validationProduct.validateAccountCreation(
+                "other",
+                AccountType.SAVINGS,
+                null))
+                .verifyComplete();
+
+        verifyNoInteractions(accountRepository);
     }
 }
