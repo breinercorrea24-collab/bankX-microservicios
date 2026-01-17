@@ -102,6 +102,32 @@ class AccountTest {
         assertEquals(Account.AccountStatus.INACTIVE, Account.AccountStatus.valueOf("INACTIVE"));
     }
 
+    @Test
+    void equalsDetectsDifferentCurrencyAndAccountNumber() {
+        TestAccount first = configuredAccount();
+        TestAccount second = configuredAccount();
+        second.setCurrency("EUR");
+        assertNotEquals(first, second);
+
+        second = configuredAccount();
+        second.setAccountNumber("OTHER");
+        assertNotEquals(first, second);
+    }
+
+    @Test
+    void equalsHandlesNullBalanceAgainstValue() {
+        TestAccount first = configuredAccount();
+        first.setBalance(null);
+        TestAccount second = configuredAccount();
+        second.setBalance(null);
+        second.setCreatedAt(first.getCreatedAt());
+
+        assertEquals(first, second);
+
+        second.setBalance(BigDecimal.ONE);
+        assertNotEquals(first, second);
+    }
+
     private TestAccount configuredAccount() {
         TestAccount account = new TestAccount();
         account.setAccountNumber("ACC-1");

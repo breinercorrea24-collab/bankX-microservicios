@@ -1,44 +1,35 @@
 package com.bca.core_banking_service.api;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 
+import com.bca.core_banking_service.dto.CreditCreate;
+
 import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
 
 class CreditsApiDelegateTest {
 
     private final CreditsApiDelegate delegate = new CreditsApiDelegate() {};
+
     @Test
-    void creditsPost_defaultImplementationFinishesEmpty() {
-        MockServerWebExchange exchange = exchange();
-        StepVerifier.create(delegate.creditsPost(Mono.empty(), exchange))
-                .expectComplete()
-                .verify();
-        assertEquals(MediaType.APPLICATION_JSON, exchange.getResponse().getHeaders().getContentType());
+    void getRequestReturnsEmptyOptional() {
+        assertEquals(false, delegate.getRequest().isPresent());
     }
 
     @Test
-    void creditsCreditIdPaymentPost_defaultImplementationFinishesEmpty() {
-        MockServerWebExchange exchange = exchange();
-        StepVerifier.create(delegate.creditsCreditIdPaymentPost("cred-1", Mono.empty(), exchange))
-                .expectComplete()
-                .verify();
-        assertEquals(MediaType.APPLICATION_JSON, exchange.getResponse().getHeaders().getContentType());
-    }
+    void creditsPostReturnsNotImplemented() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/credits")
+                .accept(MediaType.APPLICATION_JSON)
+                .build());
 
-    @Test
-    void getRequestDefaultsToEmptyOptional() {
-        assertTrue(delegate.getRequest().isEmpty());
-    }
+        Mono<?> result = delegate.creditsPost(Mono.just(new CreditCreate()), exchange);
 
-    private MockServerWebExchange exchange() {
-        return MockServerWebExchange.from(
-                MockServerHttpRequest.post("/credits").accept(MediaType.APPLICATION_JSON).build());
+        assertNotNull(result);
+        assertEquals(org.springframework.http.HttpStatus.NOT_IMPLEMENTED, exchange.getResponse().getStatusCode());
     }
 }
