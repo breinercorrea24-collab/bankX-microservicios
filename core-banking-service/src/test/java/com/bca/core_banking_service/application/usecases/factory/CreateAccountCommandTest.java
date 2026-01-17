@@ -21,9 +21,21 @@ class CreateAccountCommandTest {
 
     @Test
     void equalsAndHashCodeConsiderFields() {
-        CreateAccountCommand first = new CreateAccountCommand("c-1", AccountType.CHECKING, "EUR");
-        CreateAccountCommand second = new CreateAccountCommand("c-1", AccountType.CHECKING, "EUR");
-        CreateAccountCommand different = new CreateAccountCommand("c-2", AccountType.SAVINGS, "USD");
+        CreateAccountCommand first = CreateAccountCommand.builder()
+                .customerId("c-1")
+                .type(AccountType.CHECKING)
+                .currency("EUR")
+                .build();
+        CreateAccountCommand second = CreateAccountCommand.builder()
+                .customerId("c-1")
+                .type(AccountType.CHECKING)
+                .currency("EUR")
+                .build();
+        CreateAccountCommand different = CreateAccountCommand.builder()
+                .customerId("c-2")
+                .type(AccountType.SAVINGS)
+                .currency("USD")
+                .build();
 
         assertEquals(first, second);
         assertEquals(first.hashCode(), second.hashCode());
@@ -32,7 +44,11 @@ class CreateAccountCommandTest {
 
     @Test
     void toStringContainsDetails() {
-        CreateAccountCommand command = new CreateAccountCommand("cust", AccountType.PYME_CHECKING, "PEN");
+        CreateAccountCommand command = CreateAccountCommand.builder()
+                .customerId("cust")
+                .type(AccountType.PYME_CHECKING)
+                .currency("PEN")
+                .build();
         assertTrue(command.toString().contains("cust"));
         assertTrue(command.toString().contains("PYME_CHECKING"));
     }

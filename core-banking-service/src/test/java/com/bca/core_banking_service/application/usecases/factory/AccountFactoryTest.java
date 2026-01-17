@@ -69,13 +69,22 @@ class AccountFactoryTest {
     }
 
     @Test
-    void create_withNullTypeThrowsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> AccountFactory.create(
-                new CreateAccountCommand("customer", null, "USD")));
+    void create_withNullTypeThrowsBusinessException() {
+        CreateAccountCommand command = CreateAccountCommand.builder()
+                .customerId("customer")
+                .type(null)
+                .currency("USD")
+                .build();
+
+        assertThrows(BusinessException.class, () -> AccountFactory.create(command));
     }
 
     private CreateAccountCommand command(AccountType type) {
-        return new CreateAccountCommand("customer-1", type, "USD");
+        return CreateAccountCommand.builder()
+                .customerId("customer-1")
+                .type(type)
+                .currency("USD")
+                .build();
     }
 
     private void assertAccountBasics(Account account, AccountType expectedType) {

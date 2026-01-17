@@ -67,10 +67,12 @@ public class CustomerApiMapper {
         return new PymeCheckingAccountResponse()
                 .id(acc.getId())
                 .customerId(acc.getCustomerId())
-                .type(AccountType.CHECKING)
+                .type(AccountType.PYME_CHECKING)
                 .currency(acc.getCurrency())
                 .balance(acc.getBalance() != null ? acc.getBalance().floatValue() : 0.0f)
-                .status(PymeCheckingAccountResponse.StatusEnum.ACTIVE)
+                .status(acc.getStatus() != null
+                        ? PymeCheckingAccountResponse.StatusEnum.valueOf(acc.getStatus().name())
+                        : PymeCheckingAccountResponse.StatusEnum.INACTIVE)
                 .maxMonthlyTransactions(acc.getMaxMonthlyTransactions())
                 .maintenanceCommission(acc.getMaintenanceCommission());
     }

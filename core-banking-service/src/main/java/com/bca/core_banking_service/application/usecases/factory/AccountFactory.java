@@ -19,8 +19,12 @@ import com.bca.core_banking_service.domain.model.product.account.VipSavingsAccou
 public class AccountFactory {
 
     public static Account create(CreateAccountCommand cmd) {
+        AccountType type = cmd.getType();
+        if (type == null) {
+            throw new BusinessException("Invalid account type");
+        }
 
-        switch (cmd.getType()) {
+        switch (type) {
 
             case SAVINGS:
                 return new SavingsAccount(
@@ -80,4 +84,3 @@ public class AccountFactory {
         }
     }
 }
-

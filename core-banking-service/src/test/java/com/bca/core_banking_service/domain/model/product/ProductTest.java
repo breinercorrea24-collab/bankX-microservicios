@@ -29,6 +29,13 @@ class ProductTest {
         assertFalse(product.isActive());
     }
 
+    @Test
+    void setIdAllowsUpdatingIdentifier() {
+        TestProduct product = new TestProduct("prod-3", "cust-3", ProductStatus.ACTIVE);
+        product.setId("prod-4");
+        assertEquals("prod-4", product.getId());
+    }
+
     private static class TestProduct extends Product {
         TestProduct(String id, String customerId, ProductStatus status) {
             super(id, customerId, status);

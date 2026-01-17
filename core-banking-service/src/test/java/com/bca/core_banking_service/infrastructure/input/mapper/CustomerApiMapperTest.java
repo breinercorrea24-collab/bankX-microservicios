@@ -113,7 +113,26 @@ class CustomerApiMapperTest {
         PymeCheckingAccountResponse response = assertInstanceOf(PymeCheckingAccountResponse.class, result);
         assertEquals("pyme-1", response.getId());
         assertEquals(PymeCheckingAccountResponse.StatusEnum.ACTIVE, response.getStatus());
+        assertEquals(com.bca.core_banking_service.dto.AccountType.PYME_CHECKING, response.getType());
         assertEquals(BigDecimal.valueOf(5), response.getMaintenanceCommission());
+    }
+
+    @Test
+    void pymeCheckingAccountDefaultsStatusWhenNull() {
+        PymeCheckingAccount account = new PymeCheckingAccount(
+                "cus-6",
+                "USD",
+                ProductStatus.ACTIVE,
+                AccountType.PYME_CHECKING,
+                10,
+                BigDecimal.ONE,
+                BigDecimal.TEN);
+        account.setId("pyme-2");
+        account.setStatus(null);
+
+        PymeCheckingAccountResponse response = (PymeCheckingAccountResponse) CustomerApiMapper.toPolymorphicResponse(
+                account);
+        assertEquals(PymeCheckingAccountResponse.StatusEnum.INACTIVE, response.getStatus());
     }
 
     @Test

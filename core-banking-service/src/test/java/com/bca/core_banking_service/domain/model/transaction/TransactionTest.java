@@ -1,6 +1,8 @@
 package com.bca.core_banking_service.domain.model.transaction;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -53,5 +55,57 @@ class TransactionTest {
         assertEquals(BigDecimal.ONE, transaction.getCommission());
         assertEquals(LocalDateTime.of(2024, 5, 1, 10, 0), transaction.getDate());
         assertEquals(Channel.MOBILE, transaction.getChannel());
+    }
+
+    @Test
+    void equalsAndHashCodeConsiderAllFields() {
+        LocalDateTime now = LocalDateTime.now();
+        Transaction first = Transaction.builder()
+                .id("tx-3")
+                .productId("prod-3")
+                .type(TransactionType.WITHDRAW)
+                .amount(BigDecimal.ONE)
+                .commission(BigDecimal.ZERO)
+                .date(now)
+                .channel(Channel.ATM)
+                .build();
+
+        Transaction second = Transaction.builder()
+                .id("tx-3")
+                .productId("prod-3")
+                .type(TransactionType.WITHDRAW)
+                .amount(BigDecimal.ONE)
+                .commission(BigDecimal.ZERO)
+                .date(now)
+                .channel(Channel.ATM)
+                .build();
+
+        Transaction different = Transaction.builder()
+                .id("tx-4")
+                .productId("prod-4")
+                .type(TransactionType.DEPOSIT)
+                .amount(BigDecimal.TEN)
+                .commission(BigDecimal.ONE)
+                .date(now)
+                .channel(Channel.MOBILE)
+                .build();
+
+        assertEquals(first, second);
+        assertEquals(first.hashCode(), second.hashCode());
+        assertNotEquals(first, different);
+    }
+
+    @Test
+    void toStringContainsKeyFields() {
+        Transaction transaction = Transaction.builder()
+                .id("tx-5")
+                .productId("prod-5")
+                .type(TransactionType.TRANSFER)
+                .build();
+
+        String asString = transaction.toString();
+        assertTrue(asString.contains("tx-5"));
+        assertTrue(asString.contains("prod-5"));
+        assertTrue(asString.contains("TRANSFER"));
     }
 }
