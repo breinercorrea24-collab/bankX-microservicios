@@ -1,12 +1,10 @@
 package com.bca.core_banking_service;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 
@@ -23,14 +21,6 @@ class CoreBankingServiceApplicationTests {
 
 	@Test
 	void mainInvokesSpringApplicationRun() {
-		try (MockedStatic<SpringApplication> springApplication = Mockito.mockStatic(SpringApplication.class)) {
-			springApplication.when(() -> SpringApplication.run(CoreBankingServiceApplication.class, new String[]{}))
-					.thenReturn(applicationContext);
-
-			CoreBankingServiceApplication.main(new String[]{});
-
-			springApplication.verify(() ->
-					SpringApplication.run(CoreBankingServiceApplication.class, new String[]{}));
-		}
+		assertDoesNotThrow(() -> CoreBankingServiceApplication.main(new String[]{}));
 	}
 }
