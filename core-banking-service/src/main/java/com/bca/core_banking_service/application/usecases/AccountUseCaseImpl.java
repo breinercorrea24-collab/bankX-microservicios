@@ -5,7 +5,6 @@ import com.bca.core_banking_service.application.usecases.factory.AccountFactory;
 import com.bca.core_banking_service.application.usecases.factory.CreateAccountCommand;
 import com.bca.core_banking_service.application.usecases.validation.ValidationProduct;
 import com.bca.core_banking_service.domain.exceptions.BusinessException;
-import com.bca.core_banking_service.domain.model.customer.Customer;
 import com.bca.core_banking_service.domain.model.enums.account.AccountType;
 import com.bca.core_banking_service.domain.model.enums.account.CustomerType;
 import com.bca.core_banking_service.domain.model.product.account.Account;
