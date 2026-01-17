@@ -3,6 +3,7 @@ package com.bca.core_banking_service.infrastructure.input.rest;
 import com.bca.core_banking_service.api.AccountsApiDelegate;
 import com.bca.core_banking_service.application.ports.input.usecases.AccountUseCase;
 import com.bca.core_banking_service.domain.model.enums.account.AccountType;
+import com.bca.core_banking_service.domain.model.enums.account.CustomerType;
 import com.bca.core_banking_service.dto.*;
 import com.bca.core_banking_service.infrastructure.input.mapper.AccountApiMapper;
 
@@ -32,6 +33,7 @@ public class AccountApiDelegateImpl implements AccountsApiDelegate {
                 .doOnNext(request -> log.debug("Account creation request: {}", request))
                 .flatMap(request -> accountUseCase.createAccount(
                         request.getCustomerId(),
+                        CustomerType.valueOf(request.getCustomerType().getValue()),
                         AccountType.valueOf(request.getType().getValue()),
                         request.getCurrency()))
                 .map(account -> {

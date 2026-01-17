@@ -43,7 +43,7 @@ public class AccountUseCaseImpl implements AccountUseCase {
     private final CreditRepository creditRepository;
 
     @Override
-    public Mono<Account> createAccount(String customerId, AccountType type, String currency) {
+    public Mono<Account> createAccount(String customerId, CustomerType customerType, AccountType type, String currency) {
         log.info("Starting account creation for customerId: {}, type: {}, currency: {}", customerId, type, currency);
         return accountRepository
                 .findByCustomerIdAndType(customerId, type)
@@ -63,7 +63,7 @@ public class AccountUseCaseImpl implements AccountUseCase {
                         .then(Mono.fromSupplier(() -> {
                         Account account = AccountFactory.create(new CreateAccountCommand(
                             customerId,
-                            CustomerType.PERSONAL, // Falta al momento de crear la cuenta el tipo de cliente
+                            customerType,
                             type,
                             currency));
                         log.info("Saving account for customerId: {}, type: {}", customerId, type);

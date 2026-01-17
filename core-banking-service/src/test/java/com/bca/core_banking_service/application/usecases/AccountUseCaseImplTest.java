@@ -21,6 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.bca.core_banking_service.domain.exceptions.BusinessException;
 import com.bca.core_banking_service.domain.model.enums.account.AccountType;
+import com.bca.core_banking_service.domain.model.enums.account.CustomerType;
 import com.bca.core_banking_service.domain.model.enums.product.ProductStatus;
 import com.bca.core_banking_service.domain.model.product.account.Account;
 import com.bca.core_banking_service.domain.model.product.account.SavingsAccount;
@@ -76,7 +77,7 @@ class AccountUseCaseImplTest {
                     return Mono.just(saved);
                 });
 
-        StepVerifier.create(accountUseCase.createAccount(customerId, AccountType.SAVINGS, "USD"))
+        StepVerifier.create(accountUseCase.createAccount(customerId, CustomerType.PERSONAL, AccountType.SAVINGS, "USD"))
                 .assertNext(account -> {
                     assertEquals("generated-id", account.getId());
                     assertEquals(customerId, account.getCustomerId());
@@ -96,7 +97,7 @@ class AccountUseCaseImplTest {
         when(accountRepository.findByCustomerIdAndType(customerId, AccountType.SAVINGS))
                 .thenReturn(Mono.just(existing));
 
-        StepVerifier.create(accountUseCase.createAccount(customerId, AccountType.SAVINGS, "USD"))
+        StepVerifier.create(accountUseCase.createAccount(customerId, CustomerType.PERSONAL, AccountType.SAVINGS, "USD"))
                 .expectError(BusinessException.class)
                 .verify();
 

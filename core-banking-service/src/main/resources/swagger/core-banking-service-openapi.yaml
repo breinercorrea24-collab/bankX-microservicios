@@ -300,12 +300,17 @@ components:
       type: object
       required:
         - customerId
+        - customerType
         - type
         - currency
       properties:
         customerId:
           type: string
           example: cus-1001
+        customerType:
+          type: string
+          enum: [PERSONAL, BUSINESS]
+          example: PERSONAL
         type:
           type: string
           enum: [SAVINGS, CHECKING, FIXED_TERM, VIP_SAVINGS, PYME_CHECKING]
