@@ -97,4 +97,21 @@ class ValidationProductTest {
                 CustomerType.PERSONAL))
                 .verifyComplete();
     }
+
+    @Test
+    void validateAccountCreation_whenCustomerHasOverdueCredit_failsImmediately() {
+        ValidationProduct validationProductSpy = new ValidationProduct(externalCardsClient, accountRepository) {
+            @Override
+            protected Mono<Boolean> hasOverdueCredits(String customerId) {
+                return Mono.just(true);
+            }
+        };
+
+        StepVerifier.create(validationProductSpy.validateAccountCreation(
+                "debtor",
+                AccountType.SAVINGS,
+                CustomerType.PERSONAL))
+                .expectErrorSatisfies(error -> assertEquals("Customer has overdue credit debt", error.getMessage()))
+                .verify();
+    }
 }

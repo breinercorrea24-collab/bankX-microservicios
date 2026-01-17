@@ -1,9 +1,13 @@
 package com.bca.core_banking_service.infrastructure.output.persistence.mapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+
+import java.lang.reflect.InvocationTargetException;
 
 import org.junit.jupiter.api.Test;
 
@@ -60,5 +64,13 @@ class CreditMapperTest {
         assertEquals(BigDecimal.valueOf(4000), entity.getPendingDebt());
         assertEquals(CreditEntity.CreditStatus.PAID, entity.getStatus());
         assertEquals(now, entity.getCreatedAt());
+    }
+
+    @Test
+    void constructorIsPrivate() throws Exception {
+        var constructor = CreditMapper.class.getDeclaredConstructor();
+        constructor.setAccessible(true);
+        InvocationTargetException thrown = assertThrows(InvocationTargetException.class, constructor::newInstance);
+        assertInstanceOf(IllegalStateException.class, thrown.getTargetException());
     }
 }

@@ -153,6 +153,46 @@ class CustomerApiMapperTest {
                 () -> invokePrivateMapper("toVipSavingsResponse", VipSavingsAccount.class, null));
     }
 
+    @Test
+    void mapperThrowsWhenCheckingAccountNull() {
+        assertThrows(IllegalArgumentException.class,
+                () -> invokePrivateMapper("toCheckingResponse", CheckingAccount.class, null));
+    }
+
+    @Test
+    void mapperThrowsWhenFixedTermAccountNull() {
+        assertThrows(IllegalArgumentException.class,
+                () -> invokePrivateMapper("toFixedTermResponse", FixedTermAccount.class, null));
+    }
+
+    @Test
+    void mapperThrowsWhenAccountNull() {
+        assertThrows(IllegalArgumentException.class, () -> CustomerApiMapper.toPolymorphicResponse(null));
+    }
+
+    @Test
+    void mapperThrowsWhenAccountTypeNull() {
+        SavingsAccount account = new SavingsAccount(
+                "cus-null",
+                "USD",
+                ProductStatus.ACTIVE,
+                AccountType.SAVINGS,
+                5,
+                BigDecimal.ZERO,
+                BigDecimal.TEN);
+        account.setType(null);
+
+        assertThrows(IllegalArgumentException.class, () -> CustomerApiMapper.toPolymorphicResponse(account));
+    }
+
+    @Test
+    void constructorIsPrivate() throws Exception {
+        var constructor = CustomerApiMapper.class.getDeclaredConstructor();
+        constructor.setAccessible(true);
+        InvocationTargetException thrown = assertThrows(InvocationTargetException.class, constructor::newInstance);
+        assertInstanceOf(IllegalStateException.class, thrown.getTargetException());
+    }
+
     private static Object invokePrivateMapper(String methodName, Class<?> parameterType, Object argument)
             throws Throwable {
         Method method = CustomerApiMapper.class.getDeclaredMethod(methodName, parameterType);

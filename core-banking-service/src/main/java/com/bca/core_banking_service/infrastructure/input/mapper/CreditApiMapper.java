@@ -8,6 +8,9 @@ import com.bca.core_banking_service.dto.CreditResponse;
 import com.bca.core_banking_service.infrastructure.input.dto.Credit;
 
 public class CreditApiMapper {
+    private CreditApiMapper() {
+        throw new IllegalStateException("Utility class");
+    }
     public static CreditResponse mapToCreditResponse(Credit credit) {
         CreditResponse response = new CreditResponse();
         response.setId(credit.getId());

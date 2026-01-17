@@ -16,9 +16,16 @@ import com.bca.core_banking_service.dto.PymeCheckingAccountResponse;
 import com.bca.core_banking_service.dto.SavingsAccountResponse;
 import com.bca.core_banking_service.dto.VipSavingsAccountResponse;
 
-
 public class CustomerApiMapper {
-      public static AccountPolymorphicResponse toPolymorphicResponse(Account account) {
+
+    private CustomerApiMapper() {
+        throw new IllegalStateException("Utility class");
+    }
+
+    public static AccountPolymorphicResponse toPolymorphicResponse(Account account) {
+        if (account == null || account.getType() == null) {
+            throw new IllegalArgumentException("Unsupported account type: null");
+        }
 
         return switch (account.getType()) {
 
@@ -82,6 +89,9 @@ public class CustomerApiMapper {
     }
 
     private static CheckingAccountResponse toCheckingResponse(CheckingAccount acc) {
+        if (acc == null) {
+            throw new IllegalArgumentException("CheckingAccount cannot be null");
+        }
         return new CheckingAccountResponse()
                 .id(acc.getId())
                 .customerId(acc.getCustomerId())
@@ -94,6 +104,9 @@ public class CustomerApiMapper {
     }
 
     private static FixedTermAccountResponse toFixedTermResponse(FixedTermAccount acc) {
+        if (acc == null) {
+            throw new IllegalArgumentException("FixedTermAccount cannot be null");
+        }
         return new FixedTermAccountResponse()
                 .id(acc.getId())
                 .customerId(acc.getCustomerId())

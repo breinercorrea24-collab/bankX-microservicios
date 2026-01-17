@@ -3,6 +3,7 @@ package com.bca.core_banking_service.application.usecases.validation;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -67,6 +68,35 @@ class ValidationCustomerTest {
         StepVerifier.create(validationCustomer.validatePersonalCustomer("cust-1", AccountType.SAVINGS,
                 CustomerType.PERSONAL))
                 .verifyComplete();
+    }
+
+    @Test
+    void validatePersonalCustomer_whenCheckingTypeWithoutExisting_allowsCreation() {
+        when(accountRepository.findByCustomerId("cust-2"))
+                .thenReturn(Flux.empty());
+
+        StepVerifier.create(validationCustomer.validatePersonalCustomer("cust-2", AccountType.CHECKING,
+                CustomerType.PERSONAL))
+                .verifyComplete();
+    }
+
+    @Test
+    void validatePersonalCustomer_whenFixedTermTypeWithoutExisting_allowsCreation() {
+        when(accountRepository.findByCustomerId("cust-3"))
+                .thenReturn(Flux.empty());
+
+        StepVerifier.create(validationCustomer.validatePersonalCustomer("cust-3", AccountType.FIXED_TERM,
+                CustomerType.PERSONAL))
+                .verifyComplete();
+    }
+
+    @Test
+    void validatePersonalCustomer_whenTypeIsNotRestricted_skipsValidation() {
+        StepVerifier.create(validationCustomer.validatePersonalCustomer("cust-4", AccountType.VIP_SAVINGS,
+                CustomerType.PERSONAL))
+                .verifyComplete();
+
+        verifyNoInteractions(accountRepository);
     }
 
     @Test

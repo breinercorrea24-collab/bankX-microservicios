@@ -7,6 +7,10 @@ import com.bca.core_banking_service.infrastructure.output.persistence.entity.Cre
 
 public class CreditMapper {
 
+    private CreditMapper() {
+        throw new IllegalStateException("Utility class");
+    }
+
     public static Credit toDomain(CreditEntity e) {
         return new Credit(
             e.getId(),
