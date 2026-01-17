@@ -52,6 +52,42 @@ class SavingsAccountTest {
         assertNotEquals(first, different);
     }
 
+    @Test
+    void hasMaintenanceFeeReturnsFalse() {
+        SavingsAccount account = createAccount();
+        assertEquals(false, account.hasMaintenanceFee());
+    }
+
+    @Test
+    void equalsHandlesNullFields() {
+        SavingsAccount first = createAccount();
+        first.setMaintenanceCommission(null);
+        first.setId(null);
+        SavingsAccount second = createAccount();
+        second.setMaintenanceCommission(null);
+        second.setId(null);
+        second.setCreatedAt(first.getCreatedAt());
+
+        assertEquals(first, second);
+
+        second.setMaintenanceCommission(BigDecimal.ONE);
+        assertNotEquals(first, second);
+    }
+
+    @Test
+    void noArgsConstructorAllowsSettingFields() {
+        SavingsAccount account = new SavingsAccount();
+        account.setCustomerId("cust");
+        account.setCurrency("EUR");
+        account.setType(AccountType.SAVINGS);
+        account.setMaxMonthlyTransactions(10);
+        account.setMaintenanceCommission(BigDecimal.TEN);
+
+        assertEquals("cust", account.getCustomerId());
+        assertEquals(10, account.getMaxMonthlyTransactions());
+        assertEquals(BigDecimal.TEN, account.getMaintenanceCommission());
+    }
+
     private SavingsAccount createAccount() {
         SavingsAccount account = new SavingsAccount(
                 "customer-1",

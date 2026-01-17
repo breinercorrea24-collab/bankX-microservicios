@@ -2,6 +2,7 @@ package com.bca.core_banking_service.domain.model.product.account;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 
@@ -39,6 +40,40 @@ class VipSavingsAccountTest {
         VipSavingsAccount different = createAccount();
         different.setMinimumDailyAverage(BigDecimal.ZERO);
         assertNotEquals(first, different);
+    }
+
+    @Test
+    void equalsHandlesNullMinimumDailyAverage() {
+        VipSavingsAccount first = createAccount();
+        first.setMinimumDailyAverage(null);
+        VipSavingsAccount second = createAccount();
+        second.setMinimumDailyAverage(null);
+        second.setCreatedAt(first.getCreatedAt());
+
+        assertEquals(first, second);
+
+        second.setMinimumDailyAverage(BigDecimal.ONE);
+        assertNotEquals(first, second);
+        assertNotEquals(first, new Object());
+    }
+
+    @Test
+    void toStringContainsMinimumDailyAverage() {
+        VipSavingsAccount account = createAccount();
+        String description = account.toString();
+        assertTrue(description.contains("VipSavingsAccount"));
+        assertTrue(description.contains("minimumDailyAverage=5000"));
+    }
+
+    @Test
+    void noArgsConstructorAllowsSettingFields() {
+        VipSavingsAccount account = new VipSavingsAccount();
+        account.setCustomerId("cust");
+        account.setCurrency("USD");
+        account.setMinimumDailyAverage(BigDecimal.TEN);
+
+        assertEquals("cust", account.getCustomerId());
+        assertEquals(BigDecimal.TEN, account.getMinimumDailyAverage());
     }
 
     private VipSavingsAccount createAccount() {
