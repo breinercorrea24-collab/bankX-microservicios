@@ -61,6 +61,9 @@ public class CustomerApiMapper {
     }
 
     private static PymeCheckingAccountResponse toPymeCheckingAccountResponse(PymeCheckingAccount acc) {
+        if (acc == null) {
+            throw new IllegalArgumentException("PymeCheckingAccount cannot be null");
+        }
         return new PymeCheckingAccountResponse()
                 .id(acc.getId())
                 .customerId(acc.getCustomerId())

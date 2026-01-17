@@ -166,6 +166,12 @@ class CustomerApiMapperTest {
     }
 
     @Test
+    void mapperThrowsWhenPymeCheckingAccountNull() {
+        assertThrows(IllegalArgumentException.class,
+                () -> invokePrivateMapper("toPymeCheckingAccountResponse", PymeCheckingAccount.class, null));
+    }
+
+    @Test
     void mapperThrowsWhenAccountNull() {
         assertThrows(IllegalArgumentException.class, () -> CustomerApiMapper.toPolymorphicResponse(null));
     }
