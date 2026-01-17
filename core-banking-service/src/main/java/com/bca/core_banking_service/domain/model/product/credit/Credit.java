@@ -16,6 +16,18 @@ public abstract class Credit extends Product {
     protected BigDecimal outstandingBalance;
     protected double interestRate;
 
+    public void setCreditLimit(BigDecimal creditLimit) {
+        this.creditLimit = creditLimit;
+    }
+
+    public void setOutstandingBalance(BigDecimal outstandingBalance) {
+        this.outstandingBalance = outstandingBalance;
+    }
+
+    public BigDecimal getOutstandingBalance() {
+        return outstandingBalance;
+    }
+
     public void pay(BigDecimal amount){
         if(amount.compareTo(outstandingBalance) > 0){
             throw new RuntimeException("Pago excede deuda");

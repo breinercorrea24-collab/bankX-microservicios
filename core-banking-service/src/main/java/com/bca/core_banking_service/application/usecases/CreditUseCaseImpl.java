@@ -22,6 +22,8 @@ public class CreditUseCaseImpl implements CreditUseCase {
     private final CreditRepository creditRepository;
     private final ValidationCredit validationCredit;
 
+    
+
     @Override
     public Mono<Credit> createCredit(String customerId,
             Credit.CreditType creditType,

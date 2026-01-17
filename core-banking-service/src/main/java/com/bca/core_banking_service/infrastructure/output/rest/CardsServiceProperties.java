@@ -11,6 +11,7 @@ import lombok.Data;
 public class CardsServiceProperties {
 
     private String serviceId;
+    private Integer port;
     private Endpoints endpoints;
 
     @Data

@@ -21,11 +21,18 @@ public class ExternalCardsWebClientAdapter
     public Mono<ResponseEntity<Boolean>> hasCreditCard(String customerId) {
         return webClientBuilder.build()
                 .get()
-                .uri(uriBuilder -> uriBuilder
-                        .scheme("http")
-                        .host(properties.getServiceId())
-                        .path(properties.getEndpoints().getHasCreditCard())
-                        .build(customerId))
+                .uri(uriBuilder -> {
+                    uriBuilder
+                            .scheme("http")
+                            .host(properties.getServiceId())
+                            .path(properties.getEndpoints().getHasCreditCard());
+
+                    if (properties.getPort() != null) {
+                        uriBuilder.port(properties.getPort());
+                    }
+
+                    return uriBuilder.build(customerId);
+                })
                 .retrieve()
                 .toEntity(Boolean.class);
     }

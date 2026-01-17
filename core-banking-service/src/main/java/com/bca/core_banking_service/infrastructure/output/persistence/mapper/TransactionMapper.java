@@ -7,6 +7,10 @@ import com.bca.core_banking_service.infrastructure.output.persistence.entity.Tra
 
 public class TransactionMapper {
 
+    private TransactionMapper() {
+        throw new IllegalStateException("Utility class");
+    }
+
     public static Transaction toDomain(TransactionEntity e) {
         return new Transaction(
             e.getId(),

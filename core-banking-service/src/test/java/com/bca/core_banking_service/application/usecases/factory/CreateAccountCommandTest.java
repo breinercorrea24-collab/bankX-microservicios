@@ -1,0 +1,91 @@
+package com.bca.core_banking_service.application.usecases.factory;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.Test;
+
+import com.bca.core_banking_service.domain.model.enums.account.AccountType;
+import com.bca.core_banking_service.domain.model.enums.account.CustomerType;
+
+class CreateAccountCommandTest {
+
+    @Test
+    void constructorPopulatesFields() {
+        // TODO : CORREGIR TESTS
+        CreateAccountCommand command = new CreateAccountCommand("customer-123", CustomerType.BUSINESS,AccountType.SAVINGS, "USD");
+
+        assertEquals("customer-123", command.getCustomerId());
+        assertEquals(AccountType.SAVINGS, command.getType());
+        assertEquals("USD", command.getCurrency());
+    }
+
+    @Test
+    void equalsAndHashCodeConsiderFields() {
+        CreateAccountCommand first = CreateAccountCommand.builder()
+                .customerId("c-1")
+                .type(AccountType.CHECKING)
+                .currency("EUR")
+                .build();
+        CreateAccountCommand second = CreateAccountCommand.builder()
+                .customerId("c-1")
+                .type(AccountType.CHECKING)
+                .currency("EUR")
+                .build();
+        CreateAccountCommand different = CreateAccountCommand.builder()
+                .customerId("c-2")
+                .type(AccountType.SAVINGS)
+                .currency("USD")
+                .build();
+
+        assertEquals(first, second);
+        assertEquals(first.hashCode(), second.hashCode());
+        assertNotEquals(first, different);
+    }
+
+    @Test
+    void equalsHandlesNullValues() {
+        CreateAccountCommand first = CreateAccountCommand.builder()
+                .customerId(null)
+                .type(null)
+                .currency(null)
+                .build();
+        CreateAccountCommand second = CreateAccountCommand.builder()
+                .customerId(null)
+                .type(null)
+                .currency(null)
+                .build();
+
+        assertEquals(first, second);
+        assertEquals(first.hashCode(), second.hashCode());
+
+        second.setCustomerId("other");
+        assertNotEquals(first, second);
+        assertNotEquals(first, new Object());
+    }
+
+    @Test
+    void toStringContainsDetails() {
+        CreateAccountCommand command = CreateAccountCommand.builder()
+                .customerId("cust")
+                .type(AccountType.PYME_CHECKING)
+                .currency("PEN")
+                .build();
+        assertTrue(command.toString().contains("cust"));
+        assertTrue(command.toString().contains("PYME_CHECKING"));
+    }
+
+    @Test
+    void builderToStringReflectsAssignedFields() {
+        CreateAccountCommand.CreateAccountCommandBuilder builder = CreateAccountCommand.builder()
+                .customerId("builder-cust")
+                .type(AccountType.VIP_SAVINGS)
+                .currency("GBP");
+
+        String description = builder.toString();
+        assertTrue(description.contains("builder-cust"));
+        assertTrue(description.contains("VIP_SAVINGS"));
+        assertTrue(description.contains("GBP"));
+    }
+}

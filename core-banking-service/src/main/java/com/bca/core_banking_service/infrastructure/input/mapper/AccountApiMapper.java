@@ -8,6 +8,9 @@ import com.bca.core_banking_service.dto.AccountType;
 import com.bca.core_banking_service.dto.TransactionResponse;
 
 public class AccountApiMapper {
+    private AccountApiMapper() {
+        throw new IllegalStateException("Utility class");
+    }
 
     public static AccountResponse mapToAccountResponse(Account account) {
         AccountResponse response = new AccountResponse();

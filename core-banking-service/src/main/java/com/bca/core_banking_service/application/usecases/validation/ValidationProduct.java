@@ -87,11 +87,33 @@ public class ValidationProduct {
         }
     }
 
+    private Mono<Void> validateByCustomerType(String customerId, AccountType type, CustomerType customerType) {
+        ValidationCustomer validationCustomer = new ValidationCustomer(accountRepository, externalCardsClient);
+
+        if (customerType == CustomerType.PERSONAL) {
+            return validationCustomer.validatePersonalCustomer(customerId, type, customerType);
+        }
+
+        if (customerType == CustomerType.BUSINESS) {
+            return validationCustomer.validateBusinessCustomer(customerId, type, customerType);
+        }
+
+        if (customerType == CustomerType.VIPPERSONAL) {
+            return validationCustomer.validateVipPersonalCustomer(customerId, type, customerType);
+        }
+
+        if (customerType == CustomerType.PYMEBUSINESS) {
+            return validationCustomer.validatePymeBusinessCustomer(customerId, type, customerType);
+        }
+
+        return Mono.empty();
+    }
+
     /**
      * Placeholder implementation. Replace with real check against CreditRepository
      * to detect overdue debts for the customer.
      */
-    private Mono<Boolean> hasOverdueCredits(String customerId) {
+    protected Mono<Boolean> hasOverdueCredits(String customerId) {
         return creditRepository
                 .hasOverdueCredits(customerId)
                 .doOnSubscribe(s -> log.info("Checking overdue credits (call to CreditRepository) for {}", customerId))

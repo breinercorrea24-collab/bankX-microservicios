@@ -17,7 +17,8 @@ public class PymeCheckingAccount extends CheckingAccount {
 
     public PymeCheckingAccount(String customerId, String currency, ProductStatus status, AccountType type,
             int maxMonthlyTransactions, BigDecimal maintenanceCommission, BigDecimal balance) {
-        super(customerId, currency, status, type, maxMonthlyTransactions, maintenanceCommission, balance);
+        super(customerId, currency, status, AccountType.PYME_CHECKING, maxMonthlyTransactions,
+                maintenanceCommission, balance);
     }
 
 }

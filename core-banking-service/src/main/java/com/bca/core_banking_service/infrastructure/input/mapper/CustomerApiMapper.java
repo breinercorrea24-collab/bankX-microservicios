@@ -16,9 +16,16 @@ import com.bca.core_banking_service.dto.PymeCheckingAccountResponse;
 import com.bca.core_banking_service.dto.SavingsAccountResponse;
 import com.bca.core_banking_service.dto.VipSavingsAccountResponse;
 
-
 public class CustomerApiMapper {
-      public static AccountPolymorphicResponse toPolymorphicResponse(Account account) {
+
+    private CustomerApiMapper() {
+        throw new IllegalStateException("Utility class");
+    }
+
+    public static AccountPolymorphicResponse toPolymorphicResponse(Account account) {
+        if (account == null || account.getType() == null) {
+            throw new IllegalArgumentException("Unsupported account type: null");
+        }
 
         return switch (account.getType()) {
 
@@ -54,13 +61,18 @@ public class CustomerApiMapper {
     }
 
     private static PymeCheckingAccountResponse toPymeCheckingAccountResponse(PymeCheckingAccount acc) {
+        if (acc == null) {
+            throw new IllegalArgumentException("PymeCheckingAccount cannot be null");
+        }
         return new PymeCheckingAccountResponse()
                 .id(acc.getId())
                 .customerId(acc.getCustomerId())
-                .type(AccountType.CHECKING)
+                .type(AccountType.PYME_CHECKING)
                 .currency(acc.getCurrency())
                 .balance(acc.getBalance() != null ? acc.getBalance().floatValue() : 0.0f)
-                .status(PymeCheckingAccountResponse.StatusEnum.ACTIVE)
+                .status(acc.getStatus() != null
+                        ? PymeCheckingAccountResponse.StatusEnum.valueOf(acc.getStatus().name())
+                        : PymeCheckingAccountResponse.StatusEnum.INACTIVE)
                 .maxMonthlyTransactions(acc.getMaxMonthlyTransactions())
                 .maintenanceCommission(acc.getMaintenanceCommission());
     }
@@ -82,6 +94,9 @@ public class CustomerApiMapper {
     }
 
     private static CheckingAccountResponse toCheckingResponse(CheckingAccount acc) {
+        if (acc == null) {
+            throw new IllegalArgumentException("CheckingAccount cannot be null");
+        }
         return new CheckingAccountResponse()
                 .id(acc.getId())
                 .customerId(acc.getCustomerId())
@@ -94,6 +109,9 @@ public class CustomerApiMapper {
     }
 
     private static FixedTermAccountResponse toFixedTermResponse(FixedTermAccount acc) {
+        if (acc == null) {
+            throw new IllegalArgumentException("FixedTermAccount cannot be null");
+        }
         return new FixedTermAccountResponse()
                 .id(acc.getId())
                 .customerId(acc.getCustomerId())
