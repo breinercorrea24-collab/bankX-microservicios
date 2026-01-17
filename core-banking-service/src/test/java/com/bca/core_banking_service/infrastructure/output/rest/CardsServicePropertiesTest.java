@@ -57,4 +57,26 @@ class CardsServicePropertiesTest {
         secondEndpoints.setHasCreditCard("/different");
         assertNotEquals(first, second);
     }
+
+    @Test
+    void equalsHandlesNullValues() {
+        CardsServiceProperties first = new CardsServiceProperties();
+        first.setPort(null);
+        first.setServiceId(null);
+        CardsServiceProperties.Endpoints endpoints = new CardsServiceProperties.Endpoints();
+        endpoints.setHasCreditCard(null);
+        first.setEndpoints(endpoints);
+
+        CardsServiceProperties second = new CardsServiceProperties();
+        second.setPort(null);
+        second.setServiceId(null);
+        CardsServiceProperties.Endpoints secondEndpoints = new CardsServiceProperties.Endpoints();
+        secondEndpoints.setHasCreditCard(null);
+        second.setEndpoints(secondEndpoints);
+
+        assertEquals(first, second);
+        assertEquals(first.hashCode(), second.hashCode());
+        assertNotEquals(first, null);
+        assertNotEquals(first, "other");
+    }
 }
