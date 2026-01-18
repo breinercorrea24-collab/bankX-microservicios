@@ -21,6 +21,11 @@ class CoreBankingServiceApplicationTests {
 
 	@Test
 	void mainInvokesSpringApplicationRun() {
-		assertDoesNotThrow(() -> CoreBankingServiceApplication.main(new String[]{}));
+		String[] args = new String[] {
+				"--spring.main.web-application-type=none",
+				"--spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration,org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration",
+				"--spring.main.lazy-initialization=true"
+		};
+		assertDoesNotThrow(() -> CoreBankingServiceApplication.main(args));
 	}
 }

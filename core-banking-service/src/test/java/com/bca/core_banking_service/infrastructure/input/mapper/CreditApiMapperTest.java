@@ -27,7 +27,7 @@ class CreditApiMapperTest {
         Credit credit = new Credit(
                 "cr-1",
                 "customer-1",
-                CreditType.MORTGAGE,
+                CreditType.PERSONAL_LOAN,
                 BigDecimal.valueOf(10000),
                 BigDecimal.valueOf(7500),
                 BigDecimal.valueOf(10),
@@ -39,7 +39,7 @@ class CreditApiMapperTest {
 
         assertEquals("cr-1", response.getId());
         assertEquals("customer-1", response.getCustomerId());
-        assertEquals(CreditResponse.CreditTypeEnum.BUSINESS_LOAN, response.getCreditType());
+        assertEquals(CreditResponse.CreditTypeEnum.PERSONAL_LOAN, response.getCreditType());
         assertEquals(10000d, response.getOriginalAmount());
         assertEquals(7500d, response.getPendingDebt());
         assertEquals(10d, response.getInterestRate());

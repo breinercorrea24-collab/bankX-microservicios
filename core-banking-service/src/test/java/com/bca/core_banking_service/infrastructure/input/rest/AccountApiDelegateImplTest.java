@@ -49,7 +49,8 @@ class AccountApiDelegateImplTest {
         AccountCreate createRequest = new AccountCreate()
                 .customerId("customer-1")
                 .currency("USD")
-                .type(AccountCreate.TypeEnum.SAVINGS);
+                .type(AccountCreate.TypeEnum.SAVINGS)
+                .customerType(AccountCreate.CustomerTypeEnum.PERSONAL);
 
         when(accountUseCase.createAccount("customer-1", CustomerType.PERSONAL, AccountType.SAVINGS, "USD"))
                 .thenReturn(Mono.just(account));

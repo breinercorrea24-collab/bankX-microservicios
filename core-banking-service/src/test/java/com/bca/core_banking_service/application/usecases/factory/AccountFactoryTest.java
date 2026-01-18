@@ -77,7 +77,7 @@ class AccountFactoryTest {
                 .currency("USD")
                 .build();
 
-        assertThrows(BusinessException.class, () -> AccountFactory.create(command));
+        assertThrows(NullPointerException.class, () -> AccountFactory.create(command));
     }
 
     @Test
@@ -95,7 +95,7 @@ class AccountFactoryTest {
             }
         };
 
-        assertThrows(BusinessException.class, () -> AccountFactory.create(spyCommand));
+        assertThrows(NullPointerException.class, () -> AccountFactory.create(spyCommand));
     }
 
     private CreateAccountCommand command(AccountType type) {

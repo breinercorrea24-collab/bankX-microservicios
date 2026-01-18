@@ -80,6 +80,49 @@ class ProductTest {
     }
 
     @Test
+    void equalsDetectsDifferentCustomerOrStatus() {
+        TestProduct first = new TestProduct("prod-13", "cust-a", ProductStatus.ACTIVE);
+        first.setCreatedAt(java.time.LocalDateTime.of(2024, 5, 1, 0, 0));
+
+        TestProduct differentCustomer = new TestProduct("prod-13", "cust-b", ProductStatus.ACTIVE);
+        differentCustomer.setCreatedAt(first.getCreatedAt());
+        assertNotEquals(first, differentCustomer);
+
+        TestProduct differentStatus = new TestProduct("prod-13", "cust-a", ProductStatus.BLOCKED);
+        differentStatus.setCreatedAt(first.getCreatedAt());
+        assertNotEquals(first, differentStatus);
+    }
+
+    @Test
+    void equalsDetectsDifferentCreatedAtWhenOneIsNull() {
+        TestProduct first = new TestProduct("prod-14", "cust-14", ProductStatus.ACTIVE);
+        first.setCreatedAt(null);
+
+        TestProduct second = new TestProduct("prod-14", "cust-14", ProductStatus.ACTIVE);
+        second.setCreatedAt(java.time.LocalDateTime.now());
+
+        assertNotEquals(first, second);
+    }
+
+    @Test
+    void hashCodeConsistentWithNullFields() {
+        TestProduct first = new TestProduct("prod-15", "cust-15", ProductStatus.ACTIVE);
+        first.setId(null);
+        first.setCustomerId(null);
+        first.setStatus(null);
+        first.setCreatedAt(null);
+
+        TestProduct second = new TestProduct("prod-15", "cust-15", ProductStatus.ACTIVE);
+        second.setId(null);
+        second.setCustomerId(null);
+        second.setStatus(null);
+        second.setCreatedAt(null);
+
+        assertEquals(first, second);
+        assertEquals(first.hashCode(), second.hashCode());
+    }
+
+    @Test
     void equalsDetectsDifferentCreatedAtValues() {
         TestProduct first = new TestProduct("prod-11", "cust-11", ProductStatus.ACTIVE);
         TestProduct second = new TestProduct("prod-11", "cust-11", ProductStatus.ACTIVE);
