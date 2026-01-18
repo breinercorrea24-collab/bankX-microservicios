@@ -63,10 +63,11 @@ class TransactionMapperTest {
 
     @Test
     void constructor_isInaccessible() {
-        assertThrows(IllegalStateException.class, () -> {
+        var ex = assertThrows(java.lang.reflect.InvocationTargetException.class, () -> {
             var ctor = TransactionMapper.class.getDeclaredConstructor();
             ctor.setAccessible(true);
             ctor.newInstance();
         });
+        assertEquals(IllegalStateException.class, ex.getCause().getClass());
     }
 }
