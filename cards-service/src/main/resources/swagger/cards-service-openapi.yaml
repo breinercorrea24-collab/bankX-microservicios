@@ -36,6 +36,41 @@ paths:
               maskedNumber: "**** **** **** 1234"
               status: ACTIVE
               createdAt: "2025-01-01T10:00:00Z"
+      '400':
+        description: Solicitud inválida
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: INVALID_REQUEST
+              message: La solicitud contiene errores de validación
+      '404':
+        description: Cuenta no encontrada
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: ACCOUNT_NOT_FOUND
+              message: No se encontró la cuenta con el ID proporcionado
+      '409':
+        description: Saldo insuficiente
+        content:
+          application/json:
+            example:
+              code: INSUFFICIENT_FUNDS
+              message: El saldo disponible es insuficiente
+      '500':
+        description: Error interno del servidor
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: INTERNAL_SERVER_ERROR
+              message: Ocurrió un error inesperado
+
 
  /cards/credit:
   post:
@@ -66,6 +101,41 @@ paths:
               availableLimit: 5000.00
               status: ACTIVE
               createdAt: "2025-01-01T10:05:00Z"
+      '400':
+        description: Solicitud inválida
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: INVALID_REQUEST
+              message: La solicitud contiene errores de validación
+      '404':
+        description: Cuenta no encontrada
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: ACCOUNT_NOT_FOUND
+              message: No se encontró la cuenta con el ID proporcionado
+      '409':
+        description: Saldo insuficiente
+        content:
+          application/json:
+            example:
+              code: INSUFFICIENT_FUNDS
+              message: El saldo disponible es insuficiente
+      '500':
+        description: Error interno del servidor
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: INTERNAL_SERVER_ERROR
+              message: Ocurrió un error inesperado
+
 
  /cards/debit/link:
   post:
@@ -90,6 +160,41 @@ paths:
               accountId: "acc-2001"
               status: LINKED
               linkedAt: "2025-01-01T10:10:00Z"
+      '400':
+        description: Solicitud inválida
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: INVALID_REQUEST
+              message: La solicitud contiene errores de validación
+      '404':
+        description: Cuenta no encontrada
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: ACCOUNT_NOT_FOUND
+              message: No se encontró la cuenta con el ID proporcionado
+      '409':
+        description: Saldo insuficiente
+        content:
+          application/json:
+            example:
+              code: INSUFFICIENT_FUNDS
+              message: El saldo disponible es insuficiente
+      '500':
+        description: Error interno del servidor
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: INTERNAL_SERVER_ERROR
+              message: Ocurrió un error inesperado
+
 
  /cards/{cardId}/balance:
   get:
@@ -115,6 +220,41 @@ paths:
               currency: PEN
               balance: 1700.00
               availableBalance: 1700.00
+      '400':
+        description: Solicitud inválida
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: INVALID_REQUEST
+              message: La solicitud contiene errores de validación
+      '404':
+        description: Cuenta no encontrada
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: ACCOUNT_NOT_FOUND
+              message: No se encontró la cuenta con el ID proporcionado
+      '409':
+        description: Saldo insuficiente
+        content:
+          application/json:
+            example:
+              code: INSUFFICIENT_FUNDS
+              message: El saldo disponible es insuficiente
+      '500':
+        description: Error interno del servidor
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: INTERNAL_SERVER_ERROR
+              message: Ocurrió un error inesperado
+
 
 
  /cards/customer/{customerId}/exists:
@@ -139,10 +279,41 @@ paths:
             schema:
               type: boolean
               example: true
+      '400':
+        description: Solicitud inválida
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: INVALID_REQUEST
+              message: La solicitud contiene errores de validación
       '404':
-        description: Customer not found
+        description: Cuenta no encontrada
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: ACCOUNT_NOT_FOUND
+              message: No se encontró la cuenta con el ID proporcionado
+      '409':
+        description: Saldo insuficiente
+        content:
+          application/json:
+            example:
+              code: INSUFFICIENT_FUNDS
+              message: El saldo disponible es insuficiente
       '500':
-        description: Internal server error
+        description: Error interno del servidor
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: INTERNAL_SERVER_ERROR
+              message: Ocurrió un error inesperado
+
 
  /cards/debit/{cardId}/withdrawals:
   post:
@@ -190,13 +361,40 @@ paths:
                 - accountId: "acc-2002"
                   debitedAmount: 100.00
       '400':
-        description: Datos inválidos o regla de negocio violada
+        description: Solicitud inválida
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: INVALID_REQUEST
+              message: La solicitud contiene errores de validación
       '404':
-        description: Tarjeta no encontrada
+        description: Cuenta no encontrada
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: ACCOUNT_NOT_FOUND
+              message: No se encontró la cuenta con el ID proporcionado
       '409':
-        description: Saldo insuficiente o tarjeta bloqueada
+        description: Saldo insuficiente
+        content:
+          application/json:
+            example:
+              code: INSUFFICIENT_FUNDS
+              message: El saldo disponible es insuficiente
       '500':
-        description: Error interno
+        description: Error interno del servidor
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: INTERNAL_SERVER_ERROR
+              message: Ocurrió un error inesperado
+
 
  /cards/debit/{cardId}/payments:
   post:
@@ -239,16 +437,39 @@ paths:
               status: SUCCESS
               executedAt: "2025-01-01T11:00:00Z"
       '400':
-        description: Datos inválidos o regla de negocio violada
+        description: Solicitud inválida
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: INVALID_REQUEST
+              message: La solicitud contiene errores de validación
       '404':
-        description: Tarjeta o cuenta no encontrada
+        description: Cuenta no encontrada
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: ACCOUNT_NOT_FOUND
+              message: No se encontró la cuenta con el ID proporcionado
       '409':
-        description: Saldo insuficiente o tarjeta bloqueada
+        description: Saldo insuficiente
+        content:
+          application/json:
+            example:
+              code: INSUFFICIENT_FUNDS
+              message: El saldo disponible es insuficiente
       '500':
-        description: Error interno
-
-
-
+        description: Error interno del servidor
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: INTERNAL_SERVER_ERROR
+              message: Ocurrió un error inesperado
 
 components:
   schemas:
@@ -445,3 +666,23 @@ components:
           type: number
           format: float
           example: 1700.00
+
+    ErrorResponse:
+      type: object
+      required: [timestamp, status, error, message, path]
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+          example: 404
+        error:
+          type: string
+          example: Not Found
+        message:
+          type: string
+          example: Cliente no encontrado
+        path:
+          type: string
+          example: /customers/cus-1001/accounts

@@ -43,8 +43,6 @@ public class CardsApiDelegateImpl implements CardsApiDelegate {
                         DebitCardPaymentResponse response = new DebitCardPaymentResponse();
                         response.setAccountId(request.getAccountId());
                         response.setAmount(request.getAmount());
-                        /* response.setStatus("SUCCESS");
-                        response.setCardId(paymentResult.getCardId()); */
                         log.info("Payment processed successfully for debit card: {}", cardId);
                         return ResponseEntity.ok(response);
                     });
@@ -115,17 +113,9 @@ public class CardsApiDelegateImpl implements CardsApiDelegate {
                 .map(balance -> {
                     CardBalanceResponse response = new CardBalanceResponse();
                     response.setCardId(balance.getId());
-                    /*
-                     * response.setType(CardBalanceResponse.TypeEnum.valueOf(balance.getType().name(
-                     * )));
-                     * response.setCurrency(balance.getCurrency());
-                     * response.setBalance(balance.getBalance().floatValue());
-                     * response.setAvailableBalance(balance.getAvailableBalance().floatValue());
-                     */
                     log.info("Balance retrieved successfully for card: {}", cardId);
                     return ResponseEntity.ok(response);
                 }).doOnError(error -> log.error("Failed to get balance for card: {}", cardId, error));
     }
 
-    
 }

@@ -49,6 +49,32 @@ paths:
             example:
               code: INVALID_REQUEST
               message: La solicitud contiene errores de validación
+      '404':
+        description: Cuenta no encontrada
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: ACCOUNT_NOT_FOUND
+              message: No se encontró la cuenta con el ID proporcionado
+      '409':
+        description: Saldo insuficiente
+        content:
+          application/json:
+            example:
+              code: INSUFFICIENT_FUNDS
+              message: El saldo disponible es insuficiente
+      '500':
+        description: Error interno del servidor
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: INTERNAL_SERVER_ERROR
+              message: Ocurrió un error inesperado
+
 
  /accounts/{accountId}:
   get:
@@ -187,6 +213,33 @@ paths:
               amount: 500.00
               balance: 2000.00
               timestamp: "2025-01-01T14:30:00Z"
+      '400':
+        description: Solicitud inválida
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: INVALID_REQUEST
+              message: La solicitud contiene errores de validación
+
+      '404':
+        description: Cliente no encontrado
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+
+      '500':
+        description: Error interno del servidor
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: INTERNAL_SERVER_ERROR
+              message: Ocurrió un error inesperado
+
 
  /accounts/{accountId}/withdraw:
   post:
@@ -267,6 +320,33 @@ paths:
               amount: 250.00
               balance: 1450.00
               timestamp: "2025-01-01T16:00:00Z"
+      '400':
+        description: Solicitud inválida
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: INVALID_REQUEST
+              message: La solicitud contiene errores de validación
+
+      '404':
+        description: Cliente no encontrado
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+
+      '500':
+        description: Error interno del servidor
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: INTERNAL_SERVER_ERROR
+              message: Ocurrió un error inesperado
+
 
  # CREDITS
  /credits:
@@ -309,6 +389,22 @@ paths:
             example:
               code: CREDIT_NOT_APPROVED
               message: El cliente no cumple con el score crediticio
+      '404':
+        description: Cliente no encontrado
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+      '500':
+        description: Error interno del servidor
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: INTERNAL_SERVER_ERROR
+              message: Ocurrió un error inesperado
+
 
  /credits/{creditId}/payment:
   post:
@@ -343,13 +439,36 @@ paths:
               remainingDebt: 9500.00
               status: PARTIAL_PAYMENT
               paidAt: "2025-01-15T10:30:00Z"
+      '400':
+        description: Crédito no aprobado
+        content:
+          application/json:
+            example:
+              code: CREDIT_NOT_APPROVED
+              message: El cliente no cumple con el score crediticio
+      '404':
+        description: Cliente no encontrado
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+
       '409':
         description: Monto inválido
         content:
           application/json:
             example:
               code: INVALID_PAYMENT
-              message: El monto excede la deuda pendiente 
+              message: El monto excede la deuda pendiente
+      '500':
+        description: Error interno del servidor
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: INTERNAL_SERVER_ERROR
+              message: Ocurrió un error inesperado
 
 components:
   schemas:
