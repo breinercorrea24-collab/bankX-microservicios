@@ -61,6 +61,43 @@ class TransactionTest {
     }
 
     @Test
+    void builder_withoutSettingFields_defaultsToNulls() {
+        Transaction tx = Transaction.builder().build();
+
+        assertNull(tx.getId());
+        assertNull(tx.getAccountId());
+        assertNull(tx.getFromAccountId());
+        assertNull(tx.getToAccountId());
+        assertNull(tx.getType());
+        assertNull(tx.getAmount());
+        assertNull(tx.getBalance());
+        assertNull(tx.getTimestamp());
+    }
+
+    @Test
+    void allArgsConstructor_setsFields() {
+        LocalDateTime now = LocalDateTime.now();
+        Transaction tx = new Transaction(
+                "tx-3",
+                "acc-3",
+                "from",
+                "to",
+                Transaction.TransactionType.WITHDRAW,
+                BigDecimal.valueOf(5),
+                BigDecimal.valueOf(95),
+                now);
+
+        assertEquals("tx-3", tx.getId());
+        assertEquals("acc-3", tx.getAccountId());
+        assertEquals("from", tx.getFromAccountId());
+        assertEquals("to", tx.getToAccountId());
+        assertEquals(Transaction.TransactionType.WITHDRAW, tx.getType());
+        assertEquals(BigDecimal.valueOf(5), tx.getAmount());
+        assertEquals(BigDecimal.valueOf(95), tx.getBalance());
+        assertEquals(now, tx.getTimestamp());
+    }
+
+    @Test
     void transactionType_valueOfMatchesNames() {
         assertEquals(Transaction.TransactionType.DEPOSIT, Transaction.TransactionType.valueOf("DEPOSIT"));
         assertEquals(Transaction.TransactionType.WITHDRAW, Transaction.TransactionType.valueOf("WITHDRAW"));
