@@ -300,12 +300,17 @@ components:
       type: object
       required:
         - customerId
+        - customerType
         - type
         - currency
       properties:
         customerId:
           type: string
           example: cus-1001
+        customerType:
+          type: string
+          enum: [PERSONAL, BUSINESS]
+          example: PERSONAL
         type:
           type: string
           enum: [SAVINGS, CHECKING, FIXED_TERM, VIP_SAVINGS, PYME_CHECKING]
@@ -458,7 +463,7 @@ components:
           example: cus-1001
         creditType:
           type: string
-          enum: [PERSONAL_LOAN, MORTGAGE, AUTO_LOAN]
+          enum: [PERSONAL_LOAN, BUSINESS_LOAN]
           example: PERSONAL_LOAN
         amount:
           type: number
@@ -515,7 +520,7 @@ components:
           example: cus-1001
         creditType:
           type: string
-          enum: [PERSONAL_LOAN, MORTGAGE, AUTO_LOAN]   
+          enum: [PERSONAL_LOAN, BUSINESS_LOAN]   
         originalAmount:
           type: number
           format: double
@@ -538,6 +543,10 @@ components:
           type: string
           format: date-time
           example: "2025-01-01T11:00:00Z"
+        dueDate:
+          type: string
+          format: date-time
+          example: "2027-01-01T11:00:00Z"
 
     CreditPaymentResponse:
       type: object

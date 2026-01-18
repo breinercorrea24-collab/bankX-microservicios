@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import com.bca.core_banking_service.domain.exceptions.BusinessException;
 import com.bca.core_banking_service.domain.model.enums.account.AccountType;
+import com.bca.core_banking_service.domain.model.enums.account.CustomerType;
 import com.bca.core_banking_service.domain.model.enums.product.ProductStatus;
 import com.bca.core_banking_service.domain.model.product.account.Account;
 import com.bca.core_banking_service.domain.model.product.account.CheckingAccount;
@@ -87,7 +88,7 @@ class AccountFactoryTest {
                 .currency("USD")
                 .build();
 
-        CreateAccountCommand spyCommand = new CreateAccountCommand(command.getCustomerId(), null, command.getCurrency()) {
+        CreateAccountCommand spyCommand = new CreateAccountCommand(command.getCustomerId(), CustomerType.BUSINESS, AccountType.SAVINGS, command.getCurrency()) {
             @Override
             public AccountType getType() {
                 return null;

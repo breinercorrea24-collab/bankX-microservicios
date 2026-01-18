@@ -1,6 +1,10 @@
 package com.bca.core_banking_service.application.usecases;
 
 import com.bca.core_banking_service.application.ports.input.usecases.CreditUseCase;
+import com.bca.core_banking_service.application.usecases.validation.ValidationCredit;
+import com.bca.core_banking_service.domain.exceptions.BusinessException;
+import com.bca.core_banking_service.domain.model.enums.account.CustomerType;
+import com.bca.core_banking_service.domain.model.enums.credit.CreditType;
 import com.bca.core_banking_service.domain.ports.output.persistence.CreditRepository;
 import com.bca.core_banking_service.infrastructure.input.dto.Credit;
 
@@ -10,35 +14,38 @@ import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class CreditUseCaseImpl implements CreditUseCase {
 
     private final CreditRepository creditRepository;
+    private final ValidationCredit validationCredit;
+
+    
 
     @Override
-    public Mono<Credit> createCredit(String customerId, Credit.CreditType creditType,
-                                   BigDecimal amount, Integer termMonths,
-                                   BigDecimal interestRate) {
-        // Simple credit approval logic - in real app this would be more complex
+    public Mono<Credit> createCredit(String customerId,
+            Credit.CreditType creditType,
+            BigDecimal amount,
+            Integer termMonths,
+            BigDecimal interestRate) {
+
         if (amount.compareTo(BigDecimal.valueOf(50000)) > 0) {
-            return Mono.error(new RuntimeException("Credit amount exceeds maximum allowed"));
+            return Mono.error(new BusinessException(
+                "Credit amount exceeds maximum allowed"));
         }
 
-        Credit credit = new Credit();
-        credit.setId("cred-" + UUID.randomUUID().toString().substring(0, 8));
-        credit.setCustomerId(customerId);
-        credit.setCreditType(creditType);
-        credit.setOriginalAmount(amount);
-        credit.setPendingDebt(amount);
-        credit.setInterestRate(interestRate);
-        credit.setTermMonths(termMonths);
-        credit.setStatus(Credit.CreditStatus.ACTIVE);
-        credit.setCreatedAt(LocalDateTime.now());
 
-        return creditRepository.save(credit);
+        return validationCredit
+            .validateCreditCreation(customerId, CustomerType.PERSONAL, CreditType.valueOf(creditType.name()) )
+            .then(Mono.fromSupplier(() -> buildCredit(
+                customerId,
+                creditType,
+                amount,
+                termMonths,
+                interestRate)))
+            .flatMap(creditRepository::save);
     }
 
     @Override
@@ -57,5 +64,29 @@ public class CreditUseCaseImpl implements CreditUseCase {
 
                     return creditRepository.save(credit);
                 });
+    }
+
+    private Credit buildCredit(
+            String customerId,
+            Credit.CreditType creditType,
+            BigDecimal amount,
+            Integer termMonths,
+            BigDecimal interestRate) {
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime due = termMonths == null ? now : now.plusMonths(termMonths);
+
+        return new Credit(
+                null,
+                customerId,
+                creditType,
+                amount, // originalAmount
+                amount, // pendingDebt initially equals amount
+                interestRate,
+                termMonths,
+                Credit.CreditStatus.ACTIVE,
+                now,
+                due
+        );
     }
 }

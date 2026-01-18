@@ -1,7 +1,6 @@
 package com.bca.core_banking_service.dto;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.math.BigDecimal;
@@ -150,7 +149,7 @@ class DtoCoverageTest {
         CreditResponse dto = new CreditResponse()
                 .id("cr-1")
                 .customerId("cus")
-                .creditType(CreditResponse.CreditTypeEnum.AUTO_LOAN)
+                .creditType(CreditResponse.CreditTypeEnum.BUSINESS_LOAN)
                 .originalAmount(10000d)
                 .pendingDebt(9000d)
                 .interestRate(15d)
@@ -162,8 +161,8 @@ class DtoCoverageTest {
         assertEquals(9000d, dto.getPendingDebt());
         assertEquals(now, dto.getCreatedAt());
 
-        assertEquals(CreditResponse.CreditTypeEnum.MORTGAGE,
-                CreditResponse.CreditTypeEnum.fromValue("MORTGAGE"));
+        assertEquals(CreditResponse.CreditTypeEnum.BUSINESS_LOAN,
+                CreditResponse.CreditTypeEnum.fromValue("BUSINESS_LOAN"));
         assertThrows(IllegalArgumentException.class,
                 () -> CreditResponse.CreditTypeEnum.fromValue("XYZ"));
     }

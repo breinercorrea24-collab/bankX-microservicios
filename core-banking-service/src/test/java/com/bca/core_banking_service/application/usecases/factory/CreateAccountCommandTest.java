@@ -7,12 +7,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 import com.bca.core_banking_service.domain.model.enums.account.AccountType;
+import com.bca.core_banking_service.domain.model.enums.account.CustomerType;
 
 class CreateAccountCommandTest {
 
     @Test
     void constructorPopulatesFields() {
-        CreateAccountCommand command = new CreateAccountCommand("customer-123", AccountType.SAVINGS, "USD");
+        // TODO : CORREGIR TESTS
+        CreateAccountCommand command = new CreateAccountCommand("customer-123", CustomerType.BUSINESS,AccountType.SAVINGS, "USD");
 
         assertEquals("customer-123", command.getCustomerId());
         assertEquals(AccountType.SAVINGS, command.getType());

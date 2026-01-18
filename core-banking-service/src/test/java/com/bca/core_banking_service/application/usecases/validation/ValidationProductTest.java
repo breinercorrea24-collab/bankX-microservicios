@@ -14,7 +14,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
-import com.bca.core_banking_service.domain.exceptions.BusinessException;
 import com.bca.core_banking_service.domain.model.enums.account.AccountType;
 import com.bca.core_banking_service.domain.model.enums.account.CustomerType;
 import com.bca.core_banking_service.domain.model.product.account.Account;
@@ -37,7 +36,8 @@ class ValidationProductTest {
 
     @BeforeEach
     void setUp() {
-        validationProduct = new ValidationProduct(externalCardsClient, accountRepository);
+        validationProduct = new ValidationProduct(externalCardsClient, accountRepository, null);
+        // TODO : CORREGIR TESTS
     }
 
     @Test
@@ -101,7 +101,8 @@ class ValidationProductTest {
 
     @Test
     void validateAccountCreation_whenCustomerHasOverdueCredit_failsImmediately() {
-        ValidationProduct validationProductSpy = new ValidationProduct(externalCardsClient, accountRepository) {
+        // TODO : CORREGIR TESTS
+        ValidationProduct validationProductSpy = new ValidationProduct(externalCardsClient, accountRepository, null) {
             @Override
             protected Mono<Boolean> hasOverdueCredits(String customerId) {
                 return Mono.just(true);

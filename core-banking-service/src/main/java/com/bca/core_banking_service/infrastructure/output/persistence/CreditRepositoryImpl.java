@@ -1,15 +1,17 @@
 package com.bca.core_banking_service.infrastructure.output.persistence;
 
-
+import com.bca.core_banking_service.domain.model.enums.credit.CreditStatus;
 import com.bca.core_banking_service.domain.ports.output.persistence.CreditRepository;
 import com.bca.core_banking_service.infrastructure.input.dto.Credit;
 import com.bca.core_banking_service.infrastructure.output.persistence.mapper.CreditMapper;
 import com.bca.core_banking_service.infrastructure.output.persistence.repository.CreditMongoRepository;
 
 import lombok.RequiredArgsConstructor;
+
+import java.time.LocalDateTime;
+
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
-
 
 @Repository
 @RequiredArgsConstructor
@@ -27,5 +29,25 @@ public class CreditRepositoryImpl implements CreditRepository {
     public Mono<Credit> findById(String id) {
         return mongoRepository.findById(id)
                 .map(CreditMapper::toDomain);
+    }
+
+    @Override
+    public Mono<Credit> findByCustomerId(String customerId) {
+        return mongoRepository.findByCustomerId(customerId)
+                .map(CreditMapper::toDomain);
+    }
+
+    @Override
+    public Mono<Long> countByCustomerId(String customerId) {
+        return mongoRepository.countByCustomerId(customerId);
+    }
+
+    @Override
+    public Mono<Boolean> hasOverdueCredits(String customerId) {
+        return mongoRepository
+                .existsByCustomerIdAndStatusAndDueDateBefore(
+                        customerId,
+                        CreditStatus.ACTIVE,
+                        LocalDateTime.now());
     }
 }

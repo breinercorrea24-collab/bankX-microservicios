@@ -4,18 +4,20 @@ import com.bca.core_banking_service.domain.exceptions.BusinessException;
 import com.bca.core_banking_service.domain.model.enums.account.AccountType;
 import com.bca.core_banking_service.domain.model.enums.account.CustomerType;
 import com.bca.core_banking_service.domain.ports.output.persistence.AccountRepository;
+import com.bca.core_banking_service.domain.ports.output.persistence.CreditRepository;
 import com.bca.core_banking_service.infrastructure.output.rest.ExternalCardsWebClientAdapter;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
+@Slf4j
 @RequiredArgsConstructor
 public class ValidationProduct {
 
     private final ExternalCardsWebClientAdapter externalCardsClient;
     private final AccountRepository accountRepository;
-                            
-
+    private final CreditRepository creditRepository;
 
     /**
      * Validates business rules for account creation.
@@ -26,14 +28,63 @@ public class ValidationProduct {
      * - Checks for overdue credits (TODO: implement real check against
      * CreditRepository).
      */
-    public Mono<Void> validateAccountCreation(String customerId, AccountType type, CustomerType customerType) {
+    public Mono<Void> validateAccountCreation(
+            String customerId,
+            AccountType type,
+            CustomerType customerType) {
+
+        log.info("Starting account validation: customerId={}, type={}, customerType={}",
+                customerId, type, customerType);
+
+        ValidationCustomer validator = new ValidationCustomer(accountRepository, externalCardsClient);
+
         return hasOverdueCredits(customerId)
+                .doOnNext(hasOverdue -> log.info("Overdue check for {} => {}", customerId, hasOverdue))
                 .flatMap(hasOverdue -> {
-                    if (Boolean.TRUE.equals(hasOverdue)) {
+                    if (hasOverdue) {
+                        log.warn("Customer {} has overdue credit debt", customerId);
                         return Mono.error(new BusinessException("Customer has overdue credit debt"));
                     }
-                    return validateByCustomerType(customerId, type, customerType);
-                });
+
+                    return applyCustomerRules(validator, customerId, type, customerType);
+                })
+                .doOnSuccess(v -> log.info("Account validation SUCCESS for {}", customerId))
+                .doOnError(err -> log.error("Account validation FAILED for {}: {}",
+                        customerId, err.getMessage()));
+    }
+
+    private Mono<Void> applyCustomerRules(
+            ValidationCustomer validator,
+            String customerId,
+            AccountType type,
+            CustomerType customerType) {
+
+        switch (customerType) {
+
+            case PERSONAL:
+                log.info("Applying PERSONAL rules");
+                return validator
+                        .validatePersonalCustomer(customerId, type, customerType);
+
+            case BUSINESS:
+                log.info("Applying BUSINESS rules");
+                return validator
+                        .validateBusinessCustomer(customerId, type, customerType);
+
+            case VIPPERSONAL:
+                log.info("Applying VIPPERSONAL rules");
+                return validator
+                        .validateVipPersonalCustomer(customerId, type, customerType);
+
+            case PYMEBUSINESS:
+                log.info("Applying PYMEBUSINESS rules");
+                return validator
+                        .validatePymeBusinessCustomer(customerId, type, customerType);
+
+            default:
+                log.info("No specific rules -> allowing creation");
+                return Mono.empty();
+        }
     }
 
     private Mono<Void> validateByCustomerType(String customerId, AccountType type, CustomerType customerType) {
@@ -63,8 +114,11 @@ public class ValidationProduct {
      * to detect overdue debts for the customer.
      */
     protected Mono<Boolean> hasOverdueCredits(String customerId) {
-        // TODO: inject CreditRepository and implement real overdue debt check
-        return Mono.just(false);
+        return creditRepository
+                .hasOverdueCredits(customerId)
+                .doOnSubscribe(s -> log.info("Checking overdue credits (call to CreditRepository) for {}", customerId))
+                .doOnSuccess(result -> log.info("CreditRepository.hasOverdueCredits result for {} => {}", customerId,
+                        result));
     }
 
 }

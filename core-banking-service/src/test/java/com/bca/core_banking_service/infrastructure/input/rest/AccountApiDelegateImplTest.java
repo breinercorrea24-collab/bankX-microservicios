@@ -18,6 +18,7 @@ import org.springframework.mock.web.server.MockServerWebExchange;
 
 import com.bca.core_banking_service.application.ports.input.usecases.AccountUseCase;
 import com.bca.core_banking_service.domain.model.enums.account.AccountType;
+import com.bca.core_banking_service.domain.model.enums.account.CustomerType;
 import com.bca.core_banking_service.domain.model.enums.product.ProductStatus;
 import com.bca.core_banking_service.domain.model.product.account.SavingsAccount;
 import com.bca.core_banking_service.dto.AccountCreate;
@@ -50,7 +51,7 @@ class AccountApiDelegateImplTest {
                 .currency("USD")
                 .type(AccountCreate.TypeEnum.SAVINGS);
 
-        when(accountUseCase.createAccount("customer-1", AccountType.SAVINGS, "USD"))
+        when(accountUseCase.createAccount("customer-1", CustomerType.PERSONAL, AccountType.SAVINGS, "USD"))
                 .thenReturn(Mono.just(account));
 
         StepVerifier.create(delegate.accountsPost(Mono.just(createRequest), mockExchange("/accounts")))

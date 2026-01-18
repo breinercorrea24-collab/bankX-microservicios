@@ -23,7 +23,7 @@ class CreditDtoTest {
                 BigDecimal.valueOf(8),
                 36,
                 Credit.CreditStatus.ACTIVE,
-                createdAt);
+                createdAt, createdAt.plusMonths(36));
 
         assertEquals("cred-1", credit.getId());
         assertEquals("customer-1", credit.getCustomerId());
@@ -91,6 +91,6 @@ class CreditDtoTest {
                 BigDecimal.valueOf(10),
                 12,
                 Credit.CreditStatus.ACTIVE,
-                createdAt);
+                createdAt, createdAt.plusMonths(12));
     }
 }

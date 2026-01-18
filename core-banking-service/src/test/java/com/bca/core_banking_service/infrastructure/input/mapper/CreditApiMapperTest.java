@@ -33,13 +33,13 @@ class CreditApiMapperTest {
                 BigDecimal.valueOf(10),
                 24,
                 CreditStatus.ACTIVE,
-                createdAt);
+                createdAt, LocalDateTime.now().plusMonths(24));
 
         CreditResponse response = CreditApiMapper.mapToCreditResponse(credit);
 
         assertEquals("cr-1", response.getId());
         assertEquals("customer-1", response.getCustomerId());
-        assertEquals(CreditResponse.CreditTypeEnum.MORTGAGE, response.getCreditType());
+        assertEquals(CreditResponse.CreditTypeEnum.BUSINESS_LOAN, response.getCreditType());
         assertEquals(10000d, response.getOriginalAmount());
         assertEquals(7500d, response.getPendingDebt());
         assertEquals(10d, response.getInterestRate());
@@ -61,7 +61,7 @@ class CreditApiMapperTest {
                 BigDecimal.valueOf(8),
                 12,
                 CreditStatus.ACTIVE,
-                createdAt);
+                createdAt, LocalDateTime.now().plusMonths(12));
 
         CreditPaymentResponse partialResponse = CreditApiMapper.mapToCreditPaymentResponse(
                 credit, BigDecimal.valueOf(300));

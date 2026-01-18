@@ -24,6 +24,7 @@ public class CreditEntity {
     private Integer termMonths;
     private CreditStatus status;
     private LocalDateTime createdAt;
+    private LocalDateTime dueDate;
 
     public enum CreditType {
         PERSONAL_LOAN, MORTGAGE, AUTO_LOAN

@@ -32,7 +32,8 @@ class CreditUseCaseImplTest {
 
     @BeforeEach
     void setUp() {
-        creditUseCase = new CreditUseCaseImpl(creditRepository);
+        creditUseCase = new CreditUseCaseImpl(creditRepository, null);
+        // TODO : CORREGIR TESTS
     }
 
     @Test

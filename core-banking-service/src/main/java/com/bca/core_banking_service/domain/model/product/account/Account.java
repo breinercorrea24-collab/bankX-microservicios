@@ -2,7 +2,10 @@ package com.bca.core_banking_service.domain.model.product.account;
 
 import java.math.BigDecimal;
 
+import com.bca.core_banking_service.application.usecases.validation.BusinessAccountExtension;
+import com.bca.core_banking_service.domain.exceptions.BusinessException;
 import com.bca.core_banking_service.domain.model.enums.account.AccountType;
+import com.bca.core_banking_service.domain.model.enums.account.CustomerType;
 import com.bca.core_banking_service.domain.model.enums.product.ProductStatus;
 import com.bca.core_banking_service.domain.model.product.Product;
 
@@ -12,7 +15,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Data
-@EqualsAndHashCode(callSuper=false)
+@EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class Account extends Product {
 
@@ -36,14 +39,14 @@ public abstract class Account extends Product {
 
     public void withdraw(BigDecimal amount) {
         validateAmount(amount);
-        if(balance.compareTo(amount) < 0){
+        if (balance.compareTo(amount) < 0) {
             throw new RuntimeException("Saldo insuficiente");
         }
         balance = balance.subtract(amount);
     }
 
-    protected void validateAmount(BigDecimal amount){
-        if(amount.compareTo(BigDecimal.ZERO) <= 0){
+    protected void validateAmount(BigDecimal amount) {
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new RuntimeException("Monto inválido");
         }
     }
@@ -55,4 +58,26 @@ public abstract class Account extends Product {
         this.currency = currency;
         this.balance = balance;
     }
+
+    protected CustomerType customerType;
+    protected BusinessAccountExtension businessData;
+
+     public boolean isBusiness() {
+        return customerType == CustomerType.BUSINESS
+            || customerType == CustomerType.PYMEBUSINESS;
+    }
+
+    /* ========= VALIDACIÓN GLOBAL ========= */
+
+    public void attachBusinessExtension(BusinessAccountExtension ext) {
+
+        if (!isBusiness()) {
+            throw new BusinessException(
+                "Cannot assign business data to non business account");
+        }
+
+        this.businessData = ext;
+        ext.validateBusinessRules(); // 🔥 aquí validas TODO
+    }
+
 }

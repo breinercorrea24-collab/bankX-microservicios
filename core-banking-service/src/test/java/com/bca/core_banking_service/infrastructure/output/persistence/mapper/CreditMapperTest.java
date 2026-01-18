@@ -30,7 +30,7 @@ class CreditMapperTest {
                 BigDecimal.valueOf(12.5),
                 12,
                 CreditEntity.CreditStatus.ACTIVE,
-                now);
+                now, LocalDateTime.now().plusMonths(12));
 
         Credit credit = CreditMapper.toDomain(entity);
 
@@ -54,7 +54,7 @@ class CreditMapperTest {
                 BigDecimal.valueOf(18),
                 24,
                 CreditStatus.PAID,
-                now);
+                now, LocalDateTime.now().plusMonths(24));
 
         CreditEntity entity = CreditMapper.toEntity(credit);
 

@@ -21,7 +21,8 @@ public class CreditMapper {
             e.getInterestRate(),
             e.getTermMonths(),
             CreditStatus.valueOf(e.getStatus().name()),
-            e.getCreatedAt()
+            e.getCreatedAt(),
+            e.getDueDate()
         );
     }
 
@@ -36,6 +37,7 @@ public class CreditMapper {
         e.setTermMonths(d.getTermMonths());
         e.setStatus(CreditEntity.CreditStatus.valueOf(d.getStatus().name()));
         e.setCreatedAt(d.getCreatedAt());
+        e.setDueDate(d.getDueDate());
         return e;
     }
 }

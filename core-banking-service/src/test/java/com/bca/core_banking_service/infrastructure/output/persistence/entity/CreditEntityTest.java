@@ -23,7 +23,7 @@ class CreditEntityTest {
                 BigDecimal.valueOf(10),
                 12,
                 CreditEntity.CreditStatus.ACTIVE,
-                createdAt);
+                createdAt, LocalDateTime.now().plusMonths(12));
 
         assertEquals("cred-1", entity.getId());
         assertEquals("customer-1", entity.getCustomerId());

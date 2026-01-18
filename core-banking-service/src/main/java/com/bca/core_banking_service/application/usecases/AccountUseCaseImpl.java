@@ -6,9 +6,11 @@ import com.bca.core_banking_service.application.usecases.factory.CreateAccountCo
 import com.bca.core_banking_service.application.usecases.validation.ValidationProduct;
 import com.bca.core_banking_service.domain.exceptions.BusinessException;
 import com.bca.core_banking_service.domain.model.enums.account.AccountType;
+import com.bca.core_banking_service.domain.model.enums.account.CustomerType;
 import com.bca.core_banking_service.domain.model.product.account.Account;
 import com.bca.core_banking_service.domain.ports.output.event.AccountEventPublisher;
 import com.bca.core_banking_service.domain.ports.output.persistence.AccountRepository;
+import com.bca.core_banking_service.domain.ports.output.persistence.CreditRepository;
 import com.bca.core_banking_service.domain.ports.output.persistence.TransactionRepository;
 import com.bca.core_banking_service.infrastructure.input.dto.Transaction;
 import com.bca.core_banking_service.infrastructure.output.messaging.kafka.dto.AccountDepositEvent;
@@ -38,9 +40,10 @@ public class AccountUseCaseImpl implements AccountUseCase {
 
     private final ExternalCardsWebClientAdapter externalCardsClient;
     private final AccountRepository accountRepository;
+    private final CreditRepository creditRepository;
 
     @Override
-    public Mono<Account> createAccount(String customerId, AccountType type, String currency) {
+    public Mono<Account> createAccount(String customerId, CustomerType customerType, AccountType type, String currency) {
         log.info("Starting account creation for customerId: {}, type: {}, currency: {}", customerId, type, currency);
         return accountRepository
                 .findByCustomerIdAndType(customerId, type)
@@ -51,18 +54,22 @@ public class AccountUseCaseImpl implements AccountUseCase {
                 })
                 .switchIfEmpty(Mono.defer(() -> {
                     log.info("No existing account found for customerId: {}, type: {}. Proceeding with creation.",
-                            customerId, type);
+                        customerId, type);
 
-                    ValidationProduct   validationProduct = new ValidationProduct(externalCardsClient, accountRepository);
-                    validationProduct.validateAccountCreation(customerId, type, null);     
+                    ValidationProduct validationProduct = new ValidationProduct(externalCardsClient, accountRepository, creditRepository);
 
-                    Account account = AccountFactory.create(new CreateAccountCommand(
+                    // Chain the validation Mono so it is subscribed and its result enforced
+                    return validationProduct.validateAccountCreation(customerId, type, null)
+                        .then(Mono.fromSupplier(() -> {
+                        Account account = AccountFactory.create(new CreateAccountCommand(
                             customerId,
+                            customerType,
                             type,
                             currency));
-
-                    log.info("Saving account for customerId: {}, type: {}", customerId, type);
-                    return accountRepository.save(account);
+                        log.info("Saving account for customerId: {}, type: {}", customerId, type);
+                        return account;
+                        }))
+                        .flatMap(accountRepository::save);
                 }));
     }
 

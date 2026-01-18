@@ -34,6 +34,7 @@ class CreditRepositoryImplTest {
     private Credit credit;
     private CreditEntity entity;
 
+
     @BeforeEach
     void setUp() {
         repository = new CreditRepositoryImpl(mongoRepository);
@@ -46,7 +47,7 @@ class CreditRepositoryImplTest {
                 BigDecimal.valueOf(12),
                 12,
                 CreditStatus.ACTIVE,
-                LocalDateTime.now());
+                LocalDateTime.now(), LocalDateTime.now().plusMonths(12));
 
         entity = new CreditEntity(
                 "cred-1",
@@ -57,7 +58,7 @@ class CreditRepositoryImplTest {
                 BigDecimal.valueOf(12),
                 12,
                 CreditEntity.CreditStatus.ACTIVE,
-                credit.getCreatedAt());
+                credit.getCreatedAt(), LocalDateTime.now().plusMonths(12));
     }
 
     @Test

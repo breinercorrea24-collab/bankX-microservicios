@@ -99,7 +99,7 @@ class CreditApiDelegateImplTest {
                 BigDecimal.valueOf(5),
                 12,
                 Credit.CreditStatus.ACTIVE,
-                LocalDateTime.now());
+                LocalDateTime.now(), LocalDateTime.now().plusMonths(12));
     }
 
     private MockServerWebExchange mockExchange(String path) {
