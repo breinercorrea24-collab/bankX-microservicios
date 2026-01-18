@@ -3,6 +3,7 @@ package com.bca.core_banking_service.infrastructure.input.dto;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -103,5 +104,33 @@ class TransactionTest {
         assertEquals(Transaction.TransactionType.WITHDRAW, Transaction.TransactionType.valueOf("WITHDRAW"));
         assertEquals(Transaction.TransactionType.TRANSFER, Transaction.TransactionType.valueOf("TRANSFER"));
         assertThrows(IllegalArgumentException.class, () -> Transaction.TransactionType.valueOf("UNKNOWN"));
+    }
+
+    @Test
+    void equalsAndHashCode_areGeneratedByDataAnnotation() {
+        LocalDateTime now = LocalDateTime.now();
+        Transaction tx1 = new Transaction(
+                "tx-4",
+                "acc-4",
+                null,
+                null,
+                Transaction.TransactionType.DEPOSIT,
+                BigDecimal.ONE,
+                BigDecimal.TEN,
+                now);
+        Transaction tx2 = new Transaction(
+                "tx-4",
+                "acc-4",
+                null,
+                null,
+                Transaction.TransactionType.DEPOSIT,
+                BigDecimal.ONE,
+                BigDecimal.TEN,
+                now);
+
+        assertEquals(tx1, tx2);
+        assertEquals(tx1.hashCode(), tx2.hashCode());
+        // touch toString() as well
+        assertTrue(tx1.toString().contains("tx-4"));
     }
 }

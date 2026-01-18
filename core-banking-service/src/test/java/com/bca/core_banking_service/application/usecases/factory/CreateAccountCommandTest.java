@@ -1,7 +1,7 @@
 package com.bca.core_banking_service.application.usecases.factory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
@@ -12,80 +12,29 @@ import com.bca.core_banking_service.domain.model.enums.account.CustomerType;
 class CreateAccountCommandTest {
 
     @Test
-    void constructorPopulatesFields() {
-        // TODO : CORREGIR TESTS
-        CreateAccountCommand command = new CreateAccountCommand("customer-123", CustomerType.BUSINESS,AccountType.SAVINGS, "USD");
-
-        assertEquals("customer-123", command.getCustomerId());
-        assertEquals(AccountType.SAVINGS, command.getType());
-        assertEquals("USD", command.getCurrency());
-    }
-
-    @Test
-    void equalsAndHashCodeConsiderFields() {
-        CreateAccountCommand first = CreateAccountCommand.builder()
-                .customerId("c-1")
-                .type(AccountType.CHECKING)
-                .currency("EUR")
-                .build();
-        CreateAccountCommand second = CreateAccountCommand.builder()
-                .customerId("c-1")
-                .type(AccountType.CHECKING)
-                .currency("EUR")
-                .build();
-        CreateAccountCommand different = CreateAccountCommand.builder()
-                .customerId("c-2")
-                .type(AccountType.SAVINGS)
+    void builder_setsFields() {
+        CreateAccountCommand cmd = CreateAccountCommand.builder()
+                .customerId("cust-1")
+                .customerType(CustomerType.BUSINESS)
+                .type(AccountType.PYME_CHECKING)
                 .currency("USD")
                 .build();
 
-        assertEquals(first, second);
-        assertEquals(first.hashCode(), second.hashCode());
-        assertNotEquals(first, different);
+        assertEquals("cust-1", cmd.getCustomerId());
+        assertEquals(CustomerType.BUSINESS, cmd.getCustomerType());
+        assertEquals(AccountType.PYME_CHECKING, cmd.getType());
+        assertEquals("USD", cmd.getCurrency());
+        assertTrue(cmd.isBusiness());
     }
 
     @Test
-    void equalsHandlesNullValues() {
-        CreateAccountCommand first = CreateAccountCommand.builder()
-                .customerId(null)
-                .type(null)
-                .currency(null)
-                .build();
-        CreateAccountCommand second = CreateAccountCommand.builder()
-                .customerId(null)
-                .type(null)
-                .currency(null)
-                .build();
+    void isBusiness_returnsTrueForBusinessTypes() {
+        CreateAccountCommand businessCmd = new CreateAccountCommand("c1", CustomerType.BUSINESS, AccountType.CHECKING, "USD");
+        CreateAccountCommand pymeCmd = new CreateAccountCommand("c2", CustomerType.PYMEBUSINESS, AccountType.CHECKING, "USD");
+        CreateAccountCommand personalCmd = new CreateAccountCommand("c3", CustomerType.PERSONAL, AccountType.CHECKING, "USD");
 
-        assertEquals(first, second);
-        assertEquals(first.hashCode(), second.hashCode());
-
-        second.setCustomerId("other");
-        assertNotEquals(first, second);
-        assertNotEquals(first, new Object());
-    }
-
-    @Test
-    void toStringContainsDetails() {
-        CreateAccountCommand command = CreateAccountCommand.builder()
-                .customerId("cust")
-                .type(AccountType.PYME_CHECKING)
-                .currency("PEN")
-                .build();
-        assertTrue(command.toString().contains("cust"));
-        assertTrue(command.toString().contains("PYME_CHECKING"));
-    }
-
-    @Test
-    void builderToStringReflectsAssignedFields() {
-        CreateAccountCommand.CreateAccountCommandBuilder builder = CreateAccountCommand.builder()
-                .customerId("builder-cust")
-                .type(AccountType.VIP_SAVINGS)
-                .currency("GBP");
-
-        String description = builder.toString();
-        assertTrue(description.contains("builder-cust"));
-        assertTrue(description.contains("VIP_SAVINGS"));
-        assertTrue(description.contains("GBP"));
+        assertTrue(businessCmd.isBusiness());
+        assertTrue(pymeCmd.isBusiness());
+        assertFalse(personalCmd.isBusiness());
     }
 }

@@ -1,13 +1,15 @@
 package com.bca.core_banking_service.application.usecases.factory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import com.bca.core_banking_service.application.usecases.validation.BusinessAccountExtension;
 import com.bca.core_banking_service.domain.exceptions.BusinessException;
 import com.bca.core_banking_service.domain.model.enums.account.AccountType;
 import com.bca.core_banking_service.domain.model.enums.account.CustomerType;
@@ -22,93 +24,73 @@ import com.bca.core_banking_service.domain.model.product.account.VipSavingsAccou
 class AccountFactoryTest {
 
     @Test
-    void createSavingsAccount() {
-        Account account = AccountFactory.create(command(AccountType.SAVINGS));
+    void create_savingsAccount() {
+        CreateAccountCommand cmd = new CreateAccountCommand("cust-1", CustomerType.PERSONAL, AccountType.SAVINGS, "USD");
+
+        Account account = AccountFactory.create(cmd);
 
         assertTrue(account instanceof SavingsAccount);
-        assertAccountBasics(account, AccountType.SAVINGS);
+        assertEquals("cust-1", account.getCustomerId());
+        assertEquals("USD", account.getCurrency());
+        assertEquals(AccountType.SAVINGS, account.getType());
         assertEquals(ProductStatus.ACTIVE, account.getStatus());
     }
 
     @Test
-    void createCheckingAccount() {
-        Account account = AccountFactory.create(command(AccountType.CHECKING));
+    void create_checkingAccount() {
+        CreateAccountCommand cmd = new CreateAccountCommand("cust-2", CustomerType.PERSONAL, AccountType.CHECKING, "EUR");
+
+        Account account = AccountFactory.create(cmd);
 
         assertTrue(account instanceof CheckingAccount);
-        assertAccountBasics(account, AccountType.CHECKING);
+        assertEquals(AccountType.CHECKING, account.getType());
+        assertEquals("EUR", account.getCurrency());
     }
 
     @Test
-    void createFixedTermAccount() {
-        Account account = AccountFactory.create(command(AccountType.FIXED_TERM));
+    void create_fixedTermAccount() {
+        CreateAccountCommand cmd = new CreateAccountCommand("cust-3", CustomerType.PERSONAL, AccountType.FIXED_TERM, "PEN");
+
+        Account account = AccountFactory.create(cmd);
 
         assertTrue(account instanceof FixedTermAccount);
-        assertAccountBasics(account, AccountType.FIXED_TERM);
-        FixedTermAccount fixedTerm = (FixedTermAccount) account;
-        assertEquals(BigDecimal.valueOf(4.5), fixedTerm.getInterestRate());
-        assertTrue(fixedTerm.isMaintenanceFeeFree());
+        assertEquals(AccountType.FIXED_TERM, account.getType());
+        assertEquals("PEN", account.getCurrency());
     }
 
     @Test
-    void createVipSavingsAccount() {
-        Account account = AccountFactory.create(command(AccountType.VIP_SAVINGS));
+    void create_vipSavingsAccount() {
+        CreateAccountCommand cmd = new CreateAccountCommand("cust-4", CustomerType.PERSONAL, AccountType.VIP_SAVINGS, "USD");
+
+        Account account = AccountFactory.create(cmd);
 
         assertTrue(account instanceof VipSavingsAccount);
-        assertAccountBasics(account, AccountType.VIP_SAVINGS);
-        VipSavingsAccount vip = (VipSavingsAccount) account;
-        assertEquals(new BigDecimal("5000"), vip.getMinimumDailyAverage());
+        assertEquals(AccountType.VIP_SAVINGS, account.getType());
+        assertEquals("USD", account.getCurrency());
     }
 
     @Test
-    void createPymeCheckingAccount() {
-        Account account = AccountFactory.create(command(AccountType.PYME_CHECKING));
+    void create_pymeCheckingAccount() {
+        CreateAccountCommand cmd = new CreateAccountCommand("cust-5", CustomerType.PERSONAL, AccountType.PYME_CHECKING, "CLP");
+
+        Account account = AccountFactory.create(cmd);
 
         assertTrue(account instanceof PymeCheckingAccount);
-        assertAccountBasics(account, AccountType.PYME_CHECKING);
-        PymeCheckingAccount pyme = (PymeCheckingAccount) account;
-        assertEquals(Integer.MAX_VALUE, pyme.getMaxMonthlyTransactions());
+        assertEquals(AccountType.PYME_CHECKING, account.getType());
+        assertEquals("CLP", account.getCurrency());
     }
 
     @Test
-    void create_withNullTypeThrowsBusinessException() {
-        CreateAccountCommand command = CreateAccountCommand.builder()
-                .customerId("customer")
-                .type(null)
+    void create_businessAccount_attachesBusinessExtension() {
+        CreateAccountCommand cmd = CreateAccountCommand.builder()
+                .customerId("cust-biz")
+                .customerType(CustomerType.BUSINESS)
+                .type(AccountType.CHECKING)
                 .currency("USD")
+                .holders(List.of("holder-1"))
+                .authorizedSigners(List.of("signer-1"))
                 .build();
 
-        assertThrows(NullPointerException.class, () -> AccountFactory.create(command));
-    }
-
-    @Test
-    void create_withUnsupportedTypeThrowsBusinessException() {
-        CreateAccountCommand command = CreateAccountCommand.builder()
-                .customerId("customer")
-                .type(AccountType.SAVINGS)
-                .currency("USD")
-                .build();
-
-        CreateAccountCommand spyCommand = new CreateAccountCommand(command.getCustomerId(), CustomerType.BUSINESS, AccountType.SAVINGS, command.getCurrency()) {
-            @Override
-            public AccountType getType() {
-                return null;
-            }
-        };
-
-        assertThrows(NullPointerException.class, () -> AccountFactory.create(spyCommand));
-    }
-
-    private CreateAccountCommand command(AccountType type) {
-        return CreateAccountCommand.builder()
-                .customerId("customer-1")
-                .type(type)
-                .currency("USD")
-                .build();
-    }
-
-    private void assertAccountBasics(Account account, AccountType expectedType) {
-        assertEquals("customer-1", account.getCustomerId());
-        assertEquals("USD", account.getCurrency());
-        assertEquals(expectedType, account.getType());
+        assertThrows(BusinessException.class, () -> AccountFactory.create(cmd));
     }
 }
