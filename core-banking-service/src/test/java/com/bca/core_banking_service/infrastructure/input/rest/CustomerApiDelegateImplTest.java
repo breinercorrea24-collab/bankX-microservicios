@@ -74,7 +74,7 @@ class CustomerApiDelegateImplTest {
         SavingsAccountResponse dto = (SavingsAccountResponse) payload.get(0);
         assertEquals("acc-1", dto.getId());
         assertEquals("customer-1", dto.getCustomerId());
-        assertEquals(AccountType.SAVINGS, dto.getType());
+        assertEquals(com.bca.core_banking_service.dto.AccountType.SAVINGS, dto.getType());
 
         verify(accountUseCase).getAccountsByCustomer("customer-1");
     }
