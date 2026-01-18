@@ -59,7 +59,7 @@ public class AccountUseCaseImpl implements AccountUseCase {
                     ValidationProduct validationProduct = new ValidationProduct(externalCardsClient, accountRepository, creditRepository);
 
                     // Chain the validation Mono so it is subscribed and its result enforced
-                    return validationProduct.validateAccountCreation(customerId, type, null)
+                    return validationProduct.validateAccountCreation(customerId, type, customerType)
                         .then(Mono.fromSupplier(() -> {
                         Account account = AccountFactory.create(new CreateAccountCommand(
                             customerId,

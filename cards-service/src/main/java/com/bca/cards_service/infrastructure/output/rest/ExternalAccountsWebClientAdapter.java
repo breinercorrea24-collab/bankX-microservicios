@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.bca.cards_service.domain.exceptions.BusinessException;
-import com.bca.cards_service.domain.model.account.Account;
 import com.bca.cards_service.domain.model.ports.rest.ExternalAccountsClient;
 import com.bca.cards_service.infrastructure.output.rest.dto.AccountBalanceResponse;
 import com.bca.cards_service.infrastructure.output.rest.dto.AmountRequest;
@@ -26,7 +25,7 @@ public class ExternalAccountsWebClientAdapter implements ExternalAccountsClient 
 
 
     @Override
-    public Mono<ResponseEntity<Account>> AccountWithdrawal(String accountId, BigDecimal amount) {
+    public Mono<ResponseEntity<AccountBalanceResponse>> AccountWithdrawal(String accountId, BigDecimal amount) {
 
         AmountRequest request = new AmountRequest(amount);
 
@@ -46,7 +45,7 @@ public class ExternalAccountsWebClientAdapter implements ExternalAccountsClient 
                 })
                 .bodyValue(request)
                 .retrieve()
-                .toEntity(Account.class);
+                .toEntity(AccountBalanceResponse.class);
     }
 
     @Override

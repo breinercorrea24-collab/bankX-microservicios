@@ -41,8 +41,10 @@ public class CardsApiDelegateImpl implements CardsApiDelegate {
             return paymentCardsDebitUseCase.pay(cardId, BigDecimal.valueOf(request.getAmount()))
                     .map(paymentResult -> {
                         DebitCardPaymentResponse response = new DebitCardPaymentResponse();
-                        // response.setTransactionId(paymentResult.getTransactionId());
-                        // response.setStatus(paymentResult.getStatus());
+                        response.setAccountId(request.getAccountId());
+                        response.setAmount(request.getAmount());
+                        /* response.setStatus("SUCCESS");
+                        response.setCardId(paymentResult.getCardId()); */
                         log.info("Payment processed successfully for debit card: {}", cardId);
                         return ResponseEntity.ok(response);
                     });
