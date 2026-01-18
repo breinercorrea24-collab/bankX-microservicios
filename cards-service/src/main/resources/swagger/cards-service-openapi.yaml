@@ -144,26 +144,236 @@ paths:
       '500':
         description: Internal server error
 
+ /cards/debit/{cardId}/withdrawals:
+  post:
+    tags: [Cards]
+    summary: Realizar retiro con tarjeta débito
+    description: |
+      Permite realizar un retiro de dinero utilizando una tarjeta de débito.
+      El monto será debitado de una o varias cuentas asociadas a la tarjeta,
+      siguiendo el orden de retiro configurado.
+    parameters:
+      - in: path
+        name: cardId
+        required: true
+        description: ID de la tarjeta débito
+        schema:
+          type: string
+          example: card-deb-001
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DebitCardWithdrawalRequest'
+          example:
+            amount: 300.00
+            channel: ATM
+            description: "Retiro en cajero automático"
+    responses:
+      '200':
+        description: Retiro realizado exitosamente
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DebitCardWithdrawalResponse'
+            example:
+              transactionId: "trx-9101"
+              cardId: "card-deb-001"
+              amount: 300.00
+              currency: PEN
+              status: SUCCESS
+              executedAt: "2025-01-01T11:30:00Z"
+              debitedAccounts:
+                - accountId: "acc-2001"
+                  debitedAmount: 200.00
+                - accountId: "acc-2002"
+                  debitedAmount: 100.00
+      '400':
+        description: Datos inválidos o regla de negocio violada
+      '404':
+        description: Tarjeta no encontrada
+      '409':
+        description: Saldo insuficiente o tarjeta bloqueada
+      '500':
+        description: Error interno
+
+ /cards/debit/{cardId}/payments:
+  post:
+    tags: [Cards]
+    summary: Realizar pago con tarjeta débito
+    description: |
+      Permite realizar un pago utilizando una tarjeta de débito.
+      El monto será debitado desde la cuenta bancaria asociada.
+    parameters:
+      - in: path
+        name: cardId
+        required: true
+        description: ID de la tarjeta débito
+        schema:
+          type: string
+          example: card-deb-001
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DebitCardPaymentRequest'
+          example:
+            accountId: "acc-2001"
+            amount: 150.00
+            description: "Pago en supermercado"
+    responses:
+      '200':
+        description: Pago realizado exitosamente
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DebitCardPaymentResponse'
+            example:
+              transactionId: "trx-9001"
+              cardId: "card-deb-001"
+              accountId: "acc-2001"
+              amount: 150.00
+              currency: PEN
+              status: SUCCESS
+              executedAt: "2025-01-01T11:00:00Z"
+      '400':
+        description: Datos inválidos o regla de negocio violada
+      '404':
+        description: Tarjeta o cuenta no encontrada
+      '409':
+        description: Saldo insuficiente o tarjeta bloqueada
+      '500':
+        description: Error interno
+
+
+
+
 components:
   schemas:
+
+    DebitCardWithdrawalRequest:
+      type: object
+      required: [amount, channel]
+      properties:
+        amount:
+          type: number
+          format: decimal
+          example: 300.00
+        channel:
+          type: string
+          description: Canal desde donde se realiza el retiro
+          enum: [ATM, BRANCH, AGENT]
+        description:
+          type: string
+          example: "Retiro en cajero automático"
+
+    DebitCardWithdrawalResponse:
+      type: object
+      properties:
+        transactionId:
+          type: string
+          example: trx-9101
+        cardId:
+          type: string
+        amount:
+          type: number
+          format: decimal
+        currency:
+          type: string
+          example: PEN
+        status:
+          type: string
+          enum: [SUCCESS, FAILED]
+        executedAt:
+          type: string
+          format: date-time
+        debitedAccounts:
+          type: array
+          description: Cuentas afectadas durante el retiro en cascada
+          items:
+            type: object
+            properties:
+              accountId:
+                type: string
+              debitedAmount:
+                type: number
+                format: decimal
+
+    DebitCardPaymentRequest:
+      type: object
+      required:
+        - accountId
+        - amount
+      properties:
+        accountId:
+          type: string
+          description: Cuenta asociada a la tarjeta
+          example: acc-2001
+        amount:
+          type: number
+          format: float
+          minimum: 0.01
+          example: 150.00
+        description:
+          type: string
+          example: "Pago en supermercado"
+
+    DebitCardPaymentResponse:
+      type: object
+      properties:
+        transactionId:
+          type: string
+          example: trx-9001
+        cardId:
+          type: string
+          example: card-deb-001
+        accountId:
+          type: string
+          example: acc-2001
+        amount:
+          type: number
+          format: float
+          example: 150.00
+        currency:
+          type: string
+          example: PEN
+        status:
+          type: string
+          enum: [SUCCESS, FAILED]
+          example: SUCCESS
+        executedAt:
+          type: string
+          format: date-time
+          example: "2025-01-01T11:00:00Z"
+
     CreateDebitCardRequest:
       type: object
       required:
         - customerId
+        - cardType
       properties:
         customerId:
           type: string
           example: cus-1001
-
+        cardType:
+          type: string
+          enum: [DEBIT, CREDIT]
+          example: DEBIT
     CreateCreditCardRequest:
       type: object
       required:
         - customerId
+        - cardType
         - creditLimit
       properties:
         customerId:
           type: string
           example: cus-1001
+        cardType:
+          type: string
+          enum: [DEBIT, CREDIT]
         creditLimit:
           type: number
           format: float

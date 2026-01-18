@@ -50,6 +50,63 @@ paths:
               code: INVALID_REQUEST
               message: La solicitud contiene errores de validación
 
+ /accounts/{accountId}:
+  get:
+    tags: [Accounts]
+    summary: Obtener cuenta bancaria por ID
+    description: |
+      Permite obtener el detalle de una cuenta bancaria específica
+      identificada por su ID.
+    parameters:
+      - in: path
+        name: accountId
+        required: true
+        description: ID de la cuenta bancaria
+        schema:
+          type: string
+        example: acc-2001
+    responses:
+      '200':
+        description: Cuenta encontrada
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountPolymorphicResponse'
+            example:
+              id: "acc-2001"
+              customerId: "cus-1001"
+              type: SAVINGS
+              currency: PEN
+              balance: 2000.00
+              status: ACTIVE
+      '400':
+        description: Solicitud inválida
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: INVALID_REQUEST
+              message: El ID de la cuenta no es válido
+      '404':
+        description: Cuenta no encontrada
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: ACCOUNT_NOT_FOUND
+              message: No se encontró la cuenta con el ID proporcionado
+      '500':
+        description: Error interno del servidor
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: INTERNAL_SERVER_ERROR
+              message: Ocurrió un error inesperado
+
  /customers/{customerId}/accounts:
   get:
     tags: [Accounts]

@@ -74,6 +74,13 @@ public class AccountUseCaseImpl implements AccountUseCase {
     }
 
     @Override
+    public Mono<Account> getAccountById(String accountId) {
+        log.info("Fetching accounts for accountId: {}", accountId);
+        return accountRepository.findById(accountId)
+                .switchIfEmpty(Mono.error(new BusinessException("No accounts found for accountId: " + accountId)));
+    }
+
+    @Override
     public Flux<Account> getAccountsByCustomer(String customerId) {
         log.info("Fetching accounts for customerId: {}", customerId);
         return accountRepository.findByCustomerId(customerId)

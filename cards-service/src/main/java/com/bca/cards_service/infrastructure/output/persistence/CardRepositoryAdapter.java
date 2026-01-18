@@ -1,10 +1,7 @@
 package com.bca.cards_service.infrastructure.output.persistence;
 
-import com.bca.cards_service.domain.model.Card;
-import com.bca.cards_service.domain.model.CardId;
+import com.bca.cards_service.domain.model.card.Card;
 import com.bca.cards_service.domain.model.ports.CardRepository;
-import com.bca.cards_service.infrastructure.output.persistence.entity.CardDocument;
-import com.bca.cards_service.infrastructure.output.persistence.mapper.CardsMapper;
 import com.bca.cards_service.infrastructure.output.persistence.repository.CardMongoRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -21,24 +18,20 @@ public class CardRepositoryAdapter implements CardRepository {
 
     @Override
     public Mono<Card> save(Card card) {
-        log.debug("Saving card: {}", card.id().value());
-        CardDocument document = CardsMapper.from(card);
-        log.debug("Saving document card: {}", document);
-        return cardMongoRepository.save(document)
-                .map(CardsMapper::toDomain)
-                .doOnSuccess(savedCard -> log.info("Card saved successfully: {}", savedCard.id().value()))
-                .doOnError(error -> log.error("Failed to save card: {}", card.id().value(), error));
+        log.debug("Saving card: {}", card);
+        return cardMongoRepository.save(card)
+                .doOnSuccess(savedCard -> log.info("Card saved successfully: {}", savedCard.getId()))
+                .doOnError(error -> log.error("Failed to save card: {}", card.getId(), error));
     }
 
     @Override
-    public Mono<Card> findById(CardId cardId) {
-        log.debug("Finding card by ID: {}", cardId.value());
-        return cardMongoRepository.findByCardId(cardId.value())
-                .map(CardsMapper::toDomain)
-                .doOnSuccess(card -> log.debug("Card found: {}", cardId.value()))
-                .doOnError(error -> log.error("Failed to find card: {}", cardId.value(), error))
+    public Mono<Card> findById(String cardId) {
+        log.debug("Finding card by ID: {}", cardId);
+        return cardMongoRepository.findById(cardId)
+                .doOnSuccess(card -> log.debug("Card found: {}", cardId))
+                .doOnError(error -> log.error("Failed to find card: {}", cardId, error))
                 .switchIfEmpty(Mono.defer(() -> {
-                    log.warn("Card not found: {}", cardId.value());
+                    log.warn("Card not found: {}", cardId);
                     return Mono.empty();
                 }));
     }
@@ -54,4 +47,5 @@ public class CardRepositoryAdapter implements CardRepository {
                 .defaultIfEmpty(false)
                 .doOnError(error -> log.error("Failed to find card for Customer ID: {}", customerId, error));
     }
+
 }

@@ -6,6 +6,7 @@ import com.bca.core_banking_service.domain.model.enums.account.AccountType;
 import com.bca.core_banking_service.domain.model.enums.account.CustomerType;
 import com.bca.core_banking_service.dto.*;
 import com.bca.core_banking_service.infrastructure.input.mapper.AccountApiMapper;
+import com.bca.core_banking_service.infrastructure.input.mapper.CustomerApiMapper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +25,15 @@ import java.math.BigDecimal;
 public class AccountApiDelegateImpl implements AccountsApiDelegate {
 
     private final AccountUseCase accountUseCase;
+
+    @Override
+    public Mono<ResponseEntity<AccountPolymorphicResponse>> accountsAccountIdGet(String accountId, 
+        ServerWebExchange exchange) {
+
+        return accountUseCase.getAccountById(accountId)
+            .map(CustomerApiMapper::toPolymorphicResponse)
+            .map(ResponseEntity::ok);
+    }
 
     @Override
     public Mono<ResponseEntity<AccountResponse>> accountsPost(Mono<AccountCreate> accountCreate,

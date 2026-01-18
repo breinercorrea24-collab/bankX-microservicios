@@ -12,9 +12,17 @@ Desde la raíz del proyecto:
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 ```
 
+Infraestructura
+```bash
+.\imagenes-infra.ps1
+```
+
+Microservicios
 ```bash
 .\build-images.ps1
 ```
+
+
 ## 🚀 Iniciar los microservicios
 
 Para iniciar la base de datos, ejecuta el siguiente comando:
