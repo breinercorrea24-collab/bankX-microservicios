@@ -129,7 +129,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"customerId\": \"cus-1001\"\r\n}",
+							"raw": "{\r\n  \"customerId\": \"cus-1001\",\r\n  \"cardType\": \"DEBIT\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -162,7 +162,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"customerId\": \"cus-1001\",\r\n    \"creditLimit\": 5000\r\n}",
+							"raw": "{\r\n    \"customerId\": \"cus-1002\",\r\n    \"cardType\": \"CREDIT\",\r\n    \"creditLimit\": 5000\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -195,7 +195,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"cardId\": \"card-deb-001\",\r\n    \"accountId\": \"acc-2001\"\r\n}",
+							"raw": "{\r\n    \"cardId\": \"card-deb-31dab7be\",\r\n    \"accountId\": \"69668e3c8643f85fe57cc9de\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -220,7 +220,42 @@
 					"response": []
 				},
 				{
-					"name": "api/cards/{cardId}/balance",
+					"name": "api/cards/debit/{cardId}/payment",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"amount\": 5000,\r\n    \"accountId\": \"6966887886cca86e1dc6b823\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/cards/debit/card-deb-31dab7be/payments",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"cards",
+								"debit",
+								"card-deb-31dab7be",
+								"payments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "api/cards/customer/{customerId}/exists",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -240,7 +275,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8080/api/cards/{cardId}/balance",
+							"raw": "http://localhost:8080/api/cards/customer/cus-1001/exists",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -249,8 +284,9 @@
 							"path": [
 								"api",
 								"cards",
-								"{cardId}",
-								"balance"
+								"customer",
+								"cus-1001",
+								"exists"
 							]
 						}
 					},
@@ -261,39 +297,6 @@
 		{
 			"name": "core banking",
 			"item": [
-				{
-					"name": "api/core-banking/accounts",
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"customerId\": \"cus-1001\",\r\n    \"type\": \"SAVINGS\",\r\n    \"currency\": \"PEN\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:8080/api/core-banking/accounts",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8080",
-							"path": [
-								"api",
-								"core-banking",
-								"accounts"
-							]
-						}
-					},
-					"response": []
-				},
 				{
 					"name": "api/core-banking/customers/{customerId}/accounts",
 					"protocolProfileBehavior": {
@@ -315,7 +318,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8080/api/core-banking/customers/{customerId}/accounts",
+							"raw": "http://localhost:8080/api/core-banking/customers/cus-1004/accounts",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -325,7 +328,77 @@
 								"api",
 								"core-banking",
 								"customers",
-								"{customerId}",
+								"cus-1004",
+								"accounts"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "api/core-banking/accounts/{accountId}",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/core-banking/accounts/6966887886cca86e1dc6b823",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"core-banking",
+								"accounts",
+								"6966887886cca86e1dc6b823"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "api/core-banking/accounts",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"customerId\": \"cus-1002\",\r\n    \"customerType\": \"BUSINESS\",\r\n    \"type\": \"SAVINGS\",\r\n    \"currency\": \"PEN\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/core-banking/accounts",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"core-banking",
 								"accounts"
 							]
 						}
@@ -350,7 +423,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8080/api/core-banking/accounts/{accountId}/deposit",
+							"raw": "http://localhost:8080/api/core-banking/accounts/696d61c589e818e1296ae787/deposit",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -360,7 +433,7 @@
 								"api",
 								"core-banking",
 								"accounts",
-								"{accountId}",
+								"696d61c589e818e1296ae787",
 								"deposit"
 							]
 						}
@@ -385,7 +458,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8080/api/core-banking/accounts/{accountId}/withdraw",
+							"raw": "http://localhost:8080/api/core-banking/accounts/69668e3c8643f85fe57cc9de/withdraw",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -395,7 +468,7 @@
 								"api",
 								"core-banking",
 								"accounts",
-								"{accountId}",
+								"69668e3c8643f85fe57cc9de",
 								"withdraw"
 							]
 						}
@@ -412,7 +485,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"fromId\": \"acc-2001\",\r\n    \"toId\": \"acc-2002\",\r\n    \"amount\": 250\r\n}",
+							"raw": "{\r\n    \"fromId\": \"6965b1215878580179a3c211\",\r\n    \"toId\": \"6965b4ba75cd17304612befa\",\r\n    \"amount\": 250\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
