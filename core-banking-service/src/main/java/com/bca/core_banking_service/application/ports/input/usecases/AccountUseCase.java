@@ -13,4 +13,5 @@ public interface AccountUseCase {
     Mono<Account> deposit(String accountId, java.math.BigDecimal amount);
     Mono<Account> withdraw(String accountId, java.math.BigDecimal amount);
     Mono<Account> transfer(String fromAccountId, String toAccountId, java.math.BigDecimal amount);
+    Mono<Account> getAccountById(String accountId);
 }

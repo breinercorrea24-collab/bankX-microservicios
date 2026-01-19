@@ -1,11 +1,18 @@
 package com.bca.cards_service.application.usecases;
 
-import com.bca.cards_service.domain.model.AccountId;
-import com.bca.cards_service.domain.model.Card;
-import com.bca.cards_service.domain.model.CardId;
+import com.bca.cards_service.application.usecases.factory.CardFactory;
+import com.bca.cards_service.application.usecases.factory.CreateCardCommand;
+import com.bca.cards_service.domain.enums.card.CardType;
+import com.bca.cards_service.domain.exceptions.BusinessException;
+import com.bca.cards_service.domain.model.card.Card;
+import com.bca.cards_service.domain.model.card.DebitCard;
 import com.bca.cards_service.domain.model.ports.CardRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import java.math.BigDecimal;
+import java.util.Set;
+
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -16,22 +23,34 @@ public class LinkDebitCardUseCase {
 
     private final CardRepository cardRepository;
 
-    public Mono<Card> execute(CardId cardId, AccountId accountId) {
-        log.info("Executing LinkDebitCardUseCase for card: {} to account: {}", cardId.value(), accountId.value());
+    public Mono<Card> execute(String cardId, String accountId) {
+        log.info("Executing LinkDebitCardUseCase for card: {} to account: {}", cardId, accountId);
+
         return cardRepository.findById(cardId)
                 .flatMap(card -> {
-                    if (!card.isDebit()) {
-                        log.warn("Attempted to link non-debit card: {}", cardId.value());
-                        return Mono.error(new IllegalArgumentException("Only debit cards can be linked to accounts"));
+
+                    if (card.getType() != CardType.DEBIT) {
+                        log.warn("Attempted to link non-debit card: {}", cardId);
+                        return Mono.error(new BusinessException("Only debit cards can be linked to accounts"));
                     }
-                    if (card.linkedAccountId() != null) {
-                        log.warn("Card {} is already linked to account {}", cardId.value(), card.linkedAccountId().value());
-                        return Mono.error(new IllegalArgumentException("Card is already linked to an account"));
+
+                    Card cardSaved = CardFactory
+                            .create(new CreateCardCommand(card.getCustomerId(), accountId, CardType.DEBIT, BigDecimal.ZERO));
+                    DebitCard debitCard = (DebitCard) card;
+                    Set<String> linkedAccountIds = debitCard.getLinkedAccountIds();
+                    if (linkedAccountIds.isEmpty()) {
+                        debitCard.setPrimaryAccountId(accountId);
                     }
-                    Card linkedCard = card.linkToAccount(accountId);
-                    return cardRepository.save(linkedCard);
+
+                    linkedAccountIds.add(accountId);
+
+                    debitCard.setLinkedAccountIds(linkedAccountIds);
+                    cardSaved = debitCard;
+
+                    // Card linkedCard = card.linkToAccount(accountId);
+                    return cardRepository.save(cardSaved);
                 })
-                .doOnSuccess(card -> log.info("Successfully linked card {} to account {}", cardId.value(), accountId.value()))
-                .doOnError(error -> log.error("Failed to link card {} to account {}", cardId.value(), accountId.value(), error));
+                .doOnSuccess(c -> log.info("Successfully linked card {} to account {}", cardId, accountId))
+                .doOnError(error -> log.error("Failed to link card {} to account {}", cardId, accountId, error));
     }
 }

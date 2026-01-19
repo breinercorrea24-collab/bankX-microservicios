@@ -1,14 +1,18 @@
 package com.bca.cards_service.application.usecases;
 
-import com.bca.cards_service.domain.model.Card;
-import com.bca.cards_service.domain.model.CardId;
-import com.bca.cards_service.domain.model.CustomerId;
+
+
+import com.bca.cards_service.application.usecases.factory.CardFactory;
+import com.bca.cards_service.application.usecases.factory.CreateCardCommand;
+import com.bca.cards_service.domain.enums.card.CardType;
+import com.bca.cards_service.domain.model.card.Card;
 import com.bca.cards_service.domain.model.ports.CardRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Slf4j
@@ -18,15 +22,19 @@ public class CreateDebitCardUseCase {
 
     private final CardRepository cardRepository;
 
-    public Mono<Card> execute(CustomerId customerId) {
-        log.info("Executing CreateDebitCardUseCase for customer: {}", customerId.value());
+    public Mono<Card> execute(String customerId, CardType cardType, BigDecimal creditLimit) {
+        log.info("Executing CreateDebitCardUseCase for customer: {}", customerId);
         String maskedNumber = generateMaskedNumber();
-        CardId cardId = new CardId("card-deb-" + UUID.randomUUID().toString().substring(0, 8));
-        Card card = Card.createDebitCard(cardId, customerId, maskedNumber);
-        log.debug("Generated card ID: {} with masked number: {}", cardId.value(), maskedNumber);
+        String cardId = "card-deb-" + UUID.randomUUID().toString().substring(0, 8);
+       // Card card = Card.createDebitCard(cardId, customerId, maskedNumber);
+        
+       Card card = CardFactory.create(new CreateCardCommand(customerId, "", cardType, creditLimit));
+
+       
+       log.debug("Generated card ID: {} with masked number: {}", cardId, maskedNumber);
         return cardRepository.save(card)
-                .doOnSuccess(savedCard -> log.info("Successfully created debit card: {}", savedCard.id().value()))
-                .doOnError(error -> log.error("Failed to create debit card for customer: {}", customerId.value(), error));
+                .doOnSuccess(savedCard -> log.info("Successfully created debit card: {}", savedCard.getId()))
+                .doOnError(error -> log.error("Failed to create debit card for customer: {}", customerId, error));
     }
 
     private String generateMaskedNumber() {
