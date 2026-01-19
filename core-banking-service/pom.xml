@@ -29,6 +29,7 @@
 	</scm>
 	<properties>
 		<java.version>17</java.version>
+		<openapi.generator.skip>false</openapi.generator.skip>
 	</properties>
 	<dependencies>
 		<!-- 🌐 WEBFLUX -->
@@ -243,6 +244,7 @@
 
 							<generateApiTests>false</generateApiTests>
 							<generateModelTests>false</generateModelTests>
+							<skip>${openapi.generator.skip}</skip>
 						</configuration>
 					</execution>
 				</executions>
@@ -250,5 +252,14 @@
 
 		</plugins>
 	</build>
+
+	<profiles>
+		<profile>
+			<id>skip-openapi</id>
+			<properties>
+				<openapi.generator.skip>true</openapi.generator.skip>
+			</properties>
+		</profile>
+	</profiles>
 
 </project>

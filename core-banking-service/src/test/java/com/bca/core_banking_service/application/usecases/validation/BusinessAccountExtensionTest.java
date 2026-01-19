@@ -142,6 +142,14 @@ class BusinessAccountExtensionTest {
     }
 
     @Test
+    void validate_throwsWhenHoldersNull() {
+        BusinessAccountExtension ext = new BusinessAccountExtension(null, new ArrayList<>());
+
+        BusinessException ex = assertThrows(BusinessException.class, ext::validate);
+        assertTrue(ex.getMessage().contains("at least one holder"));
+    }
+
+    @Test
     void isHolder_and_isSigner_handleNullLists() {
         BusinessAccountExtension ext = new BusinessAccountExtension(null, null);
 

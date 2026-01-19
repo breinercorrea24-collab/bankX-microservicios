@@ -1,6 +1,7 @@
 package com.bca.core_banking_service.application.usecases.validation;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -224,6 +225,73 @@ class ValidationProductTest {
         method.setAccessible(true);
         @SuppressWarnings("unchecked")
         Mono<Void> result = (Mono<Void>) method.invoke(validationProduct, validator, customerId, type, customerType);
+        return StepVerifier.create(result);
+    }
+
+    @Test
+    void applyCustomerRules_defaultBranchReturnsEmptyWhenCustomerTypeUnknown() throws Exception {
+        ValidationCustomer validator = Mockito.mock(ValidationCustomer.class);
+
+        invokeApplyCustomerRules(validator, "cust", AccountType.SAVINGS, null)
+                .verifyComplete();
+
+        Mockito.verifyNoInteractions(validator);
+    }
+
+    @Test
+    void validateByCustomerType_dispatchesPersonal() throws Exception {
+        when(accountRepository.findByCustomerId("cust")).thenReturn(Flux.empty());
+
+        invokeValidateByCustomerType("cust", AccountType.SAVINGS, CustomerType.PERSONAL)
+                .verifyComplete();
+
+        verify(accountRepository).findByCustomerId("cust");
+    }
+
+    @Test
+    void validateByCustomerType_dispatchesBusiness() throws Exception {
+        invokeValidateByCustomerType("cust", AccountType.CHECKING, CustomerType.BUSINESS)
+                .verifyComplete();
+    }
+
+    @Test
+    void validateByCustomerType_dispatchesVipPersonal() throws Exception {
+        when(externalCardsClient.hasCreditCard("vip")).thenReturn(Mono.just(ResponseEntity.ok(true)));
+
+        invokeValidateByCustomerType("vip", AccountType.VIP_SAVINGS, CustomerType.VIPPERSONAL)
+                .verifyComplete();
+
+        verify(externalCardsClient).hasCreditCard("vip");
+    }
+
+    @Test
+    void validateByCustomerType_dispatchesPymeBusiness() throws Exception {
+        when(externalCardsClient.hasCreditCard("pyme")).thenReturn(Mono.just(ResponseEntity.ok(true)));
+
+        invokeValidateByCustomerType("pyme", AccountType.PYME_CHECKING, CustomerType.PYMEBUSINESS)
+                .verifyComplete();
+
+        verify(externalCardsClient).hasCreditCard("pyme");
+    }
+
+    @Test
+    void validateByCustomerType_returnsEmptyForUnknown() throws Exception {
+        invokeValidateByCustomerType("cust", AccountType.SAVINGS, null)
+                .verifyComplete();
+    }
+
+    private StepVerifier.FirstStep<Void> invokeValidateByCustomerType(
+            String customerId,
+            AccountType type,
+            CustomerType customerType) throws Exception {
+        Method method = ValidationProduct.class.getDeclaredMethod(
+                "validateByCustomerType",
+                String.class,
+                AccountType.class,
+                CustomerType.class);
+        method.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        Mono<Void> result = (Mono<Void>) method.invoke(validationProduct, customerId, type, customerType);
         return StepVerifier.create(result);
     }
 }

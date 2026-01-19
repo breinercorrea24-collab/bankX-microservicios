@@ -113,4 +113,26 @@ class CreateAccountCommandTest {
 
         assertNotEquals(different, cmd);
     }
+
+    @Test
+    void builder_withoutValues_leavesFieldsNull() {
+        CreateAccountCommand empty = CreateAccountCommand.builder().build();
+
+        assertEquals(null, empty.getCustomerId());
+        assertEquals(null, empty.getCustomerType());
+        assertEquals(null, empty.getType());
+        assertEquals(null, empty.getCurrency());
+        assertEquals(null, empty.getHolders());
+        assertEquals(null, empty.getAuthorizedSigners());
+    }
+
+    @Test
+    void builder_returnsDistinctInstances() {
+        CreateAccountCommand first = CreateAccountCommand.builder().customerId("a").build();
+        CreateAccountCommand second = CreateAccountCommand.builder().customerId("b").build();
+
+        assertNotEquals(first, second);
+        assertEquals("a", first.getCustomerId());
+        assertEquals("b", second.getCustomerId());
+    }
 }

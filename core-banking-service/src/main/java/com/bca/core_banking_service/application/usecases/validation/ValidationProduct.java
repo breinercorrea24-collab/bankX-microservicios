@@ -59,6 +59,11 @@ public class ValidationProduct {
             AccountType type,
             CustomerType customerType) {
 
+        if (customerType == null) {
+            log.info("No specific rules -> allowing creation (customerType null)");
+            return Mono.empty();
+        }
+
         switch (customerType) {
 
             case PERSONAL:
