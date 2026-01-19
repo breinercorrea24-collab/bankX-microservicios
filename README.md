@@ -48,4 +48,9 @@ docker exec -it broker kafka-console-producer --bootstrap-server broker:29092 --
 docker exec -it broker kafka-console-consumer --bootstrap-server broker:29092 --topic account-events
 ```
 
+▶️ Test
+    mvn clean test
+    mvn jacoco:report
 
+http://localhost:8081/account-service/swagger-ui.html
+http://localhost:8082/cards-service/swagger-ui.html
