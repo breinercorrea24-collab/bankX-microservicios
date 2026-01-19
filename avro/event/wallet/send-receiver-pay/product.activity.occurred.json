@@ -1,0 +1,17 @@
+{
+  "eventId": "evt-1001",
+
+  "productType": "BANK_ACCOUNT",
+  "productId": "acc-001",
+  "subType": "SAVINGS",
+
+  "customerId": "cust-001",
+
+  "movementType": "DEPOSIT",
+  "amount": 500,
+  "currency": "PEN",
+
+  "commission": 0,
+
+  "transactionDate": "2025-02-15T10:30:00Z"
+}

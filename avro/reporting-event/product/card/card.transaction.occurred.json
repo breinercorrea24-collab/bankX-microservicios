@@ -1,0 +1,9 @@
+{
+  "eventId": "evt-card-001",
+  "cardId": "card-001",
+  "maskedNumber": "****1234",
+  "movementType": "PURCHASE",
+  "amount": 250,
+  "merchant": "Wong",
+  "transactionDate": "2025-01-25T14:30:00Z"
+}

@@ -1,0 +1,8 @@
+{
+  "eventType": "CREDIT_CREATED",
+  "customerId": "cust-001",
+  "creditId": "cred-001",
+  "amount": 15000,
+  "balance": 12000,
+  "status": "ACTIVE"
+}

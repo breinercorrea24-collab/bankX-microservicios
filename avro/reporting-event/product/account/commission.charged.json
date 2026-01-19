@@ -1,0 +1,14 @@
+{
+  "eventId": "evt-comm-001",
+  "customerId": "cust-001",
+
+  "productType": "BANK_ACCOUNT",
+  "productId": "acc-001",
+  "accountType": "CURRENT",
+
+  "commissionType": "MAINTENANCE",
+  "amount": 15,
+  "currency": "PEN",
+
+  "chargedAt": "2025-02-01T00:01:00Z"
+}

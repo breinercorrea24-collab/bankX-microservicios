@@ -1,0 +1,6 @@
+{
+  "eventType": "CARD_CREATED",
+  "customerId": "cust-001",
+  "walletId": "boot-001",
+  "type": "DEBIT"
+}

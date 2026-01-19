@@ -1,0 +1,7 @@
+{
+  "eventType": "ACCOUNT_CREATED",
+  "customerId": "cust-001",
+  "accountId": "acc-001",
+  "type": "SAVINGS",
+  "currency": "PEN"
+}
