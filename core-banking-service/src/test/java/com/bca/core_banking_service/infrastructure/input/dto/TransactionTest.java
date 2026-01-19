@@ -1,6 +1,7 @@
 package com.bca.core_banking_service.infrastructure.input.dto;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -132,5 +133,51 @@ class TransactionTest {
         assertEquals(tx1.hashCode(), tx2.hashCode());
         // touch toString() as well
         assertTrue(tx1.toString().contains("tx-4"));
+    }
+
+    @Test
+    void equals_returnsFalseForDifferentContentOrType() {
+        LocalDateTime now = LocalDateTime.now();
+        Transaction tx1 = new Transaction(
+                "tx-5",
+                "acc-5",
+                null,
+                null,
+                Transaction.TransactionType.DEPOSIT,
+                BigDecimal.ONE,
+                BigDecimal.TEN,
+                now);
+
+        Transaction different = new Transaction(
+                "tx-5",
+                "acc-OTHER",
+                null,
+                null,
+                Transaction.TransactionType.WITHDRAW,
+                BigDecimal.ONE,
+                BigDecimal.TEN,
+                now);
+
+        assertTrue(!tx1.equals(different));
+        assertTrue(!tx1.equals("not-a-transaction"));
+        assertTrue(!tx1.equals(null));
+    }
+
+    @Test
+    void builder_methodReturnsFreshBuilderInstances() {
+        Transaction.TransactionBuilder b1 = Transaction.builder();
+        Transaction.TransactionBuilder b2 = Transaction.builder();
+
+        assertNotNull(b1);
+        assertNotNull(b2);
+        assertTrue(b1 != b2);
+
+        Transaction built = b1.id("tx-6")
+                .accountId("acc-6")
+                .type(Transaction.TransactionType.DEPOSIT)
+                .build();
+        assertEquals("tx-6", built.getId());
+        assertEquals("acc-6", built.getAccountId());
+        assertEquals(Transaction.TransactionType.DEPOSIT, built.getType());
     }
 }
