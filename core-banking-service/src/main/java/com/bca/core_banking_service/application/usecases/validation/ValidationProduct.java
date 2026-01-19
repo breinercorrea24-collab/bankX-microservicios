@@ -5,7 +5,7 @@ import com.bca.core_banking_service.domain.model.enums.account.AccountType;
 import com.bca.core_banking_service.domain.model.enums.account.CustomerType;
 import com.bca.core_banking_service.domain.ports.output.persistence.AccountRepository;
 import com.bca.core_banking_service.domain.ports.output.persistence.CreditRepository;
-import com.bca.core_banking_service.infrastructure.output.rest.ExternalCardsWebClientAdapter;
+import com.bca.core_banking_service.domain.ports.output.rest.ExternalCardsClient;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +15,7 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class ValidationProduct {
 
-    private final ExternalCardsWebClientAdapter externalCardsClient;
+    private final ExternalCardsClient externalCardsClient;
     private final AccountRepository accountRepository;
     private final CreditRepository creditRepository;
 
@@ -59,37 +59,28 @@ public class ValidationProduct {
             AccountType type,
             CustomerType customerType) {
 
-        if (customerType == null) {
-            log.info("No specific rules -> allowing creation (customerType null)");
-            return Mono.empty();
+        if (customerType == CustomerType.PERSONAL) {
+            log.info("Applying PERSONAL rules");
+            return validator.validatePersonalCustomer(customerId, type, customerType);
         }
 
-        switch (customerType) {
-
-            case PERSONAL:
-                log.info("Applying PERSONAL rules");
-                return validator
-                        .validatePersonalCustomer(customerId, type, customerType);
-
-            case BUSINESS:
-                log.info("Applying BUSINESS rules");
-                return validator
-                        .validateBusinessCustomer(customerId, type, customerType);
-
-            case VIPPERSONAL:
-                log.info("Applying VIPPERSONAL rules");
-                return validator
-                        .validateVipPersonalCustomer(customerId, type, customerType);
-
-            case PYMEBUSINESS:
-                log.info("Applying PYMEBUSINESS rules");
-                return validator
-                        .validatePymeBusinessCustomer(customerId, type, customerType);
-
-            default:
-                log.info("No specific rules -> allowing creation");
-                return Mono.empty();
+        if (customerType == CustomerType.BUSINESS) {
+            log.info("Applying BUSINESS rules");
+            return validator.validateBusinessCustomer(customerId, type, customerType);
         }
+
+        if (customerType == CustomerType.VIPPERSONAL) {
+            log.info("Applying VIPPERSONAL rules");
+            return validator.validateVipPersonalCustomer(customerId, type, customerType);
+        }
+
+        if (customerType == CustomerType.PYMEBUSINESS) {
+            log.info("Applying PYMEBUSINESS rules");
+            return validator.validatePymeBusinessCustomer(customerId, type, customerType);
+        }
+
+        log.info("No specific rules -> allowing creation");
+        return Mono.empty();
     }
 
     private Mono<Void> validateByCustomerType(String customerId, AccountType type, CustomerType customerType) {

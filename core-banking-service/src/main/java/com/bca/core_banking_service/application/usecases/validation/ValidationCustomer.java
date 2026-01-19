@@ -6,7 +6,7 @@ import com.bca.core_banking_service.domain.exceptions.BusinessException;
 import com.bca.core_banking_service.domain.model.enums.account.AccountType;
 import com.bca.core_banking_service.domain.model.enums.account.CustomerType;
 import com.bca.core_banking_service.domain.ports.output.persistence.AccountRepository;
-import com.bca.core_banking_service.infrastructure.output.rest.ExternalCardsWebClientAdapter;
+import com.bca.core_banking_service.domain.ports.output.rest.ExternalCardsClient;
 
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
@@ -15,7 +15,7 @@ import reactor.core.publisher.Mono;
 public class ValidationCustomer {
 
     private final AccountRepository accountRepository;
-    private final ExternalCardsWebClientAdapter externalCardsClient;
+    private final ExternalCardsClient externalCardsClient;
 
     public Mono<Void> validatePersonalCustomer(String customerId, AccountType type, CustomerType customerType) {
 

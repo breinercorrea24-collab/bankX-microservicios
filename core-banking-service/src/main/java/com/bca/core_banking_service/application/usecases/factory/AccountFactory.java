@@ -23,6 +23,10 @@ public class AccountFactory {
 
         Account account;
 
+        if (cmd.getType() == null) {
+            throw new BusinessException("Invalid account type");
+        }
+
         // ...existing code...
         switch (cmd.getType()) {
 

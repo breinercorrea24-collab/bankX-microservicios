@@ -24,7 +24,7 @@ import com.bca.core_banking_service.domain.model.enums.account.CustomerType;
 import com.bca.core_banking_service.domain.model.product.account.SavingsAccount;
 import com.bca.core_banking_service.domain.ports.output.persistence.AccountRepository;
 import com.bca.core_banking_service.domain.ports.output.persistence.CreditRepository;
-import com.bca.core_banking_service.infrastructure.output.rest.ExternalCardsWebClientAdapter;
+import com.bca.core_banking_service.domain.ports.output.rest.ExternalCardsClient;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -34,7 +34,7 @@ import reactor.test.StepVerifier;
 class ValidationProductTest {
 
     @Mock
-    private ExternalCardsWebClientAdapter externalCardsClient;
+    private ExternalCardsClient externalCardsClient;
     @Mock
     private AccountRepository accountRepository;
     @Mock
@@ -230,6 +230,28 @@ class ValidationProductTest {
 
     @Test
     void applyCustomerRules_defaultBranchReturnsEmptyWhenCustomerTypeUnknown() throws Exception {
+        ValidationCustomer validator = Mockito.mock(ValidationCustomer.class);
+
+        invokeApplyCustomerRules(validator, "cust", AccountType.SAVINGS, null)
+                .verifyComplete();
+
+        Mockito.verifyNoInteractions(validator);
+    }
+
+    @Test
+    void applyCustomerRules_dispatchesSwitchForPersonal() throws Exception {
+        ValidationCustomer validator = Mockito.mock(ValidationCustomer.class);
+        when(validator.validatePersonalCustomer("cust", AccountType.SAVINGS, CustomerType.PERSONAL))
+                .thenReturn(Mono.empty());
+
+        invokeApplyCustomerRules(validator, "cust", AccountType.SAVINGS, CustomerType.PERSONAL)
+                .verifyComplete();
+
+        verify(validator).validatePersonalCustomer("cust", AccountType.SAVINGS, CustomerType.PERSONAL);
+    }
+
+    @Test
+    void applyCustomerRules_defaultBranchForUnknownCustomerType() throws Exception {
         ValidationCustomer validator = Mockito.mock(ValidationCustomer.class);
 
         invokeApplyCustomerRules(validator, "cust", AccountType.SAVINGS, null)
