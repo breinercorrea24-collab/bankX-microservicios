@@ -7,10 +7,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
+import java.lang.reflect.Method;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
@@ -157,5 +159,71 @@ class ValidationProductTest {
                 CustomerType.PERSONAL))
                 .expectError(BusinessException.class)
                 .verify();
+    }
+
+    @Test
+    void applyCustomerRules_dispatchesToPersonalValidator() throws Exception {
+        ValidationCustomer validator = Mockito.mock(ValidationCustomer.class);
+        when(validator.validatePersonalCustomer("cust", AccountType.SAVINGS, CustomerType.PERSONAL))
+                .thenReturn(Mono.empty());
+
+        invokeApplyCustomerRules(validator, "cust", AccountType.SAVINGS, CustomerType.PERSONAL)
+                .verifyComplete();
+
+        verify(validator).validatePersonalCustomer("cust", AccountType.SAVINGS, CustomerType.PERSONAL);
+    }
+
+    @Test
+    void applyCustomerRules_dispatchesToBusinessValidator() throws Exception {
+        ValidationCustomer validator = Mockito.mock(ValidationCustomer.class);
+        when(validator.validateBusinessCustomer("cust", AccountType.CHECKING, CustomerType.BUSINESS))
+                .thenReturn(Mono.empty());
+
+        invokeApplyCustomerRules(validator, "cust", AccountType.CHECKING, CustomerType.BUSINESS)
+                .verifyComplete();
+
+        verify(validator).validateBusinessCustomer("cust", AccountType.CHECKING, CustomerType.BUSINESS);
+    }
+
+    @Test
+    void applyCustomerRules_dispatchesToVipPersonalValidator() throws Exception {
+        ValidationCustomer validator = Mockito.mock(ValidationCustomer.class);
+        when(validator.validateVipPersonalCustomer("cust", AccountType.VIP_SAVINGS, CustomerType.VIPPERSONAL))
+                .thenReturn(Mono.empty());
+
+        invokeApplyCustomerRules(validator, "cust", AccountType.VIP_SAVINGS, CustomerType.VIPPERSONAL)
+                .verifyComplete();
+
+        verify(validator).validateVipPersonalCustomer("cust", AccountType.VIP_SAVINGS, CustomerType.VIPPERSONAL);
+    }
+
+    @Test
+    void applyCustomerRules_dispatchesToPymeBusinessValidator() throws Exception {
+        ValidationCustomer validator = Mockito.mock(ValidationCustomer.class);
+        when(validator.validatePymeBusinessCustomer("cust", AccountType.PYME_CHECKING, CustomerType.PYMEBUSINESS))
+                .thenReturn(Mono.empty());
+
+        invokeApplyCustomerRules(validator, "cust", AccountType.PYME_CHECKING, CustomerType.PYMEBUSINESS)
+                .verifyComplete();
+
+        verify(validator).validatePymeBusinessCustomer("cust", AccountType.PYME_CHECKING, CustomerType.PYMEBUSINESS);
+    }
+
+    private StepVerifier.FirstStep<Void> invokeApplyCustomerRules(
+            ValidationCustomer validator,
+            String customerId,
+            AccountType type,
+            CustomerType customerType) throws Exception {
+
+        Method method = ValidationProduct.class.getDeclaredMethod(
+                "applyCustomerRules",
+                ValidationCustomer.class,
+                String.class,
+                AccountType.class,
+                CustomerType.class);
+        method.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        Mono<Void> result = (Mono<Void>) method.invoke(validationProduct, validator, customerId, type, customerType);
+        return StepVerifier.create(result);
     }
 }

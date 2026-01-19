@@ -12,6 +12,7 @@ import java.lang.reflect.Method;
 import java.math.BigDecimal;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import com.bca.core_banking_service.domain.model.enums.account.AccountType;
 import com.bca.core_banking_service.domain.model.enums.product.ProductStatus;
@@ -233,6 +234,16 @@ class CustomerApiMapperTest {
             }
         };
         assertThrows(IllegalArgumentException.class, () -> CustomerApiMapper.toPolymorphicResponse(unsupported));
+    }
+
+    @Test
+    void toPolymorphicResponse_whenTypeDoesNotMatchInstance_throwsClassCast() {
+        // Mismatch: type says CHECKING but object is SavingsAccount; switch enters CHECKING and cast blows up
+        Account mismatched = new SavingsAccount("cust-y", "USD", ProductStatus.ACTIVE, AccountType.SAVINGS,
+                1, BigDecimal.ONE, BigDecimal.ONE);
+        mismatched.setType(AccountType.CHECKING);
+
+        assertThrows(ClassCastException.class, () -> CustomerApiMapper.toPolymorphicResponse(mismatched));
     }
 
     @Test
