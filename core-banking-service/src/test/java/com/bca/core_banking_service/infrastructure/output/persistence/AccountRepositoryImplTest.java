@@ -1,6 +1,6 @@
 package com.bca.core_banking_service.infrastructure.output.persistence;
 
-import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -16,7 +16,6 @@ import com.bca.core_banking_service.domain.model.enums.account.AccountType;
 import com.bca.core_banking_service.domain.model.enums.product.ProductStatus;
 import com.bca.core_banking_service.domain.model.product.account.Account;
 import com.bca.core_banking_service.domain.model.product.account.SavingsAccount;
-import com.bca.core_banking_service.domain.ports.output.persistence.AccountRepository;
 import com.bca.core_banking_service.infrastructure.output.persistence.repository.AccountMongoRepository;
 
 import reactor.core.publisher.Flux;
@@ -29,28 +28,17 @@ class AccountRepositoryImplTest {
     @Mock
     private AccountMongoRepository mongoRepository;
 
-    private AccountRepository repository;
-
-    private SavingsAccount account;
+    private AccountRepositoryImpl repository;
 
     @BeforeEach
     void setUp() {
         repository = new AccountRepositoryImpl(mongoRepository);
-        account = new SavingsAccount(
-                "customer-1",
-                "USD",
-                ProductStatus.ACTIVE,
-                AccountType.SAVINGS,
-                5,
-                BigDecimal.ZERO,
-                BigDecimal.valueOf(100));
-        account.setId("acc-1");
     }
 
     @Test
-    void save_returnsResultFromMongoRepository() {
-        Mono<SavingsAccount> expected = Mono.just(account);
-        when(mongoRepository.save(account)).thenReturn(expected);
+    void save_delegatesToMongoRepository() {
+        Account account = sampleAccount("cust-1");
+        when(mongoRepository.save(account)).thenReturn(Mono.just(account));
 
         StepVerifier.create(repository.save(account))
                 .expectNext(account)
@@ -60,7 +48,8 @@ class AccountRepositoryImplTest {
     }
 
     @Test
-    void findById_returnsMatchingAccount() {
+    void findById_delegatesToMongoRepository() {
+        Account account = sampleAccount("cust-2");
         when(mongoRepository.findById("acc-1")).thenReturn(Mono.just(account));
 
         StepVerifier.create(repository.findById("acc-1"))
@@ -71,27 +60,40 @@ class AccountRepositoryImplTest {
     }
 
     @Test
-    void findByCustomerId_returnsFluxFromMongoRepository() {
-        Flux<Account> expected = Flux.just(account);
-        when(mongoRepository.findByCustomerId("customer-1")).thenReturn(expected);
+    void findByCustomerId_delegatesToMongoRepository() {
+        Account account = sampleAccount("cust-3");
+        when(mongoRepository.findByCustomerId("cust-3")).thenReturn(Flux.just(account));
 
-        StepVerifier.create(repository.findByCustomerId("customer-1"))
+        StepVerifier.create(repository.findByCustomerId("cust-3"))
                 .expectNext(account)
                 .verifyComplete();
 
-        verify(mongoRepository).findByCustomerId("customer-1");
+        verify(mongoRepository).findByCustomerId("cust-3");
     }
 
     @Test
-    void findByCustomerIdAndType_returnsMonoFromMongoRepository() {
-        Mono<Account> expected = Mono.just(account);
-        when(mongoRepository.findByCustomerIdAndType("customer-1", AccountType.SAVINGS))
-                .thenReturn(expected);
+    void findByCustomerIdAndType_delegatesToMongoRepository() {
+        Account account = sampleAccount("cust-4");
+        when(mongoRepository.findByCustomerIdAndType("cust-4", AccountType.SAVINGS))
+                .thenReturn(Mono.just(account));
 
-        StepVerifier.create(repository.findByCustomerIdAndType("customer-1", AccountType.SAVINGS))
+        StepVerifier.create(repository.findByCustomerIdAndType("cust-4", AccountType.SAVINGS))
                 .expectNext(account)
                 .verifyComplete();
 
-        verify(mongoRepository).findByCustomerIdAndType("customer-1", AccountType.SAVINGS);
+        verify(mongoRepository).findByCustomerIdAndType("cust-4", AccountType.SAVINGS);
+    }
+
+    private SavingsAccount sampleAccount(String customerId) {
+        SavingsAccount account = new SavingsAccount(
+                customerId,
+                "USD",
+                ProductStatus.ACTIVE,
+                AccountType.SAVINGS,
+                5,
+                BigDecimal.ZERO,
+                BigDecimal.valueOf(100));
+        account.setId("acc-1");
+        return account;
     }
 }

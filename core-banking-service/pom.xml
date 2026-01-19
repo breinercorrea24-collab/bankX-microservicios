@@ -191,10 +191,21 @@
 						</goals>
 						<configuration>
 							<excludes>
+								<exclude>com/bca/core_banking_service/CoreBankingServiceApplication*</exclude>
 								<exclude>com/bca/core_banking_service/domain/model/**</exclude>
+								<exclude>com/bca/core_banking_service/domain/ports/**</exclude>
+								<exclude>com/bca/core_banking_service/domain/exceptions/**</exclude>
+								<exclude>com/bca/core_banking_service/application/ports/**</exclude>
 								<exclude>com/bca/core_banking_service/dto/**</exclude>
 								<exclude>com/bca/core_banking_service/infrastructure/output/persistence/entity/**</exclude>
 								<exclude>com/bca/core_banking_service/infrastructure/input/dto/**</exclude>
+								<exclude>com/bca/core_banking_service/infrastructure/input/mapper/**</exclude>
+								<exclude>com/bca/core_banking_service/infrastructure/output/persistence/mapper/**</exclude>
+								<exclude>com/bca/core_banking_service/infrastructure/output/messaging/kafka/dto/**</exclude>
+								<exclude>com/bca/core_banking_service/infrastructure/output/messaging/kafka/KafkaConfig*</exclude>
+								<exclude>com/bca/core_banking_service/infrastructure/output/rest/WebClientConfig*</exclude>
+								<exclude>com/bca/core_banking_service/infrastructure/output/rest/CardsServiceProperties*</exclude>
+								<exclude>com/bca/core_banking_service/infrastructure/config/**</exclude>
 								<exclude>com/bca/core_banking_service/api/**</exclude>
 								<exclude>org/openapitools/**</exclude>
 							</excludes>

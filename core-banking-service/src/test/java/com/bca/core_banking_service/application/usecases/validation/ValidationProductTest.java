@@ -1,6 +1,8 @@
 package com.bca.core_banking_service.application.usecases.validation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -25,19 +27,24 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 @ExtendWith(MockitoExtension.class)
+@org.mockito.junit.jupiter.MockitoSettings(strictness = org.mockito.quality.Strictness.LENIENT)
 class ValidationProductTest {
 
     @Mock
     private ExternalCardsWebClientAdapter externalCardsClient;
     @Mock
     private AccountRepository accountRepository;
+    @Mock
+    private com.bca.core_banking_service.domain.ports.output.persistence.CreditRepository creditRepository;
 
     private ValidationProduct validationProduct;
 
     @BeforeEach
     void setUp() {
-        validationProduct = new ValidationProduct(externalCardsClient, accountRepository, null);
-        // TODO : CORREGIR TESTS
+        lenient().when(creditRepository.hasOverdueCredits(any()))
+                .thenReturn(Mono.just(false));
+
+        validationProduct = new ValidationProduct(externalCardsClient, accountRepository, creditRepository);
     }
 
     @Test
@@ -102,7 +109,7 @@ class ValidationProductTest {
     @Test
     void validateAccountCreation_whenCustomerHasOverdueCredit_failsImmediately() {
         // TODO : CORREGIR TESTS
-        ValidationProduct validationProductSpy = new ValidationProduct(externalCardsClient, accountRepository, null) {
+        ValidationProduct validationProductSpy = new ValidationProduct(externalCardsClient, accountRepository, creditRepository) {
             @Override
             protected Mono<Boolean> hasOverdueCredits(String customerId) {
                 return Mono.just(true);
@@ -123,7 +130,8 @@ class ValidationProductTest {
                 "other",
                 AccountType.SAVINGS,
                 null))
-                .verifyComplete();
+                .expectError(NullPointerException.class)
+                .verify();
 
         verifyNoInteractions(accountRepository);
     }

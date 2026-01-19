@@ -1,71 +1,73 @@
 package com.bca.core_banking_service.infrastructure.output.persistence.mapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import java.lang.reflect.InvocationTargetException;
-
 import org.junit.jupiter.api.Test;
 
 import com.bca.core_banking_service.infrastructure.input.dto.Transaction;
-import com.bca.core_banking_service.infrastructure.input.dto.Transaction.TransactionType;
 import com.bca.core_banking_service.infrastructure.output.persistence.entity.TransactionEntity;
 
 class TransactionMapperTest {
 
     @Test
-    void toDomain_mapsEntityToDto() {
-        LocalDateTime timestamp = LocalDateTime.now();
+    void toDomain_mapsAllFields() {
+        LocalDateTime now = LocalDateTime.now();
         TransactionEntity entity = new TransactionEntity(
                 "tx-1",
                 "acc-1",
-                "acc-1",
-                "acc-2",
-                TransactionEntity.TransactionType.TRANSFER,
+                null,
+                null,
+                TransactionEntity.TransactionType.DEPOSIT,
                 BigDecimal.TEN,
-                BigDecimal.valueOf(100),
-                timestamp);
-
-        Transaction transaction = TransactionMapper.toDomain(entity);
-
-        assertEquals("tx-1", transaction.getId());
-        assertEquals("acc-1", transaction.getAccountId());
-        assertEquals(TransactionType.TRANSFER, transaction.getType());
-        assertEquals(BigDecimal.TEN, transaction.getAmount());
-        assertEquals(timestamp, transaction.getTimestamp());
-    }
-
-    @Test
-    void toEntity_mapsDtoToEntity() {
-        LocalDateTime timestamp = LocalDateTime.now();
-        Transaction dto = new Transaction(
-                "tx-2",
-                "acc-3",
-                "acc-3",
-                "acc-4",
-                TransactionType.DEPOSIT,
                 BigDecimal.valueOf(50),
-                BigDecimal.valueOf(200),
-                timestamp);
+                now);
 
-        TransactionEntity entity = TransactionMapper.toEntity(dto);
+        Transaction domain = TransactionMapper.toDomain(entity);
 
-        assertEquals("tx-2", entity.getId());
-        assertEquals("acc-3", entity.getAccountId());
-        assertEquals(TransactionEntity.TransactionType.DEPOSIT, entity.getType());
-        assertEquals(BigDecimal.valueOf(50), entity.getAmount());
-        assertEquals(timestamp, entity.getTimestamp());
+        assertEquals(entity.getId(), domain.getId());
+        assertEquals(entity.getAccountId(), domain.getAccountId());
+        assertEquals(entity.getType().name(), domain.getType().name());
+        assertEquals(entity.getAmount(), domain.getAmount());
+        assertEquals(entity.getBalance(), domain.getBalance());
+        assertEquals(entity.getTimestamp(), domain.getTimestamp());
     }
 
     @Test
-    void constructorIsPrivate() throws Exception {
-        var constructor = TransactionMapper.class.getDeclaredConstructor();
-        constructor.setAccessible(true);
-        InvocationTargetException thrown = assertThrows(InvocationTargetException.class, constructor::newInstance);
-        assertInstanceOf(IllegalStateException.class, thrown.getTargetException());
+    void toEntity_mapsAllFields() {
+        LocalDateTime now = LocalDateTime.now();
+        Transaction domain = new Transaction(
+                "tx-2",
+                "acc-2",
+                "from-acc",
+                "to-acc",
+                Transaction.TransactionType.TRANSFER,
+                BigDecimal.ONE,
+                BigDecimal.valueOf(200),
+                now);
+
+        TransactionEntity entity = TransactionMapper.toEntity(domain);
+
+        assertEquals(domain.getId(), entity.getId());
+        assertEquals(domain.getAccountId(), entity.getAccountId());
+        assertEquals(domain.getFromAccountId(), entity.getFromAccountId());
+        assertEquals(domain.getToAccountId(), entity.getToAccountId());
+        assertEquals(domain.getType().name(), entity.getType().name());
+        assertEquals(domain.getAmount(), entity.getAmount());
+        assertEquals(domain.getBalance(), entity.getBalance());
+        assertEquals(domain.getTimestamp(), entity.getTimestamp());
+    }
+
+    @Test
+    void constructor_isInaccessible() {
+        var ex = assertThrows(java.lang.reflect.InvocationTargetException.class, () -> {
+            var ctor = TransactionMapper.class.getDeclaredConstructor();
+            ctor.setAccessible(true);
+            ctor.newInstance();
+        });
+        assertEquals(IllegalStateException.class, ex.getCause().getClass());
     }
 }

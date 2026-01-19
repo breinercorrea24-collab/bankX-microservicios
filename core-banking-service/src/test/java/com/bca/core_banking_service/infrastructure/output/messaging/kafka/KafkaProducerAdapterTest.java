@@ -1,11 +1,11 @@
 package com.bca.core_banking_service.infrastructure.output.messaging.kafka;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import java.math.BigDecimal;
-import java.util.concurrent.CompletableFuture;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,11 +13,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.support.SendResult;
 
 import com.bca.core_banking_service.infrastructure.output.messaging.kafka.dto.AccountDepositEvent;
 import com.bca.core_banking_service.infrastructure.output.messaging.kafka.dto.AccountWithdrawalEvent;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @ExtendWith(MockitoExtension.class)
@@ -25,7 +23,6 @@ class KafkaProducerAdapterTest {
 
     @Mock
     private KafkaTemplate<String, String> kafkaTemplate;
-
     @Mock
     private ObjectMapper objectMapper;
 
@@ -37,44 +34,44 @@ class KafkaProducerAdapterTest {
     }
 
     @Test
-    void publishDeposit_serializesEventAndSendsToKafka() throws Exception {
-        AccountDepositEvent event = new AccountDepositEvent("acc-1", BigDecimal.ONE, BigDecimal.TEN);
-        when(objectMapper.writeValueAsString(event)).thenReturn("{\"event\":\"deposit\"}");
-        CompletableFuture<SendResult<String, String>> future = CompletableFuture.completedFuture(null);
-        when(kafkaTemplate.send("account-events", "{\"event\":\"deposit\"}")).thenReturn(future);
+    void publishDeposit_sendsSerializedEventToTopic() throws Exception {
+        AccountDepositEvent event = new AccountDepositEvent("acc-1", null, null);
+        doReturn("{\"id\":\"acc-1\"}").when(objectMapper).writeValueAsString(event);
+        doReturn(null).when(kafkaTemplate).send("account-events", "{\"id\":\"acc-1\"}");
 
         adapter.publishDeposit(event);
 
         verify(objectMapper).writeValueAsString(event);
-        verify(kafkaTemplate).send("account-events", "{\"event\":\"deposit\"}");
+        verify(kafkaTemplate).send("account-events", "{\"id\":\"acc-1\"}");
     }
 
     @Test
-    void publishWithdraw_serializesEventAndSendsToKafka() throws Exception {
-        AccountWithdrawalEvent event = new AccountWithdrawalEvent("acc-1", BigDecimal.ONE, BigDecimal.TEN);
-        when(objectMapper.writeValueAsString(event)).thenReturn("{\"event\":\"withdraw\"}");
-        CompletableFuture<SendResult<String, String>> future = CompletableFuture.completedFuture(null);
-        when(kafkaTemplate.send("account-events", "{\"event\":\"withdraw\"}")).thenReturn(future);
+    void publishDeposit_whenSerializationFails_throwsRuntimeException() throws Exception {
+        AccountDepositEvent event = new AccountDepositEvent("acc-err", null, null);
+        when(objectMapper.writeValueAsString(any())).thenThrow(new RuntimeException("boom"));
+
+        assertThrows(RuntimeException.class, () -> adapter.publishDeposit(event));
+        verify(kafkaTemplate, never()).send(any(), any());
+    }
+
+    @Test
+    void publishWithdraw_sendsSerializedEventToTopic() throws Exception {
+        AccountWithdrawalEvent event = new AccountWithdrawalEvent("acc-2", null, null);
+        doReturn("{\"id\":\"acc-2\"}").when(objectMapper).writeValueAsString(event);
+        doReturn(null).when(kafkaTemplate).send("account-events", "{\"id\":\"acc-2\"}");
 
         adapter.publishWithdraw(event);
 
         verify(objectMapper).writeValueAsString(event);
-        verify(kafkaTemplate).send("account-events", "{\"event\":\"withdraw\"}");
+        verify(kafkaTemplate).send("account-events", "{\"id\":\"acc-2\"}");
     }
 
     @Test
-    void publishDeposit_wrapsSerializationException() throws Exception {
-        AccountDepositEvent event = new AccountDepositEvent("acc-1", BigDecimal.ONE, BigDecimal.TEN);
-        when(objectMapper.writeValueAsString(event)).thenThrow(new JsonProcessingException("boom") {});
-
-        assertThrows(RuntimeException.class, () -> adapter.publishDeposit(event));
-    }
-
-    @Test
-    void publishWithdraw_wrapsSerializationException() throws Exception {
-        AccountWithdrawalEvent event = new AccountWithdrawalEvent("acc-1", BigDecimal.ONE, BigDecimal.TEN);
-        when(objectMapper.writeValueAsString(event)).thenThrow(new JsonProcessingException("boom") {});
+    void publishWithdraw_whenSerializationFails_throwsRuntimeException() throws Exception {
+        AccountWithdrawalEvent event = new AccountWithdrawalEvent("acc-err", null, null);
+        when(objectMapper.writeValueAsString(any())).thenThrow(new RuntimeException("boom"));
 
         assertThrows(RuntimeException.class, () -> adapter.publishWithdraw(event));
+        verify(kafkaTemplate, never()).send(any(), any());
     }
 }

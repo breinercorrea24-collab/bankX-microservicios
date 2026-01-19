@@ -3,6 +3,7 @@ package com.bca.core_banking_service.application.usecases;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -38,6 +39,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 @ExtendWith(MockitoExtension.class)
+@org.mockito.junit.jupiter.MockitoSettings(strictness = org.mockito.quality.Strictness.LENIENT)
 class AccountUseCaseImplTest {
 
     @Mock
@@ -51,17 +53,24 @@ class AccountUseCaseImplTest {
 
     @Mock
     private AccountRepository accountRepository;
+    @Mock
+    private com.bca.core_banking_service.domain.ports.output.persistence.CreditRepository creditRepository;
 
     private AccountUseCaseImpl accountUseCase;
 
     @BeforeEach
     void setUp() {
-        // TODO : CORREGIR TESTS
         accountUseCase = new AccountUseCaseImpl(
                 transactionRepository,
                 accountEventPublisher,
                 externalCardsClient,
-                accountRepository,null);
+                accountRepository,
+                creditRepository);
+
+        lenient().when(creditRepository.hasOverdueCredits(any()))
+                .thenReturn(Mono.just(false));
+        lenient().when(accountRepository.findByCustomerId(any()))
+                .thenReturn(Flux.empty());
     }
 
     @Test

@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
@@ -23,17 +24,21 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 @ExtendWith(MockitoExtension.class)
+@org.mockito.junit.jupiter.MockitoSettings(strictness = org.mockito.quality.Strictness.LENIENT)
 class CreditUseCaseImplTest {
 
     @Mock
     private CreditRepository creditRepository;
+    @Mock
+    private com.bca.core_banking_service.application.usecases.validation.ValidationCredit validationCredit;
 
     private CreditUseCaseImpl creditUseCase;
 
     @BeforeEach
     void setUp() {
-        creditUseCase = new CreditUseCaseImpl(creditRepository, null);
-        // TODO : CORREGIR TESTS
+        creditUseCase = new CreditUseCaseImpl(creditRepository, validationCredit);
+        lenient().when(validationCredit.validateCreditCreation(any(), any(), any()))
+                .thenReturn(Mono.empty());
     }
 
     @Test
@@ -74,6 +79,31 @@ class CreditUseCaseImplTest {
                 .verify();
 
         verify(creditRepository, never()).save(any(Credit.class));
+    }
+
+    @Test
+    void createCredit_whenTermIsNull_alignsDueDateWithCreation() {
+        when(creditRepository.save(any(Credit.class)))
+                .thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
+
+        StepVerifier.create(creditUseCase.createCredit(
+                "customer-2",
+                Credit.CreditType.PERSONAL_LOAN,
+                BigDecimal.valueOf(1500),
+                null,
+                BigDecimal.valueOf(4)))
+                .assertNext(credit -> {
+                    assertEquals("customer-2", credit.getCustomerId());
+                    assertEquals(Credit.CreditType.PERSONAL_LOAN, credit.getCreditType());
+                    assertEquals(BigDecimal.valueOf(1500), credit.getOriginalAmount());
+                    assertEquals(BigDecimal.valueOf(1500), credit.getPendingDebt());
+                    assertEquals(Credit.CreditStatus.ACTIVE, credit.getStatus());
+                    assertEquals(credit.getCreatedAt(), credit.getDueDate());
+                    assertEquals(null, credit.getTermMonths());
+                })
+                .verifyComplete();
+
+        verify(creditRepository).save(any(Credit.class));
     }
 
     @Test

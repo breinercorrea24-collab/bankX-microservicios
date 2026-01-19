@@ -1,5 +1,6 @@
 package com.bca.core_banking_service.infrastructure.output.persistence;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -10,11 +11,11 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.bca.core_banking_service.infrastructure.input.dto.Transaction;
-import com.bca.core_banking_service.infrastructure.input.dto.Transaction.TransactionType;
 import com.bca.core_banking_service.infrastructure.output.persistence.entity.TransactionEntity;
 import com.bca.core_banking_service.infrastructure.output.persistence.repository.TransactionMongoRepository;
 
@@ -29,48 +30,47 @@ class TransactionRepositoryImplTest {
 
     private TransactionRepositoryImpl repository;
 
-    private Transaction transaction;
-
     @BeforeEach
     void setUp() {
         repository = new TransactionRepositoryImpl(mongoRepository);
-        transaction = Transaction.builder()
-                .id("tx-1")
-                .accountId("acc-1")
-                .fromAccountId("acc-1")
-                .toAccountId("acc-2")
-                .type(TransactionType.TRANSFER)
-                .amount(BigDecimal.TEN)
-                .balance(BigDecimal.valueOf(100))
-                .timestamp(LocalDateTime.now())
-                .build();
     }
 
     @Test
-    void save_mapsEntityAndReturnsDomainTransaction() {
-        TransactionEntity savedEntity = new TransactionEntity(
-                "tx-1",
-                "acc-1",
-                "acc-1",
-                "acc-2",
-                TransactionEntity.TransactionType.TRANSFER,
-                BigDecimal.TEN,
-                BigDecimal.valueOf(100),
-                transaction.getTimestamp());
+    void save_mapsDomainToEntityAndBack() {
+        LocalDateTime now = LocalDateTime.now();
+        Transaction tx = Transaction.builder()
+                .id(null)
+                .accountId("acc-1")
+                .fromAccountId(null)
+                .toAccountId(null)
+                .type(Transaction.TransactionType.DEPOSIT)
+                .amount(BigDecimal.TEN)
+                .balance(BigDecimal.valueOf(100))
+                .timestamp(now)
+                .build();
 
-        when(mongoRepository.save(any(TransactionEntity.class))).thenReturn(Mono.just(savedEntity));
+        when(mongoRepository.save(any(TransactionEntity.class)))
+                .thenAnswer(invocation -> {
+                    TransactionEntity entity = invocation.getArgument(0);
+                    entity.setId("generated-id");
+                    return Mono.just(entity);
+                });
 
-        StepVerifier.create(repository.save(transaction))
+        StepVerifier.create(repository.save(tx))
                 .assertNext(saved -> {
-                    // All fields should match the saved entity (after mapper round-trip)
-                    org.junit.jupiter.api.Assertions.assertEquals(savedEntity.getId(), saved.getId());
-                    org.junit.jupiter.api.Assertions.assertEquals(savedEntity.getAccountId(), saved.getAccountId());
-                    org.junit.jupiter.api.Assertions.assertEquals(TransactionType.TRANSFER, saved.getType());
-                    org.junit.jupiter.api.Assertions.assertEquals(savedEntity.getAmount(), saved.getAmount());
-                    org.junit.jupiter.api.Assertions.assertEquals(savedEntity.getBalance(), saved.getBalance());
+                    assertEquals("generated-id", saved.getId());
+                    assertEquals(tx.getAccountId(), saved.getAccountId());
+                    assertEquals(tx.getType(), saved.getType());
+                    assertEquals(tx.getAmount(), saved.getAmount());
+                    assertEquals(tx.getBalance(), saved.getBalance());
+                    assertEquals(tx.getTimestamp(), saved.getTimestamp());
                 })
                 .verifyComplete();
 
-        verify(mongoRepository).save(any(TransactionEntity.class));
+        ArgumentCaptor<TransactionEntity> captor = ArgumentCaptor.forClass(TransactionEntity.class);
+        verify(mongoRepository).save(captor.capture());
+        assertEquals(tx.getAccountId(), captor.getValue().getAccountId());
+        assertEquals(tx.getType().name(), captor.getValue().getType().name());
+        assertEquals(tx.getAmount(), captor.getValue().getAmount());
     }
 }
