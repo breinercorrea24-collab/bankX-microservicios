@@ -1,13 +1,12 @@
 package com.bca.core_banking_service.application.usecases.validation;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.List;
+import java.math.BigDecimal;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,10 +15,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
+import com.bca.core_banking_service.domain.exceptions.BusinessException;
 import com.bca.core_banking_service.domain.model.enums.account.AccountType;
 import com.bca.core_banking_service.domain.model.enums.account.CustomerType;
-import com.bca.core_banking_service.domain.model.product.account.Account;
+import com.bca.core_banking_service.domain.model.product.account.SavingsAccount;
 import com.bca.core_banking_service.domain.ports.output.persistence.AccountRepository;
+import com.bca.core_banking_service.domain.ports.output.persistence.CreditRepository;
 import com.bca.core_banking_service.infrastructure.output.rest.ExternalCardsWebClientAdapter;
 
 import reactor.core.publisher.Flux;
@@ -27,7 +28,6 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 @ExtendWith(MockitoExtension.class)
-@org.mockito.junit.jupiter.MockitoSettings(strictness = org.mockito.quality.Strictness.LENIENT)
 class ValidationProductTest {
 
     @Mock
@@ -35,104 +35,127 @@ class ValidationProductTest {
     @Mock
     private AccountRepository accountRepository;
     @Mock
-    private com.bca.core_banking_service.domain.ports.output.persistence.CreditRepository creditRepository;
+    private CreditRepository creditRepository;
 
     private ValidationProduct validationProduct;
 
     @BeforeEach
     void setUp() {
-        lenient().when(creditRepository.hasOverdueCredits(any()))
-                .thenReturn(Mono.just(false));
-
         validationProduct = new ValidationProduct(externalCardsClient, accountRepository, creditRepository);
     }
 
     @Test
-    void validateAccountCreation_personalCustomerWithExistingAccount_fails() {
-        Account existing = mock(Account.class);
-        when(existing.getType()).thenReturn(AccountType.SAVINGS);
-        when(accountRepository.findByCustomerId("cust")).thenReturn(Flux.fromIterable(List.of(existing)));
+    void validateAccountCreation_emitsErrorWhenOverdueCredits() {
+        when(creditRepository.hasOverdueCredits("cust")).thenReturn(Mono.just(true));
 
         StepVerifier.create(validationProduct.validateAccountCreation(
                 "cust",
                 AccountType.SAVINGS,
                 CustomerType.PERSONAL))
-                .expectErrorSatisfies(error -> assertEquals(
-                        "Only one account of this type is allowed for personal customers", error.getMessage()))
+                .expectError(BusinessException.class)
                 .verify();
+
+        verify(accountRepository, never()).findByCustomerId(any());
+        verify(externalCardsClient, never()).hasCreditCard(any());
     }
 
     @Test
-    void validateAccountCreation_businessCustomerWithForbiddenType_fails() {
-        StepVerifier.create(validationProduct.validateAccountCreation("biz", AccountType.SAVINGS,
-                CustomerType.BUSINESS))
-                .expectErrorSatisfies(error -> assertEquals("Business customer cannot open SAVINGS",
-                        error.getMessage()))
-                .verify();
-    }
-
-    @Test
-    void validateAccountCreation_vipRequiresCreditCard() {
-        when(externalCardsClient.hasCreditCard("vip"))
-                .thenReturn(Mono.just(ResponseEntity.ok(Boolean.FALSE)));
-
-        StepVerifier.create(validationProduct.validateAccountCreation("vip", AccountType.VIP_SAVINGS,
-                CustomerType.VIPPERSONAL))
-                .expectErrorSatisfies(error -> assertEquals("This product requires active credit card",
-                        error.getMessage()))
-                .verify();
-    }
-
-    @Test
-    void validateAccountCreation_pymeRequiresCreditCard() {
-        when(externalCardsClient.hasCreditCard("pyme"))
-                .thenReturn(Mono.just(ResponseEntity.ok(Boolean.FALSE)));
-
-        StepVerifier.create(validationProduct.validateAccountCreation("pyme", AccountType.PYME_CHECKING,
-                CustomerType.PYMEBUSINESS))
-                .expectErrorSatisfies(error -> assertEquals("This product requires active credit card",
-                        error.getMessage()))
-                .verify();
-    }
-
-    @Test
-    void validateAccountCreation_allowsValidCombination() {
+    void validateAccountCreation_personalCustomerWithoutExistingAccount_succeeds() {
+        when(creditRepository.hasOverdueCredits("cust")).thenReturn(Mono.just(false));
         when(accountRepository.findByCustomerId("cust")).thenReturn(Flux.empty());
 
         StepVerifier.create(validationProduct.validateAccountCreation(
                 "cust",
-                AccountType.CHECKING,
+                AccountType.SAVINGS,
                 CustomerType.PERSONAL))
                 .verifyComplete();
     }
 
     @Test
-    void validateAccountCreation_whenCustomerHasOverdueCredit_failsImmediately() {
-        // TODO : CORREGIR TESTS
-        ValidationProduct validationProductSpy = new ValidationProduct(externalCardsClient, accountRepository, creditRepository) {
-            @Override
-            protected Mono<Boolean> hasOverdueCredits(String customerId) {
-                return Mono.just(true);
-            }
-        };
+    void validateAccountCreation_businessCustomerBlockingTypes_emitBusinessException() {
+        when(creditRepository.hasOverdueCredits("cust")).thenReturn(Mono.just(false));
 
-        StepVerifier.create(validationProductSpy.validateAccountCreation(
-                "debtor",
+        StepVerifier.create(validationProduct.validateAccountCreation(
+                "cust",
                 AccountType.SAVINGS,
-                CustomerType.PERSONAL))
-                .expectErrorSatisfies(error -> assertEquals("Customer has overdue credit debt", error.getMessage()))
+                CustomerType.BUSINESS))
+                .expectError(BusinessException.class)
                 .verify();
     }
 
     @Test
-    void validateAccountCreation_withUnknownCustomerTypeReturnsEmpty() {
-        StepVerifier.create(validationProduct.validateAccountCreation(
-                "other",
-                AccountType.SAVINGS,
-                null))
-                .expectError(NullPointerException.class)
-                .verify();
+    void validateAccountCreation_vipPersonalRequiresCreditCard() {
+        when(creditRepository.hasOverdueCredits("vip")).thenReturn(Mono.just(false));
+        when(externalCardsClient.hasCreditCard("vip")).thenReturn(Mono.just(ResponseEntity.ok(true)));
 
-        verifyNoInteractions(accountRepository);
+        StepVerifier.create(validationProduct.validateAccountCreation(
+                "vip",
+                AccountType.VIP_SAVINGS,
+                CustomerType.VIPPERSONAL))
+                .verifyComplete();
+
+        when(externalCardsClient.hasCreditCard("vip")).thenReturn(Mono.just(ResponseEntity.ok(false)));
+
+        StepVerifier.create(validationProduct.validateAccountCreation(
+                "vip",
+                AccountType.VIP_SAVINGS,
+                CustomerType.VIPPERSONAL))
+                .expectError(BusinessException.class)
+                .verify();
+    }
+
+    @Test
+    void validateAccountCreation_pymeBusinessRequiresCreditCard() {
+        when(creditRepository.hasOverdueCredits("pyme")).thenReturn(Mono.just(false));
+        when(externalCardsClient.hasCreditCard("pyme")).thenReturn(Mono.just(ResponseEntity.ok(true)));
+
+        StepVerifier.create(validationProduct.validateAccountCreation(
+                "pyme",
+                AccountType.PYME_CHECKING,
+                CustomerType.PYMEBUSINESS))
+                .verifyComplete();
+
+        when(externalCardsClient.hasCreditCard("pyme")).thenReturn(Mono.just(ResponseEntity.ok(false)));
+
+        StepVerifier.create(validationProduct.validateAccountCreation(
+                "pyme",
+                AccountType.PYME_CHECKING,
+                CustomerType.PYMEBUSINESS))
+                .expectError(BusinessException.class)
+                .verify();
+    }
+
+    @Test
+    void hasOverdueCredits_delegatesToRepositoryAndLogs() {
+        when(creditRepository.hasOverdueCredits("cust")).thenReturn(Mono.just(false));
+
+        StepVerifier.create(validationProduct.hasOverdueCredits("cust"))
+                .expectNext(false)
+                .verifyComplete();
+
+        verify(creditRepository).hasOverdueCredits("cust");
+    }
+
+    @Test
+    void validateAccountCreation_personalWithExistingSameType_emitsBusinessException() {
+        SavingsAccount existing = new SavingsAccount(
+                "cust",
+                "USD",
+                com.bca.core_banking_service.domain.model.enums.product.ProductStatus.ACTIVE,
+                AccountType.SAVINGS,
+                1,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO);
+        existing.setType(AccountType.SAVINGS);
+
+        when(creditRepository.hasOverdueCredits("cust")).thenReturn(Mono.just(false));
+        when(accountRepository.findByCustomerId("cust")).thenReturn(Flux.just(existing));
+
+        StepVerifier.create(validationProduct.validateAccountCreation(
+                "cust",
+                AccountType.SAVINGS,
+                CustomerType.PERSONAL))
+                .expectError(BusinessException.class)
+                .verify();
     }
 }

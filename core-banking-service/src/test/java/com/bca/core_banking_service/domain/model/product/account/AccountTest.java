@@ -4,12 +4,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import java.math.BigDecimal;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
+import com.bca.core_banking_service.application.usecases.validation.BusinessAccountExtension;
+import com.bca.core_banking_service.domain.exceptions.BusinessException;
 import com.bca.core_banking_service.domain.model.enums.account.AccountType;
+import com.bca.core_banking_service.domain.model.enums.account.CustomerType;
 import com.bca.core_banking_service.domain.model.enums.product.ProductStatus;
 
 class AccountTest {
@@ -126,6 +132,64 @@ class AccountTest {
 
         second.setBalance(BigDecimal.ONE);
         assertNotEquals(first, second);
+    }
+
+    @Test
+    void isBusiness_returnsTrueForBusinessAndPyme() {
+        TestAccount account = configuredAccount();
+        account.setCustomerType(CustomerType.BUSINESS);
+        assertTrue(account.isBusiness());
+
+        account.setCustomerType(CustomerType.PYMEBUSINESS);
+        assertTrue(account.isBusiness());
+    }
+
+    @Test
+    void isBusiness_returnsFalseForPersonalAndVip() {
+        TestAccount account = configuredAccount();
+        account.setCustomerType(CustomerType.PERSONAL);
+        assertTrue(!account.isBusiness());
+
+        account.setCustomerType(CustomerType.VIPPERSONAL);
+        assertTrue(!account.isBusiness());
+    }
+
+    @Test
+    void attachBusinessExtension_setsExtensionAndValidates_whenBusinessCustomer() {
+        TestAccount account = configuredAccount();
+        account.setCustomerType(CustomerType.BUSINESS);
+        BusinessAccountExtension ext = mock(BusinessAccountExtension.class);
+
+        account.attachBusinessExtension(ext);
+
+        assertEquals(ext, account.getBusinessData());
+        verify(ext).validateBusinessRules();
+    }
+
+    @Test
+    void attachBusinessExtension_throwsWhenCustomerNotBusiness() {
+        TestAccount account = configuredAccount();
+        account.setCustomerType(CustomerType.PERSONAL);
+        BusinessAccountExtension ext = mock(BusinessAccountExtension.class);
+
+        assertThrows(BusinessException.class, () -> account.attachBusinessExtension(ext));
+        Mockito.verifyNoInteractions(ext);
+    }
+
+    @Test
+    void equalsIgnoresSuperclassFieldsBecauseCallSuperFalse() {
+        TestAccount first = configuredAccount();
+        first.setCustomerId("cust-1");
+        first.setStatus(ProductStatus.ACTIVE);
+
+        TestAccount second = configuredAccount();
+        second.setCustomerId("cust-2"); // different Product field
+        second.setStatus(ProductStatus.BLOCKED); // different Product field
+        second.setCreatedAt(first.getCreatedAt());
+
+        // Account fields are the same, so equality/hashCode should still match
+        assertEquals(first, second);
+        assertEquals(first.hashCode(), second.hashCode());
     }
 
     private TestAccount configuredAccount() {

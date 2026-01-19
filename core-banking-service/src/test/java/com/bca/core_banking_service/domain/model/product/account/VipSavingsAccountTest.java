@@ -66,6 +66,20 @@ class VipSavingsAccountTest {
     }
 
     @Test
+    void equalsIgnoresSuperclassFieldsBecauseCallSuperFalse() {
+        VipSavingsAccount first = createAccount();
+        VipSavingsAccount second = createAccount();
+
+        // mutate superclass fields (currency/status/type) but keep minimumDailyAverage same
+        second.setCurrency("EUR");
+        second.setStatus(ProductStatus.BLOCKED);
+        second.setType(AccountType.SAVINGS);
+
+        assertEquals(first, second);
+        assertEquals(first.hashCode(), second.hashCode());
+    }
+
+    @Test
     void noArgsConstructorAllowsSettingFields() {
         VipSavingsAccount account = new VipSavingsAccount();
         account.setCustomerId("cust");

@@ -136,6 +136,38 @@ class AccountUseCaseImplTest {
     }
 
     @Test
+    void getAccountById_whenAccountExists_returnsMonoWithAccount() {
+        String accountId = "acc-found";
+        Account account = buildSavingsAccount(accountId, "customer-xyz", BigDecimal.valueOf(75), ProductStatus.ACTIVE);
+
+        when(accountRepository.findById(accountId)).thenReturn(Mono.just(account));
+
+        StepVerifier.create(accountUseCase.getAccountById(accountId))
+                .assertNext(found -> {
+                    assertEquals(accountId, found.getId());
+                    assertEquals("customer-xyz", found.getCustomerId());
+                })
+                .verifyComplete();
+
+        verify(accountRepository).findById(accountId);
+    }
+
+    @Test
+    void getAccountById_whenNotFound_emitsBusinessException() {
+        String accountId = "acc-missing";
+        when(accountRepository.findById(accountId)).thenReturn(Mono.empty());
+
+        StepVerifier.create(accountUseCase.getAccountById(accountId))
+                .expectErrorSatisfies(error -> {
+                    assertTrue(error instanceof BusinessException);
+                    assertTrue(error.getMessage().contains("accountId: " + accountId));
+                })
+                .verify();
+
+        verify(accountRepository).findById(accountId);
+    }
+
+    @Test
     void deposit_whenAccountExists_updatesBalanceAndPublishesEvent() {
         String accountId = "acc-10";
         SavingsAccount account = buildSavingsAccount(accountId, "customer-1", BigDecimal.valueOf(100), ProductStatus.ACTIVE);

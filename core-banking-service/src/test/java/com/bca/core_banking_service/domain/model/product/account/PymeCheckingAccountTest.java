@@ -22,6 +22,19 @@ class PymeCheckingAccountTest {
     }
 
     @Test
+    void equalsIgnoresSuperclassFieldsBecauseCallSuperFalse() {
+        PymeCheckingAccount first = createAccount();
+        PymeCheckingAccount second = createAccount();
+
+        second.setBalance(BigDecimal.valueOf(999)); // superclass field
+        second.setCurrency("EUR"); // superclass field
+        second.setCustomerId("other-customer"); // superclass field
+
+        assertEquals(first, second);
+        assertEquals(first.hashCode(), second.hashCode());
+    }
+
+    @Test
     void equalsAndHashCodeIncludeFields() {
         PymeCheckingAccount first = createAccount();
         PymeCheckingAccount second = createAccount();
@@ -33,6 +46,11 @@ class PymeCheckingAccountTest {
 
         assertEquals(first, second);
         assertEquals(first.hashCode(), second.hashCode());
+
+        PymeCheckingAccount different = createAccount();
+        different.setMaintenanceCommission(BigDecimal.ZERO);
+        // Because callSuper=false and no own fields, Lombok-generated equals ignores superclass fields
+        assertEquals(first, different);
     }
 
     private PymeCheckingAccount createAccount() {

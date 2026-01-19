@@ -4,12 +4,18 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import java.math.BigDecimal;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
+import com.bca.core_banking_service.application.usecases.validation.BusinessAccountExtension;
+import com.bca.core_banking_service.domain.exceptions.BusinessException;
 import com.bca.core_banking_service.domain.model.enums.account.AccountType;
+import com.bca.core_banking_service.domain.model.enums.account.CustomerType;
 import com.bca.core_banking_service.domain.model.enums.product.ProductStatus;
 
 class SavingsAccountTest {
@@ -86,6 +92,42 @@ class SavingsAccountTest {
         assertEquals("cust", account.getCustomerId());
         assertEquals(10, account.getMaxMonthlyTransactions());
         assertEquals(BigDecimal.TEN, account.getMaintenanceCommission());
+    }
+
+    @Test
+    void equalsIgnoresSuperclassFieldsBecauseCallSuperFalse() {
+        SavingsAccount first = createAccount();
+        SavingsAccount second = createAccount();
+
+        // change superclass fields but keep subclass fields intact
+        second.setBalance(BigDecimal.valueOf(999));
+        second.setCurrency("EUR");
+        second.setCustomerId("other-customer");
+
+        assertEquals(first, second);
+        assertEquals(first.hashCode(), second.hashCode());
+    }
+
+    @Test
+    void businessExtension_canBeAttachedWhenBusiness() {
+        SavingsAccount account = createAccount();
+        account.setCustomerType(CustomerType.BUSINESS);
+        BusinessAccountExtension ext = mock(BusinessAccountExtension.class);
+
+        account.attachBusinessExtension(ext);
+
+        assertEquals(ext, account.getBusinessData());
+        verify(ext).validateBusinessRules();
+    }
+
+    @Test
+    void businessExtension_throwsForNonBusinessCustomers() {
+        SavingsAccount account = createAccount();
+        account.setCustomerType(CustomerType.PERSONAL);
+        BusinessAccountExtension ext = mock(BusinessAccountExtension.class);
+
+        assertThrows(BusinessException.class, () -> account.attachBusinessExtension(ext));
+        Mockito.verifyNoInteractions(ext);
     }
 
     private SavingsAccount createAccount() {

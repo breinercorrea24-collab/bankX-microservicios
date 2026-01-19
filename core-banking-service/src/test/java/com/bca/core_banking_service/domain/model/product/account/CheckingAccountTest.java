@@ -71,6 +71,18 @@ class CheckingAccountTest {
     }
 
     @Test
+    void equalsIgnoresSuperclassFieldsDueToCallSuperFalse() {
+        CheckingAccount first = sampleAccount(BigDecimal.valueOf(20));
+        CheckingAccount second = sampleAccount(BigDecimal.valueOf(999)); // different balance (superclass field)
+        second.setCurrency("EUR"); // superclass field
+        second.setCustomerId("other-customer"); // superclass field
+
+        // equals/hashCode rely on CheckingAccount fields only (callSuper = false)
+        assertEquals(first, second);
+        assertEquals(first.hashCode(), second.hashCode());
+    }
+
+    @Test
     void toStringContainsKeyInformation() {
         CheckingAccount account = sampleAccount(BigDecimal.valueOf(25));
         String description = account.toString();

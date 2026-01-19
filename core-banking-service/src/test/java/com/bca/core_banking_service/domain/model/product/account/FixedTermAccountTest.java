@@ -81,6 +81,26 @@ class FixedTermAccountTest {
     }
 
     @Test
+    void equalsIgnoresSuperclassFieldsBecauseCallSuperFalse() {
+        FixedTermAccount first = createAccount();
+        FixedTermAccount second = createAccount();
+
+        // mutate superclass fields (balance/currency/customerId) and keep subclass fields intact
+        second.setBalance(BigDecimal.valueOf(9999));
+        second.setCurrency("EUR");
+        second.setCustomerId("other-customer");
+
+        assertEquals(first, second);
+        assertEquals(first.hashCode(), second.hashCode());
+    }
+
+    @Test
+    void hasMaintenanceFee_returnsFalse() {
+        FixedTermAccount account = createAccount();
+        assertEquals(false, account.hasMaintenanceFee());
+    }
+
+    @Test
     void noArgsConstructorAllowsSettingFields() {
         FixedTermAccount account = new FixedTermAccount();
         account.setCustomerId("cust");

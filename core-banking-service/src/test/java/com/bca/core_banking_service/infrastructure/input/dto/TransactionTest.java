@@ -77,6 +77,37 @@ class TransactionTest {
     }
 
     @Test
+    void builder_withPartialFields_setsOnlyProvidedValues() {
+        LocalDateTime now = LocalDateTime.now();
+        Transaction tx = Transaction.builder()
+                .id("partial-id")
+                .amount(BigDecimal.TEN)
+                .timestamp(now)
+                .build();
+
+        assertEquals("partial-id", tx.getId());
+        assertEquals(BigDecimal.TEN, tx.getAmount());
+        assertEquals(now, tx.getTimestamp());
+        assertNull(tx.getAccountId());
+        assertNull(tx.getFromAccountId());
+        assertNull(tx.getToAccountId());
+        assertNull(tx.getType());
+        assertNull(tx.getBalance());
+    }
+
+    @Test
+    void builder_createsNewInstanceEachTime() {
+        Transaction first = Transaction.builder().id("first").build();
+        Transaction second = Transaction.builder().id("second").build();
+
+        assertNotNull(first);
+        assertNotNull(second);
+        assertTrue(first != second);
+        assertEquals("first", first.getId());
+        assertEquals("second", second.getId());
+    }
+
+    @Test
     void allArgsConstructor_setsFields() {
         LocalDateTime now = LocalDateTime.now();
         Transaction tx = new Transaction(

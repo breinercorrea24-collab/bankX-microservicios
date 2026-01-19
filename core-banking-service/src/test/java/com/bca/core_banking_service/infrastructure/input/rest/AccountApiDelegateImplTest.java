@@ -2,7 +2,7 @@ package com.bca.core_banking_service.infrastructure.input.rest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
@@ -22,8 +22,10 @@ import com.bca.core_banking_service.domain.model.enums.account.CustomerType;
 import com.bca.core_banking_service.domain.model.enums.product.ProductStatus;
 import com.bca.core_banking_service.domain.model.product.account.SavingsAccount;
 import com.bca.core_banking_service.dto.AccountCreate;
+import com.bca.core_banking_service.dto.AccountPolymorphicResponse;
 import com.bca.core_banking_service.dto.AccountResponse;
 import com.bca.core_banking_service.dto.AmountRequest;
+import com.bca.core_banking_service.dto.SavingsAccountResponse;
 import com.bca.core_banking_service.dto.TransactionResponse;
 import com.bca.core_banking_service.dto.TransferRequest;
 
@@ -62,6 +64,24 @@ class AccountApiDelegateImplTest {
                     assertNotNull(body);
                     assertEquals("customer-1", body.getCustomerId());
                     assertEquals(com.bca.core_banking_service.dto.AccountType.SAVINGS, body.getType());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void accountsAccountIdGet_returnsPolymorphicAccountResponse() {
+        SavingsAccount account = sampleAccount("acc-1", BigDecimal.valueOf(120));
+        when(accountUseCase.getAccountById("acc-1")).thenReturn(Mono.just(account));
+
+        StepVerifier.create(delegate.accountsAccountIdGet("acc-1", mockGetExchange("/accounts/acc-1")))
+                .assertNext(response -> {
+                    assertEquals(HttpStatus.OK, response.getStatusCode());
+                    AccountPolymorphicResponse body = response.getBody();
+                    assertNotNull(body);
+                    assertTrue(body instanceof SavingsAccountResponse);
+                    SavingsAccountResponse savings = (SavingsAccountResponse) body;
+                    assertEquals("acc-1", savings.getId());
+                    assertEquals(com.bca.core_banking_service.dto.AccountType.SAVINGS, savings.getType());
                 })
                 .verifyComplete();
     }
@@ -148,5 +168,9 @@ class AccountApiDelegateImplTest {
 
     private MockServerWebExchange mockExchange(String path) {
         return MockServerWebExchange.from(MockServerHttpRequest.post(path).build());
+    }
+
+    private MockServerWebExchange mockGetExchange(String path) {
+        return MockServerWebExchange.from(MockServerHttpRequest.get(path).build());
     }
 }
