@@ -1,15 +1,17 @@
 package com.bca.core_banking_service.application.usecases.factory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.math.BigDecimal;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import com.bca.core_banking_service.application.usecases.validation.BusinessAccountExtension;
 import com.bca.core_banking_service.domain.exceptions.BusinessException;
 import com.bca.core_banking_service.domain.model.enums.account.AccountType;
 import com.bca.core_banking_service.domain.model.enums.account.CustomerType;
@@ -91,6 +93,50 @@ class AccountFactoryTest {
                 .authorizedSigners(List.of("signer-1"))
                 .build();
 
-        assertThrows(BusinessException.class, () -> AccountFactory.create(cmd));
+        BusinessException ex = assertThrows(BusinessException.class, () -> AccountFactory.create(cmd));
+        assertEquals("Cannot assign business data to non business account", ex.getMessage());
+    }
+
+    @Test
+    void create_withInvalidAccountType_throwsBusinessException() throws Exception {
+        CreateAccountCommand cmd = new CreateAccountCommand("cust-invalid", CustomerType.PERSONAL, AccountType.SAVINGS, "USD");
+
+        // Force the switch to hit the default branch by clearing the synthetic switch-map entry.
+        Class<?> switchClass = Class.forName("com.bca.core_banking_service.application.usecases.factory.AccountFactory$1");
+        Field switchMap = switchClass.getDeclaredField("$SwitchMap$com$bca$core_banking_service$domain$model$enums$account$AccountType");
+        switchMap.setAccessible(true);
+        int[] mapping = (int[]) switchMap.get(null);
+        int original = mapping[AccountType.SAVINGS.ordinal()];
+        mapping[AccountType.SAVINGS.ordinal()] = 0;
+        try {
+            BusinessException ex = assertThrows(BusinessException.class, () -> AccountFactory.create(cmd));
+            assertEquals("Invalid account type", ex.getMessage());
+        } finally {
+            mapping[AccountType.SAVINGS.ordinal()] = original;
+        }
+    }
+
+    @Test
+    void isBusinessType_trueForBusinessAndPyme() throws Exception {
+        Method method = AccountFactory.class.getDeclaredMethod("isBusinessType", CustomerType.class);
+        method.setAccessible(true);
+
+        boolean business = (boolean) method.invoke(null, CustomerType.BUSINESS);
+        boolean pyme = (boolean) method.invoke(null, CustomerType.PYMEBUSINESS);
+
+        assertTrue(business);
+        assertTrue(pyme);
+    }
+
+    @Test
+    void isBusinessType_falseForPersonalTypes() throws Exception {
+        Method method = AccountFactory.class.getDeclaredMethod("isBusinessType", CustomerType.class);
+        method.setAccessible(true);
+
+        boolean personal = (boolean) method.invoke(null, CustomerType.PERSONAL);
+        boolean vipPersonal = (boolean) method.invoke(null, CustomerType.VIPPERSONAL);
+
+        assertFalse(personal);
+        assertFalse(vipPersonal);
     }
 }

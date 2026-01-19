@@ -3,6 +3,9 @@ package com.bca.core_banking_service.application.usecases.factory;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -36,5 +39,78 @@ class CreateAccountCommandTest {
         assertTrue(businessCmd.isBusiness());
         assertTrue(pymeCmd.isBusiness());
         assertFalse(personalCmd.isBusiness());
+    }
+
+    @Test
+    void allArgsConstructor_setsLists() {
+        List<String> holders = List.of("holder-1", "holder-2");
+        List<String> signers = List.of("signer-1");
+
+        CreateAccountCommand cmd = new CreateAccountCommand(
+                "c4",
+                CustomerType.PERSONAL,
+                AccountType.SAVINGS,
+                "EUR",
+                holders,
+                signers);
+
+        assertEquals(holders, cmd.getHolders());
+        assertEquals(signers, cmd.getAuthorizedSigners());
+        assertFalse(cmd.isBusiness());
+    }
+
+    @Test
+    void builder_acceptsLists() {
+        List<String> holders = List.of("holder-1");
+        List<String> signers = List.of("signer-1", "signer-2");
+
+        CreateAccountCommand cmd = CreateAccountCommand.builder()
+                .customerId("c5")
+                .customerType(CustomerType.PYMEBUSINESS)
+                .type(AccountType.CHECKING)
+                .currency("USD")
+                .holders(holders)
+                .authorizedSigners(signers)
+                .build();
+
+        assertEquals(holders, cmd.getHolders());
+        assertEquals(signers, cmd.getAuthorizedSigners());
+        assertTrue(cmd.isBusiness());
+    }
+
+    @Test
+    void dataAnnotations_generateSettersAndEquals() {
+        CreateAccountCommand cmd = new CreateAccountCommand("c6", CustomerType.PERSONAL, AccountType.SAVINGS, "USD");
+        cmd.setCurrency("EUR");
+        cmd.setCustomerType(CustomerType.VIPPERSONAL);
+        cmd.setHolders(List.of("h1"));
+        cmd.setAuthorizedSigners(List.of("s1"));
+
+        assertEquals("EUR", cmd.getCurrency());
+        assertEquals(CustomerType.VIPPERSONAL, cmd.getCustomerType());
+        assertEquals(List.of("h1"), cmd.getHolders());
+        assertEquals(List.of("s1"), cmd.getAuthorizedSigners());
+
+        CreateAccountCommand same = CreateAccountCommand.builder()
+                .customerId("c6")
+                .customerType(CustomerType.VIPPERSONAL)
+                .type(AccountType.SAVINGS)
+                .currency("EUR")
+                .holders(List.of("h1"))
+                .authorizedSigners(List.of("s1"))
+                .build();
+
+        assertEquals(same, cmd);
+
+        CreateAccountCommand different = CreateAccountCommand.builder()
+                .customerId("c7")
+                .customerType(CustomerType.PERSONAL)
+                .type(AccountType.SAVINGS)
+                .currency("EUR")
+                .holders(List.of("h1"))
+                .authorizedSigners(List.of("s1"))
+                .build();
+
+        assertNotEquals(different, cmd);
     }
 }

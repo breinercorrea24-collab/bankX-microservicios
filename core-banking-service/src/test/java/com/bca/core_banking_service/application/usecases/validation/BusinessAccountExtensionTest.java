@@ -1,10 +1,11 @@
 package com.bca.core_banking_service.application.usecases.validation;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -129,5 +130,40 @@ class BusinessAccountExtensionTest {
 
         assertFalse(ext.getAuthorizedSigners().contains("signer-1"));
         assertEquals(1, ext.getAuthorizedSigners().size());
+    }
+
+    @Test
+    void validate_withNullSigners_skipsSignerChecks() {
+        BusinessAccountExtension ext = new BusinessAccountExtension(
+                new ArrayList<>(List.of("holder-1")),
+                null);
+
+        assertDoesNotThrow(ext::validateBusinessRules);
+    }
+
+    @Test
+    void isHolder_and_isSigner_handleNullLists() {
+        BusinessAccountExtension ext = new BusinessAccountExtension(null, null);
+
+        assertFalse(ext.isHolder("someone"));
+        assertFalse(ext.isSigner("someone"));
+    }
+
+    @Test
+    void removeSigner_whenAuthorizedListNull_doesNothing() {
+        BusinessAccountExtension ext = new BusinessAccountExtension(
+                new ArrayList<>(List.of("holder-1")),
+                null);
+
+        assertDoesNotThrow(() -> ext.removeSigner("any"));
+        assertNull(ext.getAuthorizedSigners());
+    }
+
+    @Test
+    void noArgsConstructor_leavesListsNull() {
+        BusinessAccountExtension ext = new BusinessAccountExtension();
+
+        assertNull(ext.getHolders());
+        assertNull(ext.getAuthorizedSigners());
     }
 }
