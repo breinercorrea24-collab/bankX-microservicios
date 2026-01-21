@@ -47,6 +47,15 @@ class GetCardBalanceUseCaseTest {
                 .verifyComplete();
     }
 
+    @Test
+    void executePropagatesErrorAndTriggersDoOnError() {
+        cardRepository.findByIdResult = Mono.error(new RuntimeException("boom"));
+
+        StepVerifier.create(useCase.execute("card-err"))
+                .expectError(RuntimeException.class)
+                .verify();
+    }
+
     private static class RecordingCardRepository implements CardRepository {
         Mono<Card> saveResult = Mono.empty();
         Mono<Card> findByIdResult = Mono.empty();

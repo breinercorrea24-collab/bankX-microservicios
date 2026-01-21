@@ -166,6 +166,28 @@ class DebitCardWithdrawalOrchestratorTest {
         // Internamente getSafeBalance(response) detectó balance null y devolvió ZERO
     }
 
+    @Test
+    void mapHandlesNullBodyFromResponseEntity() {
+        ExternalAccountsClient nullBodyClient = new ExternalAccountsClient() {
+            @Override
+            public Mono<ResponseEntity<AccountBalanceResponse>> AccountWithdrawal(String accountId, BigDecimal amount) {
+                return Mono.just(ResponseEntity.ok(new AccountBalanceResponse()));
+            }
+
+            @Override
+            public Mono<ResponseEntity<AccountBalanceResponse>> AccountBalance(String accountId) {
+                return Mono.just(ResponseEntity.ok(null));
+            }
+        };
+
+        DebitCardWithdrawalOrchestrator orchestrator = new DebitCardWithdrawalOrchestrator(nullBodyClient);
+        DebitCard card = createBaseCard("acc-null-body");
+
+        StepVerifier.create(orchestrator.withdrawCascade(card, new BigDecimal("5")))
+                .expectError(NullPointerException.class)
+                .verify();
+    }
+
     // Helper para evitar repetición de código
     private DebitCard createBaseCard(String primaryAccount) {
         return new DebitCard("card-id", "4111", CardStatus.ACTIVE, CardType.DEBIT,
