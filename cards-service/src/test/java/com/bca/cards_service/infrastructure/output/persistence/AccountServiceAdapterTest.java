@@ -22,4 +22,14 @@ class AccountServiceAdapterTest {
                 .expectNextCount(1)
                 .verifyComplete();
     }
+
+    @Test
+    void propagatesErrorsAndTriggersDoOnError() {
+        StepVerifier.create(adapter.getAccountBalance("any")
+                        .map(balance -> {
+                            throw new RuntimeException("boom");
+                        }))
+                .expectErrorMessage("boom")
+                .verify();
+    }
 }

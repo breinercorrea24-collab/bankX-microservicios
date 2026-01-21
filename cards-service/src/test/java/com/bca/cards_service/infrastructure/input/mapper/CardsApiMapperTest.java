@@ -2,7 +2,7 @@ package com.bca.cards_service.infrastructure.input.mapper;
 
 import com.bca.cards_service.domain.enums.card.CardStatus;
 import com.bca.cards_service.domain.enums.card.CardType;
-import com.bca.cards_service.domain.model.card.Card;
+import com.bca.cards_service.domain.model.card.DebitCard;
 import com.bca.cards_service.dto.CardResponse;
 import org.junit.jupiter.api.Test;
 
@@ -20,7 +20,7 @@ class CardsApiMapperTest {
     @Test
     void mapsAllFieldsIncludingCreatedAt() {
         LocalDateTime createdAt = LocalDateTime.of(2024, 1, 1, 10, 30);
-        Card card = new TestCard(
+        DebitCard card = new DebitCard(
                 "card-1",
                 "1111-2222",
                 CardStatus.ACTIVE,
@@ -28,7 +28,9 @@ class CardsApiMapperTest {
                 "cust-1",
                 "****2222",
                 new BigDecimal("123.45"),
-                createdAt);
+                createdAt,
+                "acc-1",
+                java.util.Set.of());
 
         CardResponse response = CardsApiMapper.mapToCardResponse(card);
 
@@ -43,7 +45,7 @@ class CardsApiMapperTest {
 
     @Test
     void mapsWhenOptionalFieldsAreNull() {
-        Card card = new TestCard(
+        DebitCard card = new DebitCard(
                 "card-2",
                 "3333-4444",
                 CardStatus.ACTIVE,
@@ -51,7 +53,9 @@ class CardsApiMapperTest {
                 null,
                 "****4444",
                 BigDecimal.ZERO,
-                null);
+                null,
+                "acc-2",
+                java.util.Set.of());
 
         CardResponse response = CardsApiMapper.mapToCardResponse(card);
 
@@ -70,10 +74,4 @@ class CardsApiMapperTest {
         assertEquals(IllegalStateException.class, ex.getCause().getClass());
     }
 
-    private static class TestCard extends Card {
-        TestCard(String id, String cardNumber, CardStatus status, CardType type, String customerId,
-                 String maskedNumber, BigDecimal availableLimit, LocalDateTime createdAt) {
-            super(id, cardNumber, status, type, customerId, maskedNumber, availableLimit, createdAt);
-        }
-    }
 }
