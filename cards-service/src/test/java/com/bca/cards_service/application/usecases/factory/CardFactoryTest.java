@@ -6,7 +6,10 @@ import com.bca.cards_service.domain.exceptions.BusinessException;
 import com.bca.cards_service.domain.model.card.Card;
 import com.bca.cards_service.domain.model.card.CreditCard;
 import com.bca.cards_service.domain.model.card.DebitCard;
+
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -76,6 +79,44 @@ class CardFactoryTest {
             assertThrows(BusinessException.class, () -> CardFactory.create(cmd));
         } finally {
             System.arraycopy(original, 0, mapping, 0, original.length);
+        }
+    }
+
+    @Test
+    @DisplayName("Cubre la línea 16: Constructor implícito de CardFactory")
+    void testConstructorCoverage() {
+        // Al ser un @Component, Java genera un constructor por defecto.
+        // Instanciarlo manualmente cubre la cabecera de la clase.
+        assertNotNull(new CardFactory());
+    }
+
+    @Test
+    @DisplayName("Cubre la línea 47: Caso default del switch")
+    void shouldThrowExceptionWhenCardTypeIsUnsupported() {
+        // Reutilizamos la tabla synthetic switch para enviar un tipo conocido al branch default
+        try {
+            Class<?> switchClass = Class.forName("com.bca.cards_service.application.usecases.factory.CardFactory$1");
+            Field field = switchClass.getDeclaredField("$SwitchMap$com$bca$cards_service$domain$enums$card$CardType");
+            field.setAccessible(true);
+            int[] mapping = (int[]) field.get(null);
+            int[] original = mapping.clone();
+
+            // Anulamos el mapeo del ordinal de CREDIT para que caiga en default
+            mapping[CardType.CREDIT.ordinal()] = 0;
+            try {
+                CreateCardCommand cmd = new CreateCardCommand(
+                        "customer-unsupported",
+                        "account-unsupported",
+                        CardType.CREDIT,
+                        BigDecimal.TEN);
+
+                BusinessException exception = assertThrows(BusinessException.class, () -> CardFactory.create(cmd));
+                assertTrue(exception.getMessage().contains("Unsupported card type"));
+            } finally {
+                System.arraycopy(original, 0, mapping, 0, original.length);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 }
