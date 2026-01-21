@@ -132,6 +132,7 @@ class DebitCardWithdrawalOrchestratorTest {
         StepVerifier.create(orchestrator.withdrawCascade(card, new BigDecimal("5")))
                 .verifyComplete();
     }
+
     @Test
     @DisplayName("Cobertura Línea 59: Cuando el objeto account es nulo")
     void getSafeBalance_WhenAccountIsNull_ReturnsZero() {
@@ -172,7 +173,8 @@ class DebitCardWithdrawalOrchestratorTest {
         org.mockito.Mockito.when(mockClient.AccountBalance("acc-null"))
                 .thenReturn(Mono.just(ResponseEntity.ok(null)));
         // Aseguramos que si se llega a llamar withdrawal, no reviente
-        org.mockito.Mockito.when(mockClient.AccountWithdrawal(org.mockito.Mockito.anyString(), org.mockito.Mockito.any()))
+        org.mockito.Mockito
+                .when(mockClient.AccountWithdrawal(org.mockito.Mockito.anyString(), org.mockito.Mockito.any()))
                 .thenReturn(Mono.just(ResponseEntity.ok(new AccountBalanceResponse())));
 
         DebitCardWithdrawalOrchestrator orchestratorMock = new DebitCardWithdrawalOrchestrator(mockClient);
@@ -225,6 +227,25 @@ class DebitCardWithdrawalOrchestratorTest {
 
         StepVerifier.create(orchestrator.withdrawCascade(card, new BigDecimal("3")))
                 .expectError(NullPointerException.class)
+                .verify();
+    }
+
+    @Test
+    @DisplayName("Cobertura Línea 40: Caso donde el ResponseEntity emitido es nulo (Rama else)")
+    void coverage_Line40_ResponseIsNullBranch() {
+        ExternalAccountsClient mockClient = org.mockito.Mockito.mock(ExternalAccountsClient.class);
+
+        // Usamos Mono.create para saltarnos las validaciones de Mono.just
+        // y emitir un nulo real que entre al lambda del .map
+        org.mockito.Mockito.when(mockClient.AccountBalance(org.mockito.Mockito.anyString()))
+                .thenReturn(Mono.create(sink -> sink.success(null)));
+
+        DebitCardWithdrawalOrchestrator orch = new DebitCardWithdrawalOrchestrator(mockClient);
+        DebitCard card = createBaseCard("acc-null-signal");
+
+        StepVerifier.create(orch.withdrawCascade(card, BigDecimal.TEN))
+                .expectError() // Fallará con NullPointerException al intentar flatMap(null), cubriendo la
+                               // línea
                 .verify();
     }
 
