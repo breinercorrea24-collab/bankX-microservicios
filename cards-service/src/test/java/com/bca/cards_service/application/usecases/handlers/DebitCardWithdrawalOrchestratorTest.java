@@ -132,7 +132,6 @@ class DebitCardWithdrawalOrchestratorTest {
         StepVerifier.create(orchestrator.withdrawCascade(card, new BigDecimal("5")))
                 .verifyComplete();
     }
-
     @Test
     @DisplayName("Cobertura Línea 59: Cuando el objeto account es nulo")
     void getSafeBalance_WhenAccountIsNull_ReturnsZero() {
@@ -164,6 +163,24 @@ class DebitCardWithdrawalOrchestratorTest {
                 .verify();
 
         // Internamente getSafeBalance(response) detectó balance null y devolvió ZERO
+    }
+
+    @Test
+    @DisplayName("Cobertura Línea 40: Cuando el ResponseEntity es nulo")
+    void withdrawFromAccount_WhenResponseIsNull_HitsTernary() {
+        ExternalAccountsClient mockClient = org.mockito.Mockito.mock(ExternalAccountsClient.class);
+        org.mockito.Mockito.when(mockClient.AccountBalance("acc-null"))
+                .thenReturn(Mono.just(ResponseEntity.ok(null)));
+        // Aseguramos que si se llega a llamar withdrawal, no reviente
+        org.mockito.Mockito.when(mockClient.AccountWithdrawal(org.mockito.Mockito.anyString(), org.mockito.Mockito.any()))
+                .thenReturn(Mono.just(ResponseEntity.ok(new AccountBalanceResponse())));
+
+        DebitCardWithdrawalOrchestrator orchestratorMock = new DebitCardWithdrawalOrchestrator(mockClient);
+        DebitCard card = createBaseCard("acc-null");
+
+        StepVerifier.create(orchestratorMock.withdrawCascade(card, new BigDecimal("10")))
+                .expectError(NullPointerException.class)
+                .verify();
     }
 
     @Test

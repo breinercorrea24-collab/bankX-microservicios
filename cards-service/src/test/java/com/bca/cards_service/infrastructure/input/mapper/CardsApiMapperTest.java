@@ -2,6 +2,7 @@ package com.bca.cards_service.infrastructure.input.mapper;
 
 import com.bca.cards_service.domain.enums.card.CardStatus;
 import com.bca.cards_service.domain.enums.card.CardType;
+import com.bca.cards_service.domain.model.card.Card;
 import com.bca.cards_service.domain.model.card.DebitCard;
 import com.bca.cards_service.dto.CardResponse;
 import org.junit.jupiter.api.Test;
