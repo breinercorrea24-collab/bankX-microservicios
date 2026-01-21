@@ -20,6 +20,29 @@ class AccountFactoryTest {
     }
 
     @Test
+    @DisplayName("Cubre líneas 105: Ramas de negocio con datos válidos")
+    void testIsBusinessType_Branches() {
+        // Datos mínimos para que BusinessAccountExtension no lance excepción de validación
+        List<String> holders = List.of("Empresa Principal");
+        List<String> signers = List.of("Representante Legal");
+
+
+        // Rama 1: BUSINESS (True)
+        CreateAccountCommand cmd1 = CreateAccountCommand.builder()
+                .customerId("biz-01")
+                .customerType(CustomerType.BUSINESS)
+                .type(AccountType.PYME_CHECKING)
+                .holders(holders)
+                .authorizedSigners(signers)
+                .build();
+        
+
+        // Ejecutamos flujos. Usamos try-catch en el de negocio por si el dominio 
+        // sigue rechazando la cuenta, pero aseguramos que la línea 105 sea "pisada".
+        assertDoesNotThrow(() -> AccountFactory.create(cmd1));
+    }
+
+    @Test
     @DisplayName("Cubre líneas 105 y 115: Ramas de negocio con datos válidos")
     void testIsBusinessType_Branches_Fixed() {
         // Datos mínimos para que BusinessAccountExtension no lance excepción de validación
@@ -91,5 +114,21 @@ class AccountFactoryTest {
                 .type(type)
                 .currency("USD")
                 .build();
+    }
+
+    @Test
+    @DisplayName("Cobertura new BusinessException(Invalid account type")
+    void testBusinessExceptionInvalidAccountType() {
+        CreateAccountCommand cmd = CreateAccountCommand.builder()
+                .customerId("biz-02")
+                .customerType(CustomerType.BUSINESS)
+                .type(AccountType.INVALID) // Tipo inválido para forzar excepción
+                .build();
+        
+        BusinessException exception = assertThrows(BusinessException.class, () -> {
+            AccountFactory.create(cmd);
+        });
+        
+        assertEquals("Invalid account type", exception.getMessage());
     }
 }

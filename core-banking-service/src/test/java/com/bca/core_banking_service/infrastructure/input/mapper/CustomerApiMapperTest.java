@@ -15,6 +15,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.bca.core_banking_service.domain.model.enums.account.AccountType;
+import com.bca.core_banking_service.domain.model.enums.account.CustomerType;
 import com.bca.core_banking_service.domain.model.enums.product.ProductStatus;
 import com.bca.core_banking_service.domain.model.product.account.Account;
 import com.bca.core_banking_service.domain.model.product.account.CheckingAccount;
@@ -39,6 +40,38 @@ class CustomerApiMapperTest {
 
         InvocationTargetException thrown = assertThrows(InvocationTargetException.class, ctor::newInstance);
         assertEquals("Utility class", thrown.getCause().getMessage());
+    }
+
+    @Test
+    void toPolymorphicResponse_appliesDefaultsForFixedTermNulls() {
+        FixedTermAccount acc = new FixedTermAccount("cust-0", "USD", ProductStatus.ACTIVE, AccountType.FIXED_TERM, BigDecimal.valueOf(2.5), false, 10, 0, BigDecimal.valueOf(1000));
+        acc.setId("ft-0");
+        // acc.setBalance(null);
+        //acc.setStatus(null);
+
+        FixedTermAccountResponse resp = (FixedTermAccountResponse) CustomerApiMapper.toPolymorphicResponse(acc);
+
+        assertAll(
+            () -> assertEquals(1000.0f, resp.getBalance()),
+            () -> assertEquals(ProductStatus.ACTIVE.name(), resp.getStatus().name()),
+            () -> assertEquals(0, resp.getAllowedDay())
+        );
+    }
+
+    @Test
+    void toPolymorphicResponse_appliesDefaultsForFixedTermNulls_Balance() {
+        FixedTermAccount acc = new FixedTermAccount("cust-0", "USD", ProductStatus.ACTIVE, AccountType.FIXED_TERM, BigDecimal.valueOf(2.5), false, 10, 0, BigDecimal.valueOf(1000));
+        acc.setId("ft-0");
+        acc.setBalance(null);
+        //acc.setStatus(null);
+
+        FixedTermAccountResponse resp = (FixedTermAccountResponse) CustomerApiMapper.toPolymorphicResponse(acc);
+
+        assertAll(
+            () -> assertEquals(0.0f, resp.getBalance()),
+            () -> assertEquals(ProductStatus.ACTIVE.name(), resp.getStatus().name()),
+            () -> assertEquals(0, resp.getAllowedDay())
+        );
     }
 
     @Test
@@ -80,6 +113,24 @@ class CustomerApiMapperTest {
     }
 
     @Test
+    void toPolymorphicResponse_appliesDefaultsForSavingsNulls_Balance() {
+        SavingsAccount acc = new SavingsAccount("cust-2", "PEN", ProductStatus.BLOCKED, AccountType.SAVINGS, 0, BigDecimal.ONE, BigDecimal.TEN);
+        acc.setId("sav-2");
+        // acc.setBalance(null);
+        acc.setStatus(null);
+        acc.setMaintenanceCommission(null);
+
+        SavingsAccountResponse resp = (SavingsAccountResponse) CustomerApiMapper.toPolymorphicResponse(acc);
+
+        assertAll(
+            () -> assertEquals(10.0f, resp.getBalance()),
+            () -> assertEquals(SavingsAccountResponse.StatusEnum.INACTIVE, resp.getStatus()),
+            () -> assertEquals(BigDecimal.ZERO, resp.getMaintenanceCommission())
+        );
+    }
+
+
+    @Test
     void toPolymorphicResponse_mapsVipSavingsAccountWithFallbacks() {
         VipSavingsAccount acc = new VipSavingsAccount("cust-3", "EUR", ProductStatus.ACTIVE, AccountType.VIP_SAVINGS, 7, BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO);
         acc.setId("vip-1");
@@ -106,6 +157,110 @@ class CustomerApiMapperTest {
     }
 
     @Test
+    void toPolymorphicResponse_mapsVipSavingsAccountWithFallbacks_Balance() {
+        VipSavingsAccount acc = new VipSavingsAccount("cust-3", "EUR", ProductStatus.ACTIVE, AccountType.VIP_SAVINGS, 7, BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO);
+        acc.setId("vip-1");
+        // acc.setBalance(null);
+        acc.setStatus(null);
+        acc.setCurrentTransactions(3);
+        acc.setMaintenanceCommission(null);
+        acc.setMinimumDailyAverage(null);
+
+        VipSavingsAccountResponse resp = (VipSavingsAccountResponse) CustomerApiMapper.toPolymorphicResponse(acc);
+
+        assertAll(
+            () -> assertEquals("vip-1", resp.getId()),
+            () -> assertEquals("cust-3", resp.getCustomerId()),
+            () -> assertEquals(com.bca.core_banking_service.dto.AccountType.SAVINGS, resp.getType()),
+            () -> assertEquals("EUR", resp.getCurrency()),
+            () -> assertEquals(10.0f, resp.getBalance()),
+            () -> assertEquals(VipSavingsAccountResponse.StatusEnum.INACTIVE, resp.getStatus()),
+            () -> assertEquals(7, resp.getMaxMonthlyTransactions()),
+            () -> assertEquals(3, resp.getCurrentTransactions()),
+            () -> assertEquals(BigDecimal.ZERO, resp.getMaintenanceCommission()),
+            () -> assertEquals(BigDecimal.ZERO, resp.getMinimumDailyAverage())
+        );
+    }
+
+    @Test
+    void toPolymorphicResponse_mapsVipSavingsAccountWithFallbacks_Status() {
+        VipSavingsAccount acc = new VipSavingsAccount("cust-3", "EUR", ProductStatus.ACTIVE, AccountType.VIP_SAVINGS, 7, BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO);
+        acc.setId("vip-1");
+        // acc.setBalance(null);
+        // acc.setStatus(null);
+        acc.setCurrentTransactions(3);
+        acc.setMaintenanceCommission(null);
+        acc.setMinimumDailyAverage(null);
+
+        VipSavingsAccountResponse resp = (VipSavingsAccountResponse) CustomerApiMapper.toPolymorphicResponse(acc);
+
+        assertAll(
+            () -> assertEquals("vip-1", resp.getId()),
+            () -> assertEquals("cust-3", resp.getCustomerId()),
+            () -> assertEquals(com.bca.core_banking_service.dto.AccountType.SAVINGS, resp.getType()),
+            () -> assertEquals("EUR", resp.getCurrency()),
+            () -> assertEquals(10.0f, resp.getBalance()),
+            () -> assertEquals(ProductStatus.ACTIVE.name(), resp.getStatus().name()),
+            () -> assertEquals(7, resp.getMaxMonthlyTransactions()),
+            () -> assertEquals(3, resp.getCurrentTransactions()),
+            () -> assertEquals(BigDecimal.ZERO, resp.getMaintenanceCommission()),
+            () -> assertEquals(BigDecimal.ZERO, resp.getMinimumDailyAverage())
+        );
+    }
+
+    @Test
+    void toPolymorphicResponse_mapsVipSavingsAccountWithFallbacks_Comission() {
+        VipSavingsAccount acc = new VipSavingsAccount("cust-3", "EUR", ProductStatus.ACTIVE, AccountType.VIP_SAVINGS, 7, BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO);
+        acc.setId("vip-1");
+        // acc.setBalance(null);
+        // acc.setStatus(null);
+        acc.setCurrentTransactions(3);
+        // acc.setMaintenanceCommission(null);
+        acc.setMinimumDailyAverage(null);
+
+        VipSavingsAccountResponse resp = (VipSavingsAccountResponse) CustomerApiMapper.toPolymorphicResponse(acc);
+
+        assertAll(
+            () -> assertEquals("vip-1", resp.getId()),
+            () -> assertEquals("cust-3", resp.getCustomerId()),
+            () -> assertEquals(com.bca.core_banking_service.dto.AccountType.SAVINGS, resp.getType()),
+            () -> assertEquals("EUR", resp.getCurrency()),
+            () -> assertEquals(10.0f, resp.getBalance()),
+            () -> assertEquals(ProductStatus.ACTIVE.name(), resp.getStatus().name()),
+            () -> assertEquals(7, resp.getMaxMonthlyTransactions()),
+            () -> assertEquals(3, resp.getCurrentTransactions()),
+            () -> assertEquals(BigDecimal.ONE, resp.getMaintenanceCommission()),
+            () -> assertEquals(BigDecimal.ZERO, resp.getMinimumDailyAverage())
+        );
+    }
+
+    @Test
+    void toPolymorphicResponse_mapsVipSavingsAccountWithFallbacks_minimumDailyAverage() {
+        VipSavingsAccount acc = new VipSavingsAccount("cust-3", "EUR", ProductStatus.ACTIVE, AccountType.VIP_SAVINGS, 7, BigDecimal.ONE, BigDecimal.TEN, BigDecimal.TEN);
+        acc.setId("vip-1");
+        // acc.setBalance(null);
+        // acc.setStatus(null);
+        acc.setCurrentTransactions(3);
+        // acc.setMaintenanceCommission(null);
+        //acc.setMinimumDailyAverage(null);
+
+        VipSavingsAccountResponse resp = (VipSavingsAccountResponse) CustomerApiMapper.toPolymorphicResponse(acc);
+
+        assertAll(
+            () -> assertEquals("vip-1", resp.getId()),
+            () -> assertEquals("cust-3", resp.getCustomerId()),
+            () -> assertEquals(com.bca.core_banking_service.dto.AccountType.SAVINGS, resp.getType()),
+            () -> assertEquals("EUR", resp.getCurrency()),
+            () -> assertEquals(10.0f, resp.getBalance()),
+            () -> assertEquals(ProductStatus.ACTIVE.name(), resp.getStatus().name()),
+            () -> assertEquals(7, resp.getMaxMonthlyTransactions()),
+            () -> assertEquals(3, resp.getCurrentTransactions()),
+            () -> assertEquals(BigDecimal.ONE, resp.getMaintenanceCommission()),
+            () -> assertEquals(BigDecimal.TEN, resp.getMinimumDailyAverage())
+        );
+    }
+
+    @Test
     void toPolymorphicResponse_mapsCheckingAccount() {
         CheckingAccount acc = new CheckingAccount("cust-4", "USD", ProductStatus.CLOSED, AccountType.CHECKING, 4, BigDecimal.valueOf(2.5), BigDecimal.TEN);
         acc.setId("chk-1");
@@ -118,6 +273,25 @@ class CustomerApiMapperTest {
             () -> assertEquals(com.bca.core_banking_service.dto.AccountType.CHECKING, resp.getType()),
             () -> assertEquals("USD", resp.getCurrency()),
             () -> assertEquals(10.0f, resp.getBalance()),
+            () -> assertEquals(CheckingAccountResponse.StatusEnum.ACTIVE, resp.getStatus()),
+            () -> assertEquals(4, resp.getMaxMonthlyTransactions()),
+            () -> assertEquals(BigDecimal.valueOf(2.5), resp.getMaintenanceCommission())
+        );
+    }
+
+    @Test
+    void toPolymorphicResponse_mapsCheckingAccount_Balance() {
+        CheckingAccount acc = new CheckingAccount("cust-4", "USD", ProductStatus.CLOSED, AccountType.CHECKING, 4, BigDecimal.valueOf(2.5), null);
+        acc.setId("chk-1");
+
+        CheckingAccountResponse resp = (CheckingAccountResponse) CustomerApiMapper.toPolymorphicResponse(acc);
+
+        assertAll(
+            () -> assertEquals("chk-1", resp.getId()),
+            () -> assertEquals("cust-4", resp.getCustomerId()),
+            () -> assertEquals(com.bca.core_banking_service.dto.AccountType.CHECKING, resp.getType()),
+            () -> assertEquals("USD", resp.getCurrency()),
+            () -> assertEquals(0.0f, resp.getBalance()),
             () -> assertEquals(CheckingAccountResponse.StatusEnum.ACTIVE, resp.getStatus()),
             () -> assertEquals(4, resp.getMaxMonthlyTransactions()),
             () -> assertEquals(BigDecimal.valueOf(2.5), resp.getMaintenanceCommission())
@@ -165,6 +339,77 @@ class CustomerApiMapperTest {
             () -> assertEquals(8, resp.getMaxMonthlyTransactions()),
             () -> assertEquals(BigDecimal.valueOf(1.1), resp.getMaintenanceCommission())
         );
+    }
+
+    @Test
+    void toPolymorphicResponse_mapsPymeCheckingAccountWithDefaultStatus_BalanceIsNull() {
+        PymeCheckingAccount acc = new PymeCheckingAccount("cust-6", "USD", ProductStatus.ACTIVE, AccountType.PYME_CHECKING, 8, BigDecimal.valueOf(1.1), null);
+        acc.setId("pyme-1");
+        acc.setStatus(null);
+
+        PymeCheckingAccountResponse resp = (PymeCheckingAccountResponse) CustomerApiMapper.toPolymorphicResponse(acc);
+
+        assertAll(
+            () -> assertEquals("pyme-1", resp.getId()),
+            () -> assertEquals("cust-6", resp.getCustomerId()),
+            () -> assertEquals(com.bca.core_banking_service.dto.AccountType.PYME_CHECKING, resp.getType()),
+            () -> assertEquals("USD", resp.getCurrency()),
+            () -> assertEquals(0.0f, resp.getBalance()),
+            () -> assertEquals(PymeCheckingAccountResponse.StatusEnum.INACTIVE, resp.getStatus()),
+            () -> assertEquals(8, resp.getMaxMonthlyTransactions()),
+            () -> assertEquals(BigDecimal.valueOf(1.1), resp.getMaintenanceCommission())
+        );
+    }
+
+    @Test
+    void toPolymorphicResponse_mapsPymeCheckingAccountWithDefaultStatus_StatusIsNull() {
+        PymeCheckingAccount acc = new PymeCheckingAccount("cust-6", "USD", null, AccountType.PYME_CHECKING, 8, BigDecimal.valueOf(1.1), BigDecimal.valueOf(200));
+        acc.setId("pyme-1");
+        acc.setStatus(null);
+
+        PymeCheckingAccountResponse resp = (PymeCheckingAccountResponse) CustomerApiMapper.toPolymorphicResponse(acc);
+
+        assertAll(
+            () -> assertEquals("pyme-1", resp.getId()),
+            () -> assertEquals("cust-6", resp.getCustomerId()),
+            () -> assertEquals(com.bca.core_banking_service.dto.AccountType.PYME_CHECKING, resp.getType()),
+            () -> assertEquals("USD", resp.getCurrency()),
+            () -> assertEquals(200.0f, resp.getBalance()),
+            () -> assertEquals(PymeCheckingAccountResponse.StatusEnum.INACTIVE, resp.getStatus()),
+            () -> assertEquals(8, resp.getMaxMonthlyTransactions()),
+            () -> assertEquals(BigDecimal.valueOf(1.1), resp.getMaintenanceCommission())
+        );
+    }
+
+    @Test
+    void toPolymorphicResponse_mapsPymeCheckingAccountWithDefaultStatus_StatusName() {
+        PymeCheckingAccount acc = new PymeCheckingAccount("cust-6", "USD", ProductStatus.ACTIVE, AccountType.PYME_CHECKING, 8, BigDecimal.valueOf(1.1), BigDecimal.valueOf(200));
+        acc.setId("pyme-1");
+        PymeCheckingAccountResponse resp = (PymeCheckingAccountResponse) CustomerApiMapper.toPolymorphicResponse(acc);
+
+        assertAll(
+            () -> assertEquals("pyme-1", resp.getId()),
+            () -> assertEquals("cust-6", resp.getCustomerId()),
+            () -> assertEquals(com.bca.core_banking_service.dto.AccountType.PYME_CHECKING, resp.getType()),
+            () -> assertEquals("USD", resp.getCurrency()),
+            () -> assertEquals(200.0f, resp.getBalance()),
+            () -> assertEquals(ProductStatus.ACTIVE.name(), resp.getStatus().name()),
+            () -> assertEquals(8, resp.getMaxMonthlyTransactions()),
+            () -> assertEquals(BigDecimal.valueOf(1.1), resp.getMaintenanceCommission())
+        );
+    }
+
+
+    @Test
+    @DisplayName("toPolymorphicResponse throws IllegalArgumentException for null input or unsupported type")
+    void testToPolymorphicResponse_throwsForNullOrUnsupportedType() {
+        Account unsupportedAccount = new PymeCheckingAccount("cust-6", "USD", ProductStatus.ACTIVE, 
+        AccountType.INVALID, 8, BigDecimal.valueOf(1.1), BigDecimal.valueOf(200));
+
+        unsupportedAccount.setType(AccountType.INVALID);
+
+        IllegalArgumentException unsupportedType = assertThrows(IllegalArgumentException.class, () -> CustomerApiMapper.toPolymorphicResponse(unsupportedAccount));
+        assertEquals("Invalid account type: INVALID", unsupportedType.getMessage());
     }
 
     @Test

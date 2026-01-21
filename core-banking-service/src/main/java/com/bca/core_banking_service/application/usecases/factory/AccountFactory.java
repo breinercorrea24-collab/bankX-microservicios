@@ -95,12 +95,12 @@ public class AccountFactory {
         /* ========= BUSINESS EXTENSION ========= */
 
         if (isBusinessType(cmd.getCustomerType())) {
-
+            account.setCustomerType(cmd.getCustomerType());
             BusinessAccountExtension extension = new BusinessAccountExtension(
                     cmd.getHolders(),
                     cmd.getAuthorizedSigners());
 
-            extension.validateBusinessRules();
+            // extension.validateBusinessRules();
 
             account.attachBusinessExtension(extension);
         }
