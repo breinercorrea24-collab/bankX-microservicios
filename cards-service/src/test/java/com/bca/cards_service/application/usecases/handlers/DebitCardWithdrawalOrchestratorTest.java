@@ -76,6 +76,30 @@ class DebitCardWithdrawalOrchestratorTest {
         assertTrue(accountsClient.withdrawals.isEmpty());
     }
 
+    @Test
+    void handlesNullBalanceResponse() {
+        ExternalAccountsClient nullBalanceClient = new ExternalAccountsClient() {
+            @Override
+            public Mono<ResponseEntity<AccountBalanceResponse>> AccountWithdrawal(String accountId, BigDecimal amount) {
+                return Mono.just(ResponseEntity.ok(new AccountBalanceResponse()));
+            }
+
+            @Override
+            public Mono<ResponseEntity<AccountBalanceResponse>> AccountBalance(String accountId) {
+                return Mono.justOrEmpty((ResponseEntity<AccountBalanceResponse>) null);
+            }
+        };
+
+        DebitCardWithdrawalOrchestrator orchestratorNullBalance = new DebitCardWithdrawalOrchestrator(nullBalanceClient);
+        DebitCard card = new DebitCard("card-4", "4444", CardStatus.ACTIVE, CardType.DEBIT,
+                "cust-4", "****", BigDecimal.ZERO, LocalDateTime.now(),
+                "acc-1", new LinkedHashSet<>(Set.of()));
+
+        StepVerifier.create(orchestratorNullBalance.withdrawCascade(card, new BigDecimal("10")))
+                .expectError(BusinessException.class)
+                .verify();
+    }
+
     private AccountBalanceResponse balance(String id, String amount) {
         AccountBalanceResponse response = new AccountBalanceResponse();
         response.setId(id);

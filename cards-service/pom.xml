@@ -180,21 +180,22 @@
 					<excludes>
 						<exclude>org/openapitools/**</exclude>
 						<exclude>**/OpenApiGeneratorApplication*</exclude>
-						<exclude>**/com/bca/cards_service/CardsServiceApplication*</exclude>
-
-						<exclude>com/bca/cards_service/domain/model/**</exclude>
-						<exclude>com/bca/cards_service/domain/ports/**</exclude>
-						<exclude>com/bca/cards_service/application/ports/**</exclude>
-						<exclude>com/bca/cards_service/dto/**</exclude>
 						<exclude>com/bca/cards_service/api/**</exclude>
-						<exclude>**/CardsServiceApplication*</exclude>
 
-						<exclude>**/domain/model/enums/**</exclude>
-						<exclude>**/domain/model/entities/**</exclude>
+						<exclude>**/domain/model/**</exclude>
+						<exclude>**/domain/enums/**</exclude>
+						<exclude>**/entities/**</exclude>
+						<exclude>**/dto/**</exclude>
+
 						<exclude>**/infrastructure/config/**</exclude>
-						<exclude>**/exceptions/**</exclude>
+						<exclude>**/infrastructure/input/rest/exception/**</exclude>
+						<exclude>**/infrastructure/output/rest/**</exclude>
 						<exclude>**/*Config.class</exclude>
+						
+						<exclude>**/com/bca/cards_service/CardsServiceApplication*</exclude>
 						<exclude>**/*Application.class</exclude>
+
+						<exclude>**/exceptions/**</exclude>
 					</excludes>
 				</configuration>
 				<executions>
