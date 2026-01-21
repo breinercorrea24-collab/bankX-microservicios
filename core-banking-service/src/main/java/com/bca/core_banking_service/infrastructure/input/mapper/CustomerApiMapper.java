@@ -39,7 +39,7 @@ public class CustomerApiMapper {
 
             case PYME_CHECKING -> toPymeCheckingAccountResponse((PymeCheckingAccount) account);
 
-            default -> throw new IllegalArgumentException("Unsupported account type: " + account.getType());
+            default -> throw new IllegalArgumentException("Invalid account type: " + account.getType());
         };
     }
 
