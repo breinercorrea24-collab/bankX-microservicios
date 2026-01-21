@@ -205,6 +205,29 @@ class DebitCardWithdrawalOrchestratorTest {
                 .verify();
     }
 
+    @Test
+    @DisplayName("Cobertura Línea 40: ResponseEntity sin body")
+    void withdrawFromAccount_ResponseWithoutBody_MapsToNull() {
+        ExternalAccountsClient client = new ExternalAccountsClient() {
+            @Override
+            public Mono<ResponseEntity<AccountBalanceResponse>> AccountWithdrawal(String accountId, BigDecimal amount) {
+                return Mono.just(ResponseEntity.ok(new AccountBalanceResponse()));
+            }
+
+            @Override
+            public Mono<ResponseEntity<AccountBalanceResponse>> AccountBalance(String accountId) {
+                return Mono.just(ResponseEntity.ofNullable(null));
+            }
+        };
+
+        DebitCardWithdrawalOrchestrator orchestrator = new DebitCardWithdrawalOrchestrator(client);
+        DebitCard card = createBaseCard("acc-empty-body");
+
+        StepVerifier.create(orchestrator.withdrawCascade(card, new BigDecimal("3")))
+                .expectError(NullPointerException.class)
+                .verify();
+    }
+
     // Helper para evitar repetición de código
     private DebitCard createBaseCard(String primaryAccount) {
         return new DebitCard("card-id", "4111", CardStatus.ACTIVE, CardType.DEBIT,
