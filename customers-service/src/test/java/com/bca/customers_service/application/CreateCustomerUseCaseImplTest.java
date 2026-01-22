@@ -25,7 +25,7 @@ class CreateCustomerUseCaseImplTest {
 
     @Test
     void shouldCreateCustomerWhenDocumentDoesNotExist() {
-        CustomerCreateRequest request = buildRequest();
+        CustomerCreateRequest request = buildRequest(CustomerCreateRequest.CustomerType.BANKX, true);
         customerRepository.existsByDocumentResult = Mono.just(false);
 
         StepVerifier.create(useCase.execute(request))
@@ -48,7 +48,7 @@ class CreateCustomerUseCaseImplTest {
 
     @Test
     void shouldErrorWhenDocumentAlreadyExists() {
-        CustomerCreateRequest request = buildRequest();
+        CustomerCreateRequest request = buildRequest(CustomerCreateRequest.CustomerType.BANKX, true);
         customerRepository.existsByDocumentResult = Mono.just(true);
 
         StepVerifier.create(useCase.execute(request))
@@ -60,6 +60,10 @@ class CreateCustomerUseCaseImplTest {
     }
 
     private CustomerCreateRequest buildRequest() {
+        return buildRequest(CustomerCreateRequest.CustomerType.BANKX, true);
+    }
+
+    private CustomerCreateRequest buildRequest(CustomerCreateRequest.CustomerType type, boolean includeAddress) {
         CustomerCreateRequest.Document document = new CustomerCreateRequest.Document(
                 CustomerCreateRequest.Document.DocumentType.DNI, "12345678"
         );
@@ -69,17 +73,30 @@ class CreateCustomerUseCaseImplTest {
         );
 
         return new CustomerCreateRequest(
-                CustomerCreateRequest.CustomerType.BANKX,
+                type,
                 "John Doe",
                 document,
                 "+51999999999",
                 "john.doe@example.com",
                 LocalDate.of(1990, 1, 1),
-                address,
+                includeAddress ? address : null,
                 "Engineer",
                 5000.0,
                 false
         );
+    }
+
+    @Test
+    void shouldCreateYankiCustomerWithNullAddress() {
+        CustomerCreateRequest request = buildRequest(CustomerCreateRequest.CustomerType.YANKI, false);
+        customerRepository.existsByDocumentResult = Mono.just(false);
+
+        StepVerifier.create(useCase.execute(request))
+                .assertNext(saved -> {
+                    assertThat(saved.getCustomerType()).isEqualTo(Customer.CustomerType.YANKI);
+                    assertThat(saved.getAddress()).isNull();
+                })
+                .verifyComplete();
     }
 
     private static class StubCustomerRepository implements CustomerRepository {
