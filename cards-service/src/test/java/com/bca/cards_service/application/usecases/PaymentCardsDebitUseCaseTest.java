@@ -77,6 +77,29 @@ class PaymentCardsDebitUseCaseTest {
     }
 
     @Test
+    void payFailsWhenCardBlocked() {
+        DebitCard card = new DebitCard("card-5", "4555", CardStatus.BLOCKED, CardType.DEBIT,
+                "cust-5", "****", BigDecimal.ZERO, LocalDateTime.now(),
+                "acc-1", new LinkedHashSet<>(Set.of()));
+        cardRepository.findByIdResult = Mono.just(card);
+
+        StepVerifier.create(useCase.pay("card-5", new BigDecimal("5")))
+                .expectError(BusinessException.class)
+                .verify();
+    }
+
+    @Test
+    void payFailsWhenCardIsNotDebit() {
+        Card creditCard = new CreditCard("card-6", "4666", CardStatus.ACTIVE, CardType.CREDIT,
+                "cust-6", "****", new BigDecimal("40.00"), LocalDateTime.now(), new BigDecimal("40.00"));
+        cardRepository.findByIdResult = Mono.just(creditCard);
+
+        StepVerifier.create(useCase.pay("card-6", new BigDecimal("5")))
+                .expectError(BusinessException.class)
+                .verify();
+    }
+
+    @Test
     void withdrawProcessesWhenCardIsActiveDebit() {
         DebitCard card = new DebitCard("card-4", "4444", CardStatus.ACTIVE, CardType.DEBIT,
                 "cust-4", "****", BigDecimal.ZERO, LocalDateTime.now(),
