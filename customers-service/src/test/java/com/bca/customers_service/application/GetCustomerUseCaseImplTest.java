@@ -45,6 +45,18 @@ class GetCustomerUseCaseImplTest {
     }
 
     @Test
+    void shouldMapYankiCustomerType() {
+        Customer customer = buildCustomer();
+        customer.setCustomerType(Customer.CustomerType.YANKI);
+        customerRepository.store(customer);
+
+        StepVerifier.create(useCase.execute("abc"))
+                .assertNext(response -> assertThat(response.getCustomerType())
+                        .isEqualTo(CustomerResponse.CustomerType.YANKI))
+                .verifyComplete();
+    }
+
+    @Test
     void shouldErrorWhenCustomerNotFound() {
         StepVerifier.create(useCase.execute("missing"))
                 .expectErrorMatches(error -> error instanceof RuntimeException
