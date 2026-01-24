@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +17,12 @@ import org.slf4j.LoggerFactory;
 public class CreateCustomerUseCaseImpl implements CreateCustomerUseCase {
 
     private static final Logger logger = LoggerFactory.getLogger(CreateCustomerUseCaseImpl.class);
+
+    private static final Map<CustomerCreateRequest.CustomerType, Customer.CustomerType> CUSTOMER_TYPE_MAP =
+            Map.of(
+                    CustomerCreateRequest.CustomerType.YANKI, Customer.CustomerType.YANKI,
+                    CustomerCreateRequest.CustomerType.BANKX, Customer.CustomerType.BANKX
+            );
 
     private final CustomerRepository customerRepository;
 
@@ -67,13 +74,14 @@ public class CreateCustomerUseCaseImpl implements CreateCustomerUseCase {
     }
 
     private Customer.CustomerType mapCustomerType(CustomerCreateRequest.CustomerType type) {
-        switch (type) {
-            case YANKI:
-                return Customer.CustomerType.YANKI;
-            case BANKX:
-                return Customer.CustomerType.BANKX;
-            default:
-                throw new IllegalArgumentException("Unknown customer type: " + type);
+        if (type == null) {
+            throw new IllegalArgumentException("Unknown customer type: " + type);
         }
+
+        Customer.CustomerType customerType = CUSTOMER_TYPE_MAP.get(type);
+        if (customerType == null) {
+            throw new IllegalArgumentException("Unknown customer type: " + type);
+        }
+        return customerType;
     }
 }
