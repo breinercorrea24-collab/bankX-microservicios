@@ -17,6 +17,7 @@ import java.time.ZoneOffset;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class CustomersApiMapperTest {
 
@@ -148,10 +149,43 @@ class CustomersApiMapperTest {
 
     @Test
     void mapCustomerType_mapsEnumValues() {
-        assertThat(CustomersApiMapper.mapCustomerType(Customer.CustomerType.YANKI))
+        assertThat(CustomersApiMapper.mapCustomerType(com.bca.customers_service.domain.model.Customer.CustomerType.YANKI))
                 .isEqualTo(com.bca.customers_service.dto.CustomerResponse.CustomerTypeEnum.YANKI);
-        assertThat(CustomersApiMapper.mapCustomerType(Customer.CustomerType.BANKX))
+        assertThat(CustomersApiMapper.mapCustomerType(com.bca.customers_service.domain.model.Customer.CustomerType.BANKX))
                 .isEqualTo(com.bca.customers_service.dto.CustomerResponse.CustomerTypeEnum.BANKX);
+    }
+
+    @Test
+    void mapToCustomerCreateRequest_handlesNullDocument() {
+        CustomerCreateDocument doc = new CustomerCreateDocument()
+                .type(CustomerCreateDocument.TypeEnum.DNI)
+                .number("12345678");
+        CustomerCreate generated = new CustomerCreate(CustomerCreate.CustomerTypeEnum.BANKX, "John Doe", null, "999888777")
+                .address(new CustomerCreateAddress()
+                        .department("Lima")
+                        .province("Lima")
+                        .district("Miraflores")
+                        .street("Av. Example 123"));
+
+        CustomerCreateRequest request = CustomersApiMapper.mapToCustomerCreateRequest(generated);
+
+        assertThat(request.getDocument()).isNull();
+        assertThat(request.getFullName()).isEqualTo("John Doe");
+        assertThat(request.getAddress()).isNotNull();
+    }
+
+    @Test
+    void mapToCustomerCreateRequest_handlesNullAddress() {
+        CustomerCreateDocument doc = new CustomerCreateDocument()
+                .type(CustomerCreateDocument.TypeEnum.PASSPORT)
+                .number("PASS-987654");
+        CustomerCreate generated = new CustomerCreate(CustomerCreate.CustomerTypeEnum.YANKI, "Jane Smith", doc, "111222333");
+
+        CustomerCreateRequest request = CustomersApiMapper.mapToCustomerCreateRequest(generated);
+
+        assertThat(request.getAddress()).isNull();
+        assertThat(request.getDocument()).isNotNull();
+        assertThat(request.getDocument().getNumber()).isEqualTo("PASS-987654");
     }
 
 }
