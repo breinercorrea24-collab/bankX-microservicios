@@ -1,0 +1,10 @@
+{
+  "eventType": "ACCOUNT_DEBITED",
+  "accountId": "acc-3001",
+  "amount": 300.00,
+  "currency": "PEN",
+  "transactionId": "bank-tx-7788",
+  "source": "YANKI",
+  "status": "SUCCESS",
+  "timestamp": "2025-01-15T11:01:30Z"
+}

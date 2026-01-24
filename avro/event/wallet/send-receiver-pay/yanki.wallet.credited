@@ -1,0 +1,9 @@
+{
+  "eventType": "YANKI_CREDITED",
+  "walletPhone": "988777666",
+  "amount": 200.00,
+  "currency": "PEN",
+  "transactionId": "yanki-tx-5555",
+  "source": "BANK",
+  "timestamp": "2025-01-15T13:01:20Z"
+}
