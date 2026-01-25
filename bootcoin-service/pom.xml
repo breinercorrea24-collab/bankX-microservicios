@@ -153,57 +153,57 @@
 	<build>
 		<plugins>
 
-		<!-- 🚀 SPRING BOOT -->
-		<plugin>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-maven-plugin</artifactId>
-			<configuration>
-				<mainClass>com.bca.bootcoin_service.BootcoinServiceApplication</mainClass>
-			</configuration>
-		</plugin>
+			<!-- 🚀 SPRING BOOT -->
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<mainClass>com.bca.bootcoin_service.BootcoinServiceApplication</mainClass>
+				</configuration>
+			</plugin>
 
-		<plugin>
-			<groupId>org.jacoco</groupId>
-			<artifactId>jacoco-maven-plugin</artifactId>
-			<version>0.8.11</version>
-			<configuration>
-				<excludes>
-					<exclude>org/openapitools/**</exclude>
-					<exclude>**/OpenApiGeneratorApplication*</exclude>
-					<exclude>com/bca/bootcoin_service/api/**</exclude>
-					<exclude>**/domain/model/**</exclude>
-					<exclude>**/domain/enums/**</exclude>
-					<exclude>**/entities/**</exclude>
-					<exclude>**/dto/**</exclude>
-					<exclude>**/infrastructure/config/**</exclude>
-					<exclude>**/infrastructure/input/rest/exception/**</exclude>
-					<exclude>**/infrastructure/output/rest/**</exclude>
-					<exclude>**/*Config.class</exclude>
-					<exclude>**/com/bca/bootcoin_service/BootcoinServiceApplication*</exclude>
-					<exclude>**/*Application.class</exclude>
-					<exclude>**/exceptions/**</exclude>
-				</excludes>
-			</configuration>
-			<executions>
-				<execution>
-					<goals>
-						<goal>prepare-agent</goal>
-					</goals>
-				</execution>
-				<execution>
-					<id>report</id>
-					<phase>test</phase>
-					<goals>
-						<goal>report</goal>
-					</goals>
-				</execution>
-			</executions>
-		</plugin>
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.8.11</version>
+				<configuration>
+					<excludes>
+						<exclude>org/openapitools/**</exclude>
+						<exclude>**/OpenApiGeneratorApplication*</exclude>
+						<exclude>com/bca/bootcoin_service/api/**</exclude>
+						<exclude>**/domain/model/**</exclude>
+						<exclude>**/domain/enums/**</exclude>
+						<exclude>**/entities/**</exclude>
+						<exclude>**/dto/**</exclude>
+						<exclude>**/infrastructure/config/**</exclude>
+						<exclude>**/infrastructure/input/rest/exception/**</exclude>
+						<exclude>**/infrastructure/output/rest/**</exclude>
+						<exclude>**/*Config.class</exclude>
+						<exclude>**/com/bca/bootcoin_service/BootcoinServiceApplication*</exclude>
+						<exclude>**/*Application.class</exclude>
+						<exclude>**/exceptions/**</exclude>
+					</excludes>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>report</id>
+						<phase>test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 
-		<!-- 🔧 OPENAPI GENERATOR -->
-		<plugin>
-			<groupId>org.openapitools</groupId>
-			<artifactId>openapi-generator-maven-plugin</artifactId>
+			<!-- 🔧 OPENAPI GENERATOR -->
+			<plugin>
+				<groupId>org.openapitools</groupId>
+				<artifactId>openapi-generator-maven-plugin</artifactId>
 				<version>7.3.0</version>
 				<executions>
 					<execution>
@@ -211,9 +211,7 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<inputSpec>
-                                ${project.basedir}/src/main/resources/swagger/bootcoin-service-openapi.yaml
-							</inputSpec>
+							<inputSpec>${project.basedir}/src/main/resources/swagger/bootcoin-service-openapi.yaml</inputSpec>
 
 							<generatorName>spring</generatorName>
 							<apiPackage>com.bca.bootcoin_service.api</apiPackage>
@@ -229,6 +227,7 @@
 
 							<generateApiTests>false</generateApiTests>
 							<generateModelTests>false</generateModelTests>
+							<skip>${openapi.generator.skip}</skip>
 						</configuration>
 					</execution>
 				</executions>
@@ -236,5 +235,14 @@
 
 		</plugins>
 	</build>
+
+	<profiles>
+		<profile>
+			<id>skip-openapi</id>
+			<properties>
+				<openapi.generator.skip>true</openapi.generator.skip>
+			</properties>
+		</profile>
+	</profiles>
 
 </project>
