@@ -8,14 +8,27 @@ import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.lang.reflect.Method;
 import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class CreateCustomerUseCaseImplTest {
 
     private CreateCustomerUseCaseImpl useCase;
     private StubCustomerRepository customerRepository;
+    private static final Method MAP_CUSTOMER_TYPE_METHOD;
+
+    static {
+        try {
+            MAP_CUSTOMER_TYPE_METHOD = CreateCustomerUseCaseImpl.class
+                    .getDeclaredMethod("mapCustomerType", CustomerCreateRequest.CustomerType.class);
+            MAP_CUSTOMER_TYPE_METHOD.setAccessible(true);
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @BeforeEach
     void setUp() {
@@ -84,6 +97,40 @@ class CreateCustomerUseCaseImplTest {
                 5000.0,
                 false
         );
+    }
+
+    @Test
+    void shouldMapYankiCustomerType() {
+        assertThat(invokeMapCustomerType(CustomerCreateRequest.CustomerType.YANKI))
+                .isEqualTo(Customer.CustomerType.YANKI);
+    }
+
+    @Test
+    void shouldMapBankxCustomerType() {
+        assertThat(invokeMapCustomerType(CustomerCreateRequest.CustomerType.BANKX))
+                .isEqualTo(Customer.CustomerType.BANKX);
+    }
+
+    @Test
+    void shouldRejectUnknownCustomerType() {
+        assertThatThrownBy(() -> invokeMapCustomerType(null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Unknown customer type: null");
+    }
+
+    private Customer.CustomerType invokeMapCustomerType(CustomerCreateRequest.CustomerType type) {
+        try {
+            return (Customer.CustomerType) MAP_CUSTOMER_TYPE_METHOD.invoke(useCase, type);
+        } catch (ReflectiveOperationException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof RuntimeException runtimeException) {
+                throw runtimeException;
+            }
+            if (cause != null) {
+                throw new RuntimeException(cause);
+            }
+            throw new RuntimeException(e);
+        }
     }
 
     @Test
