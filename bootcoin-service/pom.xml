@@ -28,6 +28,7 @@
 	</scm>
 	<properties>
 		<java.version>17</java.version>
+		<openapi.generator.skip>false</openapi.generator.skip>
 	</properties>
 	<dependencies>
 		<!-- 🌐 WEBFLUX -->
@@ -121,6 +122,20 @@
 			<version>7.4</version>
 		</dependency>
 
+		<!-- 🧪 TEST -->
+		<dependency>
+			<groupId>io.projectreactor</groupId>
+			<artifactId>reactor-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.squareup.okhttp3</groupId>
+			<artifactId>mockwebserver</artifactId>
+			<version>4.12.0</version>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
 
 	<dependencyManagement>
@@ -138,19 +153,57 @@
 	<build>
 		<plugins>
 
-			<!-- 🚀 SPRING BOOT -->
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-				<configuration>
-					<mainClass>com.bca.bootcoin_service.BootcoinServiceApplication</mainClass>
-				</configuration>
-			</plugin>
+		<!-- 🚀 SPRING BOOT -->
+		<plugin>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-maven-plugin</artifactId>
+			<configuration>
+				<mainClass>com.bca.bootcoin_service.BootcoinServiceApplication</mainClass>
+			</configuration>
+		</plugin>
 
-			<!-- 🔧 OPENAPI GENERATOR -->
-			<plugin>
-				<groupId>org.openapitools</groupId>
-				<artifactId>openapi-generator-maven-plugin</artifactId>
+		<plugin>
+			<groupId>org.jacoco</groupId>
+			<artifactId>jacoco-maven-plugin</artifactId>
+			<version>0.8.11</version>
+			<configuration>
+				<excludes>
+					<exclude>org/openapitools/**</exclude>
+					<exclude>**/OpenApiGeneratorApplication*</exclude>
+					<exclude>com/bca/bootcoin_service/api/**</exclude>
+					<exclude>**/domain/model/**</exclude>
+					<exclude>**/domain/enums/**</exclude>
+					<exclude>**/entities/**</exclude>
+					<exclude>**/dto/**</exclude>
+					<exclude>**/infrastructure/config/**</exclude>
+					<exclude>**/infrastructure/input/rest/exception/**</exclude>
+					<exclude>**/infrastructure/output/rest/**</exclude>
+					<exclude>**/*Config.class</exclude>
+					<exclude>**/com/bca/bootcoin_service/BootcoinServiceApplication*</exclude>
+					<exclude>**/*Application.class</exclude>
+					<exclude>**/exceptions/**</exclude>
+				</excludes>
+			</configuration>
+			<executions>
+				<execution>
+					<goals>
+						<goal>prepare-agent</goal>
+					</goals>
+				</execution>
+				<execution>
+					<id>report</id>
+					<phase>test</phase>
+					<goals>
+						<goal>report</goal>
+					</goals>
+				</execution>
+			</executions>
+		</plugin>
+
+		<!-- 🔧 OPENAPI GENERATOR -->
+		<plugin>
+			<groupId>org.openapitools</groupId>
+			<artifactId>openapi-generator-maven-plugin</artifactId>
 				<version>7.3.0</version>
 				<executions>
 					<execution>
