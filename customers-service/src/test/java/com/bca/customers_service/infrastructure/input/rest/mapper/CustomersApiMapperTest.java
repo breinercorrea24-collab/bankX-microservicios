@@ -156,6 +156,12 @@ class CustomersApiMapperTest {
     }
 
     @Test
+    void mapCustomerType_throwsForNull() {
+        assertThatThrownBy(() -> CustomersApiMapper.mapCustomerType(null))
+                .isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
     void mapToCustomerCreateRequest_handlesNullDocument() {
         CustomerCreateDocument doc = new CustomerCreateDocument()
                 .type(CustomerCreateDocument.TypeEnum.DNI)
