@@ -48,9 +48,29 @@ docker exec -it broker kafka-console-producer --bootstrap-server broker:29092 --
 docker exec -it broker kafka-console-consumer --bootstrap-server broker:29092 --topic account-events
 ```
 
-▶️ Test
-    mvn clean test
-    mvn jacoco:report
+## ▶️ Tests
 
-http://localhost:8081/account-service/swagger-ui.html
-http://localhost:8082/cards-service/swagger-ui.html
+Para ejecutar los tests unitarios y generar el reporte de cobertura con JaCoCo:
+
+```bash
+mvn clean test
+mvn jacoco:report
+```
+
+### 📊 Reporte de cobertura
+
+Luego de ejecutar los comandos, el reporte estará disponible en:
+
+```text
+target/site/jacoco/index.html
+```
+
+## 📚 Documentación API (Swagger)
+
+Una vez levantados los servicios, puedes acceder a la documentación Swagger:
+
+* **Account Service**
+  [http://localhost:8081/account-service/swagger-ui.html](http://localhost:8081/account-service/swagger-ui.html)
+
+* **Cards Service**
+  [http://localhost:8082/cards-service/swagger-ui.html](http://localhost:8082/cards-service/swagger-ui.html)
