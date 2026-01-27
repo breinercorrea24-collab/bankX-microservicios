@@ -1,0 +1,11 @@
+{
+  "eventType": "BankTransferCompletedEvent",
+  "tradeId": "trade-011",
+  "fromAccountId": "acc-7002",
+  "toAccountId": "acc-9001",
+  "amount": 1000.00,
+  "currency": "PEN",
+  "transactionId": "bank-tx-8844",
+  "status": "COMPLETED",
+  "timestamp": "2025-01-15T16:12:30Z"
+}

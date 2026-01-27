@@ -1,0 +1,10 @@
+{
+  "eventType": "ACCOUNT_DEBITED",
+  "accountId": "string",
+  "amount": 0.0,
+  "currency": "string",
+  "transactionId": "string",
+  "source": "string",
+  "status": "string",
+  "timestamp": "string"
+}

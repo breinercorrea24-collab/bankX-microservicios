@@ -1,0 +1,9 @@
+{
+  "eventType": "BANK_TO_YANKI_REQUESTED",
+  "transactionId": "string",
+  "fromAccountId": "string",
+  "toPhone": "string",
+  "amount": 0.0,
+  "currency": "string",
+  "timestamp": "string"
+}

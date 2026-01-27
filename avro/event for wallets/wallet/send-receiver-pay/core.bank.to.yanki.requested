@@ -1,9 +1,0 @@
-{
-  "eventType": "BANK_TO_YANKI_REQUESTED",
-  "transactionId": "bank-yanki-4401",
-  "fromAccountId": "acc-7001",
-  "toPhone": "988777666",
-  "amount": 200.00,
-  "currency": "PEN",
-  "timestamp": "2025-01-15T13:00:00Z"
-}

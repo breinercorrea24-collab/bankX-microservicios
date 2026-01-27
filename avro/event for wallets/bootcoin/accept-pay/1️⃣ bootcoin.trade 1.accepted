@@ -1,0 +1,12 @@
+{
+  "eventType": "BootCoinTradeAcceptedEvent",
+  "tradeId": "trade-010",
+  "buyerId": "user-300",
+  "sellerId": "user-900",
+  "amount": 250,
+  "currency": "PEN",
+  "paymentMethod": "YANKI",
+  "buyerPhone": "999666555",
+  "sellerPhone": "988777111",
+  "timestamp": "2025-01-15T15:00:00Z"
+}

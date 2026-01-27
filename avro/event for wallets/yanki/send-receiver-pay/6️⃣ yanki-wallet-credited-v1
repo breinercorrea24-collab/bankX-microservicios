@@ -1,0 +1,9 @@
+{
+  "eventType": "YANKI_CREDITED",
+  "walletPhone": "string",
+  "amount": 0.0,
+  "currency": "string",
+  "transactionId": "string",
+  "source": "string",
+  "timestamp": "string"
+}

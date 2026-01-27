@@ -1,0 +1,12 @@
+{
+  "eventType": "YANKI_PAYMENT_REQUESTED",
+  "paymentId": "string",
+  "fromPhone": "string",
+  "toPhone": "string",
+  "toAccountId": "string | null",
+  "amount": 0.0,
+  "currency": "string",
+  "linkedDebitCard": true,
+  "mode": "string",
+  "timestamp": "string"
+}

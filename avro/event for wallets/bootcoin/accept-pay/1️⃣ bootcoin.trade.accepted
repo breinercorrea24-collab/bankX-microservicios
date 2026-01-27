@@ -1,0 +1,12 @@
+{
+  "eventType": "BootCoinTradeAcceptedEvent",
+  "tradeId": "trade-011",
+  "buyerId": "cust-400",
+  "sellerId": "cust-800",
+  "amount": 1000.00,
+  "currency": "PEN",
+  "paymentMethod": "BANK_TRANSFER",
+  "buyerAccountId": "acc-7002",
+  "sellerAccountId": "acc-9001",
+  "timestamp": "2025-01-15T16:10:00Z"
+}

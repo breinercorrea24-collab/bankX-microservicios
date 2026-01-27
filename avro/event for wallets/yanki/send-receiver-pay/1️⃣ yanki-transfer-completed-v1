@@ -1,0 +1,10 @@
+{
+  "eventType": "YANKI_TRANSFER_COMPLETED",
+  "transactionId": "string",
+  "fromPhone": "string",
+  "toPhone": "string",
+  "amount": 0.0,
+  "currency": "string",
+  "status": "string",
+  "timestamp": "string"
+}

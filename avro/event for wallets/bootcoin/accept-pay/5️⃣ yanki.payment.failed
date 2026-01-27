@@ -1,0 +1,11 @@
+{
+  "eventType": "YankiPaymentFailedEvent",
+  "tradeId": "trade-010",
+  "fromPhone": "999666555",
+  "toPhone": "988777111",
+  "amount": 250,
+  "currency": "PEN",
+  "status": "FAILED",
+  "reason": "INSUFFICIENT_FUNDS",
+  "timestamp": "2025-01-15T15:01:30Z"
+}
