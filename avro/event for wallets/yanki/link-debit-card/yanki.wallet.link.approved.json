@@ -1,0 +1,6 @@
+{
+    "eventType": "YankiWalletLinkApprovedEvent",
+    "walletId": "wallet-5001",
+    "accountId": "acc-3001",
+    "occurredAt": "2025-01-16T10:16:45Z"
+}

@@ -1,0 +1,12 @@
+{
+    "eventType": "BootCoinBuyRequestedEvent",
+    "tradeRequestId": "buy-req-90001",
+    "buyerWalletId": "bcw-10001",
+    "amountPen": 500.00,
+    "amountBootCoin": 0.025,
+    "rateApplied": 20000.00,
+    "currency": "PEN",
+    "paymentMethod": "YANKI | BANK_TRANSFER",
+    "status": "CREATED",
+    "occurredAt": "2025-01-16T11:20:45Z"
+}

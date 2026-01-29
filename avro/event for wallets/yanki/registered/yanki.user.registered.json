@@ -1,0 +1,8 @@
+{
+    "eventType": "YankiUserRegisteredEvent",
+    "userId": "user-1001",
+    "walletId": "wallet-5001",
+    "phone": "999666555",
+    "status": "ACTIVE",
+    "occurredAt": "2025-01-15T14:45:00Z"
+}

@@ -1,0 +1,6 @@
+{
+    "eventType": "YankiWalletLinkRejectedEvent",
+    "walletId": "wallet-5001",
+    "reason": "CARD_NOT_OWNED_BY_CUSTOMER",
+    "occurredAt": "2025-01-16T10:16:10Z"
+}

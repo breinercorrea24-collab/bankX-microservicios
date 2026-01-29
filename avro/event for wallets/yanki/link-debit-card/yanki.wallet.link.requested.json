@@ -1,0 +1,6 @@
+{
+    "eventType": "YankiWalletLinkRequestedEvent",
+    "walletId": "wallet-5001",
+    "cardNumber": "411111******1111",
+    "occurredAt": "2025-01-16T10:15:00Z"
+}

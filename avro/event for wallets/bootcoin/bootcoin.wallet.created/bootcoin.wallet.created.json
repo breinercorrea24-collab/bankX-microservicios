@@ -1,0 +1,10 @@
+{
+  "eventType": "BootCoinWalletCreatedEvent",
+  "walletId": "bcw-10001",
+  "documentType": "DNI",
+  "documentNumber": "74859632",
+  "phone": "999888777",
+  "email": "cliente@mail.com",
+  "status": "ACTIVE",
+  "occurredAt": "2025-01-16T10:05:30Z"
+}

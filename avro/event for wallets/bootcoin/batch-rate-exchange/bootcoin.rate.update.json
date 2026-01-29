@@ -1,0 +1,10 @@
+{
+    "eventType": "BootCoinRateUpdatedEvent",
+    "rateId": "rate-20250116-01",
+    "buyRate": 4.95,
+    "sellRate": 5.10,
+    "currency": "PEN",
+    "effectiveFrom": "2025-01-16T09:00:00Z",
+    "updatedBy": "BANK_JOB",
+    "occurredAt": "2025-01-16T08:59:30Z"
+}
